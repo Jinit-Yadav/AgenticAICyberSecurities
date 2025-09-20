@@ -5,4 +5,6 @@ Seaborn
 Scikit-learn
 Jupyter
 Flask
--e .
+catboost
+xgboost
+#-e .
