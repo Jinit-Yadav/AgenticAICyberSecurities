@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduPredict - Student Performance Predictor</title>
+    <title>About - EduPredict</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -71,7 +71,7 @@
         .hero-section {
             background: linear-gradient(135deg, rgba(67, 97, 238, 0.9) 0%, rgba(114, 9, 183, 0.9) 100%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234361ee"/><path d="M0 0L100 100" stroke="white" stroke-width="0.5" opacity="0.2"/><path d="M100 0L0 100" stroke="white" stroke-width="0.5" opacity="0.2"/></svg>');
             color: white;
-            padding: 6rem 0 5rem;
+            padding: 4rem 0 3rem;
             margin-bottom: 4rem;
             border-radius: 0 0 30px 30px;
             position: relative;
@@ -105,41 +105,6 @@
             font-size: 1.25rem;
             margin-bottom: 2rem;
             font-weight: 400;
-        }
-        
-        .btn-hero {
-            background: white;
-            color: var(--primary);
-            border: none;
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transition: all 0.6s ease;
-        }
-        
-        .btn-hero:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-            color: var(--primary);
-        }
-        
-        .btn-hero:hover::before {
-            left: 100%;
         }
         
         .section-title {
@@ -232,102 +197,67 @@
             margin-bottom: 0.5rem;
         }
         
-        .login {
-            max-width: 850px;
-            margin: 3rem auto;
-            padding: 3rem;
+        .developer-card {
             background: white;
             border-radius: 20px;
             box-shadow: var(--card-shadow);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .login::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-        }
-        
-        .form-control, .form-select {
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            border: 2px solid #e9ecef;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
-        }
-        
-        .form-label {
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-            color: var(--dark-text);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transform: translateX(-100%);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
-            background: linear-gradient(135deg, var(--primary-dark) 0%, #651e97 100%);
-        }
-        
-        .btn-primary:hover::before {
-            animation: shine 1.5s infinite;
-        }
-        
-        @keyframes shine {
-            100% {
-                transform: translateX(100%);
-            }
-        }
-        
-        .prediction-result {
-            background: linear-gradient(135deg, var(--success) 0%, #3aa9db 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 15px;
-            margin-top: 2.5rem;
+            padding: 2.5rem;
             text-align: center;
-            font-size: 1.8rem;
-            font-weight: 700;
-            box-shadow: 0 8px 20px rgba(76, 201, 240, 0.3);
-            animation: fadeIn 0.8s ease;
+            transition: all 0.3s ease;
+            height: 100%;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .developer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .developer-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1.5rem;
+            border: 5px solid #f0f0f0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .social-links {
+            margin-top: 1.5rem;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            line-height: 40px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 1.5rem;
+        }
+        
+        .tech-item {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
         
         footer {
@@ -385,7 +315,6 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
         }
         
-        /* New UI Elements */
         .floating-shapes {
             position: absolute;
             width: 100%;
@@ -437,39 +366,15 @@
             width: 100%;
         }
         
-        .testimonial-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: var(--card-shadow);
-            margin: 1rem;
-            position: relative;
-        }
-        
-        .testimonial-card::before {
-            content: '"';
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            font-size: 5rem;
-            color: rgba(67, 97, 238, 0.1);
-            font-family: Georgia, serif;
-        }
-        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .hero-section {
-                padding: 4rem 0 3rem;
+                padding: 3rem 0 2rem;
                 border-radius: 0 0 20px 20px;
             }
             
             .display-4 {
                 font-size: 2.2rem;
-            }
-            
-            .login {
-                padding: 2rem;
-                margin: 2rem auto;
             }
             
             .stat-number {
@@ -494,10 +399,10 @@
                         <a class="nav-link" href="{{ url_for('index') }}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('predict_datapoint') }}">Predict</a>
+                        <a class="nav-link" href="{{ url_for('predict_datapoint') }}">Predict</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">About</a>
+                          <a class="nav-link active" href="{{ url_for('about') }}">About</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
@@ -507,90 +412,143 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Prediction Form Section -->
-        <div class="login mt-5">
-            <h2 class="text-center mb-4">Student Performance Predictor</h2>
-            <p class="text-center text-muted mb-5">Fill in the details below to predict the student's math score</p>
-            
-            <form method="POST" action="{{ url_for('predict_datapoint') }}">
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="gender" class="form-label">Gender</label>
-                        <select class="form-select" id="gender" name="gender" required>
-                            <option value="" selected disabled>Select Gender</option>
-                            <option value="female">Female</option>
-                            <option value="male">Male</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-6 mb-4">
-                        <label for="ethnicity" class="form-label">Race/Ethnicity</label>
-                        <select class="form-select" id="ethnicity" name="ethnicity" required>
-                            <option value="" selected disabled>Select Ethnicity</option>
-                            <option value="group A">Group A</option>
-                            <option value="group B">Group B</option>
-                            <option value="group C">Group C</option>
-                            <option value="group D">Group D</option>
-                            <option value="group E">Group E</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-6 mb-4">
-                        <label for="parental_level_of_education" class="form-label">Parental Education</label>
-                        <select class="form-select" id="parental_level_of_education" name="parental_level_of_education" required>
-                            <option value="" selected disabled>Select Education Level</option>
-                            <option value="associate's degree">Associate's Degree</option>
-                            <option value="bachelor's degree">Bachelor's Degree</option>
-                            <option value="high school">High School</option>
-                            <option value="master's degree">Master's Degree</option>
-                            <option value="some college">Some College</option>
-                            <option value="some high school">Some High School</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-6 mb-4">
-                        <label for="lunch" class="form-label">Lunch Type</label>
-                        <select class="form-select" id="lunch" name="lunch" required>
-                            <option value="" selected disabled>Select Lunch Type</option>
-                            <option value="free/reduced">Free/Reduced</option>
-                            <option value="standard">Standard</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-6 mb-4">
-                        <label for="test_preparation_course" class="form-label">Test Preparation Course</label>
-                        <select class="form-select" id="test_preparation_course" name="test_preparation_course" required>
-                            <option value="" selected disabled>Select Status</option>
-                            <option value="completed">Completed</option>
-                            <option value="none">None</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-6 mb-4">
-                        <label for="reading_score" class="form-label">Reading Score (out of 100)</label>
-                        <input type="number" class="form-control" id="reading_score" name="reading_score" min="0" max="100" required>
-                    </div>
-                    
-                    <div class="col-md-6 mb-4">
-                        <label for="writing_score" class="form-label">Writing Score (out of 100)</label>
-                        <input type="number" class="form-control" id="writing_score" name="writing_score" min="0" max="100" required>
+    <!-- About Page Content -->
+    <div id="about-page">
+        <!-- Hero Section -->
+        <section class="hero-section text-center">
+            <div class="floating-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+            </div>
+            <div class="container hero-content">
+                <h1 class="display-4 fw-bold mb-4">About EduPredict</h1>
+                <p class="lead mb-4">Learn about our mission, how our prediction system works, and the developer behind this project</p>
+            </div>
+        </section>
+
+        <!-- Project Overview Section -->
+        <section class="container mb-5">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="section-title">Project Overview</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card feature-card h-100 p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h4>Our Mission</h4>
+                        <p class="text-muted">EduPredict aims to revolutionize education by using predictive analytics to identify students who may need additional support. Our goal is to help educators intervene early and improve student outcomes through data-driven insights.</p>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn btn-primary mt-3">Predict Math Score</button>
-            </form>
-            
-            {% if results is defined %}
-            <div class="prediction-result">
-                Predicted Math Score: {{ results }}
+                <div class="col-lg-6 mb-4">
+                    <div class="card feature-card h-100 p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h4>How It Works</h4>
+                        <p class="text-muted">Our system uses machine learning algorithms to analyze various student factors including demographic information, academic history, and socioeconomic background to predict math performance with high accuracy.</p>
+                    </div>
+                </div>
             </div>
-            {% endif %}
-        </div>
+        </section>
+
+        <!-- Developer Section -->
+        <section class="container mb-5">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="section-title">About The Developer</h2>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="developer-card">
+                        <img src="{{ url_for('static', filename='images/img.jpg') }}" alt="Pratham Patade" class="developer-img">
+                        <h3>Pratham Patade</h3>
+                        <p class="text-muted">Computer Science Student & Developer</p>
+                        <p>I'm a passionate computer science student with a strong interest in machine learning and data science. This project combines my technical skills with my desire to create solutions that can make a positive impact in education.</p>
+                        
+                        <div class="tech-stack">
+                            <span class="tech-item">Python</span>
+                            <span class="tech-item">Machine Learning</span>
+                            <span class="tech-item">Flask</span>
+                            <span class="tech-item">HTML/CSS</span>
+                            <span class="tech-item">JavaScript</span>
+                            <span class="tech-item">Bootstrap</span>
+                        </div>
+                        
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Details Section -->
+        <section class="container mb-5">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="section-title">Project Details</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card feature-card h-100 p-4">
+                        <h4 class="mb-3">Technical Implementation</h4>
+                        <p class="text-muted">This project was built using a Flask backend with machine learning models trained on student performance data. The frontend utilizes Bootstrap for responsive design and custom CSS for the unique visual style.</p>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Machine Learning: Scikit-learn, Pandas, NumPy</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Backend: Python, Flask</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Frontend: HTML5, CSS3, JavaScript, Bootstrap</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Data: Student Performance Dataset</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card feature-card h-100 p-4">
+                        <h4 class="mb-3">Features & Functionality</h4>
+                        <p class="text-muted">EduPredict offers a comprehensive solution for predicting student performance with an intuitive interface and detailed results.</p>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Student performance prediction based on multiple factors</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> User-friendly web interface</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Responsive design for all devices</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Detailed analysis and visualization of results</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Educational insights for teachers and administrators</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- College Project Info -->
+        <section class="container mb-5">
+            <div class="stats-container text-center">
+                <h3 class="mb-4">College Mini-Project</h3>
+                <p class="lead text-muted mb-4">This application was developed as part of my academic curriculum to demonstrate practical implementation of machine learning in web applications.</p>
+                <div class="row">
+                    <div class="col-md-4 col-6 mb-3">
+                        <h2 class="stat-number">ML</h2>
+                        <p class="text-muted">Machine Learning</p>
+                    </div>
+                    <div class="col-md-4 col-6 mb-3">
+                        <h2 class="stat-number">Web</h2>
+                        <p class="text-muted">Web Development</p>
+                    </div>
+                    <div class="col-md-4 col-6 mb-3">
+                        <h2 class="stat-number">AI</h2>
+                        <p class="text-muted">AI Integration</p>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Footer -->
     <footer class="text-center">
         <div class="container">
             <div class="row">
@@ -602,8 +560,8 @@
                     <h5 class="mb-3">Quick Links</h5>
                     <ul class="list-unstyled">
                         <li><a href="{{ url_for('index') }}" class="text-light text-decoration-none">Home</a></li>
-                        <li><a class="nav-link active" href="{{ url_for('predict_datapoint') }}">Predictor Tool</a></li>
-                        <li><a href="{{ url_for('about') }}" class="text-light text-decoration-none">About Us</a></li>
+                        <li><a href="{{ url_for('predict_datapoint') }}" class="text-light text-decoration-none">Predictor Tool</a></li>
+                        <li><a class="nav-link active" href="{{ url_for('about') }}">About Us</a></li>
                         <li><a href="{{ url_for('contact') }}" class="text-light text-decoration-none">Contact</a></li>
                     </ul>
                 </div>

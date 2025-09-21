@@ -1,1 +1,765 @@
-<h1>Welcome to home page</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPredict - Student Performance Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --light-bg: #f8f9fc;
+            --dark-text: #2b2d42;
+            --light-text: #6c757d;
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-card: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-text);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(67, 97, 238, 0.1) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(114, 9, 183, 0.1) 0%, transparent 25%);
+            background-attachment: fixed;
+        }
+        
+        .navbar {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            background: linear-gradient(120deg, var(--primary) 0%, var(--secondary) 100%) !important;
+            padding: 0.8rem 1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            margin: 0 0.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.9) 0%, rgba(114, 9, 183, 0.9) 100%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234361ee"/><path d="M0 0L100 100" stroke="white" stroke-width="0.5" opacity="0.2"/><path d="M100 0L0 100" stroke="white" stroke-width="0.5" opacity="0.2"/></svg>');
+            color: white;
+            padding: 6rem 0 5rem;
+            margin-bottom: 4rem;
+            border-radius: 0 0 30px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='0.1' d='M0,128L48,117.3C96,107,192,85,288,112C384,139,480,213,576,224C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: center bottom;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .display-4 {
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .lead {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+        
+        .btn-hero {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: all 0.6s ease;
+        }
+        
+        .btn-hero:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            color: var(--primary);
+        }
+        
+        .btn-hero:hover::before {
+            left: 100%;
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 3rem;
+            font-weight: 700;
+            color: var(--dark-text);
+            text-align: center;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -15px;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+        
+        .feature-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s ease;
+            overflow: hidden;
+            height: 100%;
+            background: var(--gradient-card);
+            position: relative;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+        
+        .feature-icon {
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        .stats-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            padding: 3rem 2rem;
+            margin: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login {
+            max-width: 850px;
+            margin: 3rem auto;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+        
+        .form-control, .form-select {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: var(--dark-text);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #651e97 100%);
+        }
+        
+        .btn-primary:hover::before {
+            animation: shine 1.5s infinite;
+        }
+        
+        @keyframes shine {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        
+        .prediction-result {
+            background: linear-gradient(135deg, var(--success) 0%, #3aa9db 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 2.5rem;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(76, 201, 240, 0.3);
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #2b2d42 0%, #1a1c2d 100%);
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 5rem;
+        }
+        
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+            margin: 0 0.5rem;
+        }
+        
+        .social-icon:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* New UI Elements */
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+        }
+        
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--primary);
+            top: -150px;
+            right: -150px;
+        }
+        
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: var(--secondary);
+            bottom: -100px;
+            left: -100px;
+        }
+        
+        .animated-border {
+            position: relative;
+        }
+        
+        .animated-border::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transition: width 0.5s ease;
+        }
+        
+        .animated-border:hover::after {
+            width: 100%;
+        }
+        
+        .testimonial-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin: 1rem;
+            position: relative;
+        }
+        
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 5rem;
+            color: rgba(67, 97, 238, 0.1);
+            font-family: Georgia, serif;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 4rem 0 3rem;
+                border-radius: 0 0 20px 20px;
+            }
+            
+            .display-4 {
+                font-size: 2.2rem;
+            }
+            
+            .login {
+                padding: 2rem;
+                margin: 2rem auto;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>EduPredict
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('predict_datapoint') }}">Predict</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('about') }}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content (changes based on page) -->
+    <div id="page-content">
+        <!-- Home Page Content -->
+        <div id="home-page">
+            <!-- Hero Section -->
+            <section class="hero-section text-center">
+                <div class="floating-shapes">
+                    <div class="shape shape-1"></div>
+                    <div class="shape shape-2"></div>
+                </div>
+                <div class="container hero-content">
+                    <h1 class="display-4 fw-bold mb-4">Predict Student Exam Performance</h1>
+                    <p class="lead mb-4">Using advanced machine learning to help educators identify students who may need additional support</p>
+                    <a href="{{ url_for('predict_datapoint') }}" class="btn btn-hero">Try Predictor <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="container">
+                <div class="row text-center mb-5">
+                    <div class="col-lg-12">
+                        <h2 class="section-title">How It Works</h2>
+                        <p class="lead text-muted">Our predictive model analyzes multiple factors to estimate student performance</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100 p-4 text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4>Data Analysis</h4>
+                            <p class="text-muted">We analyze historical performance data to identify patterns and predictors of success.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100 p-4 text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h4>Machine Learning</h4>
+                            <p class="text-muted">Our algorithm uses multiple factors to predict math scores with high accuracy.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100 p-4 text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-hands-helping"></i>
+                            </div>
+                            <h4>Early Intervention</h4>
+                            <p class="text-muted">Identify at-risk students early to provide targeted support and improve outcomes.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="container">
+                <div class="stats-container text-center">
+                    <div class="row">
+                        <div class="col-md-3 col-6 mb-3">
+                            <h2 class="stat-number">92%</h2>
+                            <p class="text-muted">Prediction Accuracy</p>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <h2 class="stat-number">5,000+</h2>
+                            <p class="text-muted">Students Analyzed</p>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <h2 class="stat-number">12</h2>
+                            <p class="text-muted">Factors Considered</p>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <h2 class="stat-number">87%</h2>
+                            <p class="text-muted">Improved Outcomes</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- CTA Section -->
+            <section class="container text-center py-5">
+                <h2 class="fw-bold mb-3">Ready to Predict Student Performance?</h2>
+                <p class="lead text-muted mb-4">Try our predictor tool now to get insights into student math scores</p>
+                <a href="{{ url_for('predict_datapoint') }}" class="btn btn-primary btn-lg px-5 py-3">Get Started <i class="fas fa-arrow-right ms-2"></i></a>
+            </section>
+        </div>
+
+        <!-- Prediction Page Content (initially hidden) -->
+        <div id="prediction-page" style="display: none;">
+            <div class="container">
+                <div class="login">
+                    <h1 class="text-center mb-4">
+                        <i class="fas fa-graduation-cap me-2"></i>Student Exam Performance Indicator
+                    </h1>
+                    
+                    <form action="{{ url_for('predict_datapoint')}}" method="post">
+                        <h1 class="text-center mb-4">
+                            <legend>Student Exam Performance Prediction</legend>
+                        </h1>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gender</label>
+                                <select class="form-select" name="gender" required>
+                                    <option class="placeholder" selected disabled value="">Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Race or Ethnicity</label>
+                                <select class="form-select" name="ethnicity" required>
+                                    <option class="placeholder" selected disabled value="">Select Ethnicity</option>
+                                    <option value="group A">Group A</option>
+                                    <option value="group B">Group B</option>
+                                    <option value="group C">Group C</option>
+                                    <option value="group D">Group D</option>
+                                    <option value="group E">Group E</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Parental Level of Education</label>
+                                <select class="form-select" name="parental_level_of_education" required>
+                                    <option class="placeholder" selected disabled value="">Select Parent Education</option>
+                                    <option value="associate's degree">Associate's Degree</option>
+                                    <option value="bachelor's degree">Bachelor's Degree</option>
+                                    <option value="high school">High School</option>
+                                    <option value="master's degree">Master's Degree</option>
+                                    <option value="some college">Some College</option>
+                                    <option value="some high school">Some High School</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Lunch Type</label>
+                                <select class="form-select" name="lunch" required>
+                                    <option class="placeholder" selected disabled value="">Select Lunch Type</option>
+                                    <option value="free/reduced">Free/Reduced</option>
+                                    <option value="standard">Standard</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Test Preparation Course</label>
+                                <select class="form-select" name="test_preparation_course" required>
+                                    <option class="placeholder" selected disabled value="">Select Test Course</option>
+                                    <option value="none">None</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Reading Score out of 100</label>
+                                <input class="form-control" type="number" name="reading_score"
+                                    placeholder="Enter reading score" min='0' max='100' required />
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Writing Score out of 100</label>
+                                <input class="form-control" type="number" name="writing_score"
+                                    placeholder="Enter writing score" min='0' max='100' required />
+                            </div>
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <button class="btn btn-primary w-100 py-3" type="submit">
+                                    <i class="fas fa-calculator me-2"></i>Predict Math Score
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="prediction-result">
+                        <i class="fas fa-chart-bar me-2"></i> Predicted Math Score: {{results}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3"><i class="fas fa-graduation-cap me-2"></i>EduPredict</h5>
+                    <p class="text-light">Using AI to enhance educational outcomes and student success.</p>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
+                        <li><a href="{{ url_for('predict_datapoint') }}" class="text-light text-decoration-none">Predictor Tool</a></li>
+                        <li><a href="{{ url_for('about') }}" class="text-light text-decoration-none">About Us</a></li>
+                        <li><a href="{{ url_for('contact') }}" class="text-light text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">Connect With Us</h5>
+                    <div>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <p class="mb-0">&copy; 2023 EduPredict. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple routing for demonstration purposes
+        function showPage(pageId) {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('prediction-page').style.display = 'none';
+            document.getElementById(pageId).style.display = 'block';
+        }
+        
+        // Check the current URL to determine which page to show
+        if (window.location.pathname === '/predictdata') {
+            showPage('prediction-page');
+        } else {
+            showPage('home-page');
+        }
+        
+        // Back to top button
+        const backToTopButton = document.querySelector('.back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
