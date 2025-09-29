@@ -32,6 +32,40 @@ MANIFEST
 *.manifest
 *.spec
 
+# Data files
+*.csv
+*.json
+*.pkl
+*.pickle
+*.parquet
+*.feather
+
+# Folders with large files
+artifacts/
+data/
+notebook/data/
+models/
+dataset/
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
