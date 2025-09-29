@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Dashboard - Cyber Security</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* New Header Navigation Styles */
+        .main-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 20px;
+        }
+        
+        .nav-btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 160px;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .nav-btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-btn {
+                width: 90%;
+            }
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-card h2 {
+            color: #00b4db;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 180, 219, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #00b4db;
+        }
+        
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00b4db;
+            margin-bottom: 5px;
+        }
+        
+        .threats-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .threat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            transition: transform 0.2s ease;
+        }
+        
+        .threat-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .threat-critical { border-left-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .threat-high { border-left-color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+        .threat-medium { border-left-color: #f1c40f; background: rgba(241, 196, 15, 0.1); }
+        .threat-low { border-left-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        
+        .threat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .threat-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+        
+        .badge-critical { background: #e74c3c; }
+        .badge-high { background: #e67e22; }
+        .badge-medium { background: #f1c40f; color: #000; }
+        .badge-low { background: #2ecc71; }
+        
+        .threat-details {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+        
+        .threat-explanation {
+            font-size: 0.85em;
+            opacity: 0.9;
+            line-height: 1.4;
+            margin-top: 8px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .refresh-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .last-updated {
+            text-align: center;
+            opacity: 0.7;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.7;
+        }
+        
+        /* Scrollbar styling */
+        .threats-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .threats-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .threats-list::-webkit-scrollbar-thumb {
+            background: #00b4db;
+            border-radius: 4px;
+        }
+        
+        .threats-list::-webkit-scrollbar-thumb:hover {
+            background: #0083b0;
+        }
+
+        .severity-distribution {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .severity-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .severity-critical { background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; }
+        .severity-high { background: rgba(230, 126, 34, 0.2); border: 1px solid #e67e22; }
+        .severity-medium { background: rgba(241, 196, 15, 0.2); border: 1px solid #f1c40f; }
+        .severity-low { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .auto-refresh label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- New Header with Navigation -->
+        <header class="main-header">
+            <nav class="nav-container">
+                <a href="/" class="nav-btn">🏠 Home</a>
+                <a href="/detect-threat" class="nav-btn">🔍 Custom Detection</a>
+                <a href="/dashboard" class="nav-btn">📊 Live Dashboard</a>
+                <a href="/upload-logs" class="nav-btn">📤 Upload Logs</a>
+                <a href="/real-time-dashboard" class="nav-btn">📈 Real-time Dashboard</a>
+            </nav>
+        </header>
+
+        <div class="header">
+            <h1>📊 Live Threat Dashboard</h1>
+            <p>Real-time cyber threat monitoring and detection</p>
+        </div>
+
+        <div class="refresh-section">
+            <button class="btn" onclick="location.reload()">🔄 Refresh Dashboard</button>
+            <div class="auto-refresh">
+                <label>
+                    <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+                    Auto-refresh every 30 seconds
+                </label>
+            </div>
+            <div class="last-updated">
+                Last updated: <span id="currentTime">{{ now.strftime('%Y-%m-%d %H:%M:%S') if now else '' }}</span>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Left: Statistics -->
+            <div class="stat-card">
+                <h2>📈 Detection Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.total_threats if stats else 0 }}</div>
+                        <div>Total Threats</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ "%.1f"|format(stats.average_confidence * 100) if stats else 0 }}%</div>
+                        <div>Avg Confidence</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.threats_by_type|length if stats else 0 }}</div>
+                        <div>Attack Types</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.time_period if stats else 'N/A' }}</div>
+                        <div>Monitoring Period</div>
+                    </div>
+                </div>
+
+                {% if stats and stats.threats_by_severity %}
+                <div style="margin-top: 20px;">
+                    <h3>Severity Distribution</h3>
+                    <div class="severity-distribution">
+                        <div class="severity-item severity-critical">
+                            <div style="font-weight: bold; color: #e74c3c;">{{ stats.threats_by_severity.critical if stats.threats_by_severity.critical is defined else 0 }}</div>
+                            <div>Critical</div>
+                        </div>
+                        <div class="severity-item severity-high">
+                            <div style="font-weight: bold; color: #e67e22;">{{ stats.threats_by_severity.high if stats.threats_by_severity.high is defined else 0 }}</div>
+                            <div>High</div>
+                        </div>
+                        <div class="severity-item severity-medium">
+                            <div style="font-weight: bold; color: #f1c40f;">{{ stats.threats_by_severity.medium if stats.threats_by_severity.medium is defined else 0 }}</div>
+                            <div>Medium</div>
+                        </div>
+                        <div class="severity-item severity-low">
+                            <div style="font-weight: bold; color: #2ecc71;">{{ stats.threats_by_severity.low if stats.threats_by_severity.low is defined else 0 }}</div>
+                            <div>Low</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if stats and stats.threats_by_type %}
+                <div style="margin-top: 20px;">
+                    <h3>Top Attack Types</h3>
+                    {% for attack_type, count in stats.threats_by_type.items() %}
+                    <div style="display: flex; justify-content: space-between; margin: 8px 0; padding: 5px 10px; background: rgba(255,255,255,0.05); border-radius: 5px;">
+                        <span>{{ attack_type }}</span>
+                        <span style="color: #00b4db; font-weight: bold;">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Recent Detections -->
+            <div class="stat-card">
+                <h2>🚨 Recent Threat Detections</h2>
+                <div class="threats-list">
+                    {% if recent_detections %}
+                        {% for detection in recent_detections|reverse %}
+                        <div class="threat-item threat-{{ detection.severity }}">
+                            <div class="threat-header">
+                                <h4>{{ detection.attack_type }}</h4>
+                                <div>
+                                    <span class="threat-badge badge-{{ detection.severity }}">
+                                        {{ detection.severity|upper }}
+                                    </span>
+                                    <span style="margin-left: 8px; font-size: 0.8em;">
+                                        {{ "%.1f"|format(detection.final_confidence * 100) }}%
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="threat-details">
+                                <strong>Source:</strong> {{ detection.source_ip }} 
+                                → <strong>Target:</strong> {{ detection.target_ip }}:{{ detection.target_port }}
+                            </div>
+                            
+                            <div class="threat-details">
+                                <strong>Protocol:</strong> {{ detection.protocol }} 
+                                | <strong>Tool:</strong> {{ detection.tool }}
+                            </div>
+
+                            <div class="threat-explanation">
+                                {{ detection.description[:150] }}{% if detection.description|length > 150 %}...{% endif %}
+                            </div>
+
+                            <div style="margin-top: 8px; font-size: 0.75em; opacity: 0.6;">
+                                {{ detection.timestamp_analyzed }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>✅ No Threats Detected</h3>
+                            <p>No recent threat activity detected in the system.</p>
+                            <p>All monitored activities appear to be normal.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/detect-threat" class="btn">🔍 Detect Threat</a>
+            <a href="/upload-logs" class="btn">📁 Upload Logs</a>
+            <a href="/sample-threats" class="btn">🎯 Demo Scenarios</a>
+            <a href="/" class="btn btn-secondary">🏠 Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Auto-refresh functionality
+        let refreshInterval = null;
+
+        function toggleAutoRefresh() {
+            const autoRefresh = document.getElementById('autoRefresh');
+            
+            if (autoRefresh.checked) {
+                refreshInterval = setInterval(() => {
+                    location.reload();
+                }, 30000); // Refresh every 30 seconds
+                console.log('Auto-refresh enabled');
+            } else {
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                    refreshInterval = null;
+                }
+                console.log('Auto-refresh disabled');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentTime();
+            // Update time every second
+            setInterval(updateCurrentTime, 1000);
+            
+            // Check if we should start with auto-refresh
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autorefresh') === 'true') {
+                document.getElementById('autoRefresh').checked = true;
+                toggleAutoRefresh();
+            }
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>

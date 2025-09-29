@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time System Monitor - Cyber Security</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Navigation Header */
+        .nav-header {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #636e72, #2d3436);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+            background: linear-gradient(45deg, #556166, #23272b);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 968px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-header {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-btn {
+                width: 200px;
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 180, 219, 0.2);
+        }
+        
+        .monitoring-active { 
+            border-left: 5px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.05);
+        }
+        
+        .monitoring-inactive { 
+            border-left: 5px solid #f44336;
+            background: rgba(244, 67, 54, 0.05);
+        }
+        
+        .controls {
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .start-btn { 
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
+        .stop-btn { 
+            background: linear-gradient(45deg, #f44336, #da190b);
+        }
+        
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .status-active {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+        
+        .status-inactive {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid #f44336;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .stat-card h3 {
+            font-size: 2.2em;
+            color: #00b4db;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .data-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .connection-item, .process-item {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .connection-item.suspicious {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+        
+        .connection-item.malicious {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .connection-item.safe {
+            border-left-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+        }
+        
+        .process-item.suspicious {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+        
+        .process-item.malicious {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .process-item.safe {
+            border-left-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+        }
+        
+        .connection-item:hover, .process-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .connection-item strong, .process-item strong {
+            color: #00b4db;
+            font-size: 1.1em;
+        }
+        
+        .connection-details, .process-details {
+            margin: 8px 0;
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        
+        .meta-info {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        .threat-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .badge-safe { background: #2ecc71; color: white; }
+        .badge-suspicious { background: #f39c12; color: white; }
+        .badge-malicious { background: #e74c3c; color: white; }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .section-header h2 {
+            font-size: 1.8em;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #556166, #23272b);
+        }
+        
+        /* Scrollbar Styling */
+        .data-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .data-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .data-list::-webkit-scrollbar-thumb {
+            background: #00b4db;
+            border-radius: 3px;
+        }
+        
+        .data-list::-webkit-scrollbar-thumb:hover {
+            background: #0083b0;
+        }
+        
+        .last-updated {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.6;
+        }
+        
+        .empty-state .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .security-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .security-icon {
+            font-size: 2.5em;
+        }
+        
+        .security-info {
+            flex: 1;
+        }
+        
+        .security-info h3 {
+            margin-bottom: 5px;
+            color: #00b4db;
+        }
+        
+        .security-safe { border-left: 5px solid #2ecc71; }
+        .security-warning { border-left: 5px solid #f39c12; }
+        .security-danger { border-left: 5px solid #e74c3c; }
+        
+        .threat-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .threat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .threat-card.safe { border-top: 4px solid #2ecc71; }
+        .threat-card.warning { border-top: 4px solid #f39c12; }
+        .threat-card.danger { border-top: 4px solid #e74c3c; }
+        
+        .threat-card h4 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #00b4db;
+        }
+        
+        .threat-card .count {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .threat-card.safe .count { color: #2ecc71; }
+        .threat-card.warning .count { color: #f39c12; }
+        .threat-card.danger .count { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Header -->
+        <div class="nav-header">
+            <a href="/" class="nav-btn">🏠 Home</a>
+            <a href="/detect-threat" class="nav-btn">🔍 Custom Detection</a>
+            <a href="/dashboard" class="nav-btn">📊 Live Dashboard</a>
+            <a href="/upload-logs" class="nav-btn">📁 Upload Logs</a>
+            <a href="/real-time-dashboard" class="nav-btn active">🔴 Real-Time Monitor</a>
+        </div>
+
+        <div class="header">
+            <h1>🔍 Real-Time System Monitor</h1>
+            <p>Live monitoring of network connections and system processes with threat detection</p>
+        </div>
+
+        <div class="card {% if is_monitoring %}monitoring-active{% else %}monitoring-inactive{% endif %}">
+            <div class="section-header">
+                <h2>🖥️ System Monitoring</h2>
+            </div>
+            
+            <div class="controls">
+                <button class="btn start-btn" onclick="startMonitoring()">▶ Start Monitoring</button>
+                <button class="btn stop-btn" onclick="stopMonitoring()">⏹ Stop Monitoring</button>
+                <span id="status" class="status-indicator {% if is_monitoring %}status-active{% else %}status-inactive{% endif %}">
+                    Status: {% if is_monitoring %}ACTIVE{% else %}INACTIVE{% endif %}
+                </span>
+            </div>
+            
+            <!-- Security Status Indicator -->
+            <div class="security-status security-safe" id="securityStatus">
+                <div class="security-icon">🛡️</div>
+                <div class="security-info">
+                    <h3>System Security: All Clear</h3>
+                    <p>No suspicious activities detected. All processes and connections appear normal.</p>
+                </div>
+            </div>
+            
+            <!-- Threat Summary -->
+            <div class="threat-summary" id="threatSummary">
+                <div class="threat-card safe">
+                    <h4>✅ Safe Activities</h4>
+                    <div class="count" id="safeCount">0</div>
+                    <p>Normal processes & connections</p>
+                </div>
+                <div class="threat-card warning">
+                    <h4>⚠️ Suspicious</h4>
+                    <div class="count" id="suspiciousCount">0</div>
+                    <p>Requires monitoring</p>
+                </div>
+                <div class="threat-card danger">
+                    <h4>🚨 Malicious</h4>
+                    <div class="count" id="maliciousCount">0</div>
+                    <p>Immediate action needed</p>
+                </div>
+            </div>
+            
+            <div class="last-updated">
+                🔄 Auto-update every 3 seconds | 🤖 AI Threat Detection Active
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- Network Monitoring -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>🌐 Network Connections</h2>
+                    <span class="threat-badge badge-safe" id="networkThreatLevel">SAFE</span>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="networkTotal">0</h3>
+                        <p>Total Connections</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="networkSuspicious">0</h3>
+                        <p>Suspicious</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="networkMalicious">0</h3>
+                        <p>Malicious</p>
+                    </div>
+                </div>
+                
+                <div class="data-list" id="network-list">
+                    <div class="empty-state">
+                        <div class="icon">📡</div>
+                        <p>No network connections detected</p>
+                        <p>Start monitoring to see live data</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Monitoring -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>⚙️ Running Processes</h2>
+                    <span class="threat-badge badge-safe" id="processThreatLevel">SAFE</span>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="processTotal">0</h3>
+                        <p>Total Processes</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="processSuspicious">0</h3>
+                        <p>Suspicious</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="processMalicious">0</h3>
+                        <p>Malicious</p>
+                    </div>
+                </div>
+                
+                <div class="data-list" id="process-list">
+                    <div class="empty-state">
+                        <div class="icon">💻</div>
+                        <p>No process data available</p>
+                        <p>Start monitoring to see live data</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/" class="btn btn-secondary">🏠 Main Dashboard</a>
+            <a href="/detect-threat" class="btn btn-secondary">🔍 Threat Detection</a>
+            <a href="/sample-threats" class="btn btn-secondary">🎯 Demo Scenarios</a>
+            <a href="/upload-logs" class="btn btn-secondary">📁 Upload Logs</a>
+        </div>
+    </div>
+
+    <script>
+        let updateInterval;
+        
+        // Threat detection patterns
+        const maliciousPatterns = {
+            processes: ['cryptominer', 'keylogger', 'ransomware', 'trojan', 'backdoor', 'botnet'],
+            network: ['meterpreter', 'reverse_shell', 'exploit', 'payload', 'malware', 'coinminer'],
+            ports: [4444, 1337, 31337, 12345, 54321], // Common malicious ports
+            tools: ['metasploit', 'beef', 'empire', 'cobaltstrike']
+        };
+        
+        function analyzeThreat(item, type) {
+            const name = item.name || item.tool || '';
+            const port = item.dest_port || 0;
+            
+            // Check for malicious patterns
+            if (type === 'process') {
+                if (maliciousPatterns.processes.some(pattern => name.toLowerCase().includes(pattern))) {
+                    return 'malicious';
+                }
+                if (name.includes('miner') || name.includes('crypto')) {
+                    return 'suspicious';
+                }
+            } else if (type === 'network') {
+                if (maliciousPatterns.network.some(pattern => name.toLowerCase().includes(pattern))) {
+                    return 'malicious';
+                }
+                if (maliciousPatterns.tools.some(tool => name.toLowerCase().includes(tool))) {
+                    return 'malicious';
+                }
+                if (maliciousPatterns.ports.includes(port)) {
+                    return 'suspicious';
+                }
+                if (port < 1024 && name === 'unknown') {
+                    return 'suspicious';
+                }
+            }
+            
+            // High resource usage check
+            if (type === 'process' && (item.cpu_percent > 80 || item.memory_percent > 80)) {
+                return 'suspicious';
+            }
+            
+            return 'safe';
+        }
+        
+        function updateSecurityStatus(safeCount, suspiciousCount, maliciousCount) {
+            const securityStatus = document.getElementById('securityStatus');
+            const securityIcon = securityStatus.querySelector('.security-icon');
+            const securityTitle = securityStatus.querySelector('h3');
+            const securityDesc = securityStatus.querySelector('p');
+            
+            // Update threat counts
+            document.getElementById('safeCount').textContent = safeCount;
+            document.getElementById('suspiciousCount').textContent = suspiciousCount;
+            document.getElementById('maliciousCount').textContent = maliciousCount;
+            
+            // Determine overall security status
+            if (maliciousCount > 0) {
+                securityStatus.className = 'security-status security-danger';
+                securityIcon.textContent = '🚨';
+                securityTitle.textContent = 'System Security: CRITICAL THREAT';
+                securityDesc.textContent = `${maliciousCount} malicious activities detected! Immediate action required.`;
+            } else if (suspiciousCount > 2) {
+                securityStatus.className = 'security-status security-warning';
+                securityIcon.textContent = '⚠️';
+                securityTitle.textContent = 'System Security: SUSPICIOUS ACTIVITY';
+                securityDesc.textContent = `${suspiciousCount} suspicious activities detected. Close monitoring recommended.`;
+            } else {
+                securityStatus.className = 'security-status security-safe';
+                securityIcon.textContent = '🛡️';
+                securityTitle.textContent = 'System Security: ALL CLEAR';
+                securityDesc.textContent = 'No suspicious activities detected. All processes and connections appear normal.';
+            }
+        }
+        
+        function updateThreatLevel(elementId, safe, suspicious, malicious) {
+            const element = document.getElementById(elementId);
+            if (malicious > 0) {
+                element.textContent = 'MALICIOUS';
+                element.className = 'threat-badge badge-malicious';
+            } else if (suspicious > 0) {
+                element.textContent = 'SUSPICIOUS';
+                element.className = 'threat-badge badge-suspicious';
+            } else {
+                element.textContent = 'SAFE';
+                element.className = 'threat-badge badge-safe';
+            }
+        }
+        
+        function startMonitoring() {
+            fetch('/api/real-time/start')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('status').textContent = 'Status: ACTIVE';
+                        document.getElementById('status').className = 'status-indicator status-active';
+                        document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.add('monitoring-active');
+                        document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.remove('monitoring-inactive');
+                        startAutoUpdate();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error starting monitoring:', error);
+                });
+        }
+        
+        function stopMonitoring() {
+            fetch('/api/real-time/stop')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('status').textContent = 'Status: INACTIVE';
+                        document.getElementById('status').className = 'status-indicator status-inactive';
+                        document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.remove('monitoring-active');
+                        document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.add('monitoring-inactive');
+                        clearInterval(updateInterval);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error stopping monitoring:', error);
+                });
+        }
+        
+        function startAutoUpdate() {
+            updateInterval = setInterval(updateData, 3000);
+            updateData();
+        }
+        
+        function updateData() {
+            // Update network data
+            fetch('/api/real-time/network-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const networkList = document.getElementById('network-list');
+                        let safeCount = 0, suspiciousCount = 0, maliciousCount = 0;
+                        
+                        if (data.data && data.data.length > 0) {
+                            networkList.innerHTML = '';
+                            data.data.forEach(conn => {
+                                const threatLevel = analyzeThreat(conn, 'network');
+                                const threatClass = threatLevel;
+                                
+                                if (threatLevel === 'safe') safeCount++;
+                                else if (threatLevel === 'suspicious') suspiciousCount++;
+                                else if (threatLevel === 'malicious') maliciousCount++;
+                                
+                                const item = document.createElement('div');
+                                item.className = `connection-item ${threatClass}`;
+                                item.innerHTML = `
+                                    <strong>${conn.tool || 'Unknown Process'}</strong>
+                                    <span class="threat-badge badge-${threatLevel}">${threatLevel.toUpperCase()}</span>
+                                    <div class="connection-details">
+                                        ${conn.src_ip} → ${conn.dest_ip}:${conn.dest_port}
+                                    </div>
+                                    <div class="meta-info">
+                                        Protocol: ${conn.proto} | PID: ${conn.pid || 'N/A'} | Time: ${conn.timestamp?.slice(0, 19) || 'Unknown'}
+                                    </div>
+                                `;
+                                networkList.appendChild(item);
+                            });
+                            
+                            // Update network stats
+                            document.getElementById('networkTotal').textContent = data.data.length;
+                            document.getElementById('networkSuspicious').textContent = suspiciousCount;
+                            document.getElementById('networkMalicious').textContent = maliciousCount;
+                            updateThreatLevel('networkThreatLevel', safeCount, suspiciousCount, maliciousCount);
+                        }
+                        
+                        return { safe: safeCount, suspicious: suspiciousCount, malicious: maliciousCount };
+                    }
+                })
+                .then(networkThreats => {
+                    // Update process data
+                    return fetch('/api/real-time/process-data')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const processList = document.getElementById('process-list');
+                                let safeCount = 0, suspiciousCount = 0, maliciousCount = 0;
+                                
+                                if (data.data && data.data.length > 0) {
+                                    processList.innerHTML = '';
+                                    data.data.forEach(proc => {
+                                        const threatLevel = analyzeThreat(proc, 'process');
+                                        const threatClass = threatLevel;
+                                        
+                                        if (threatLevel === 'safe') safeCount++;
+                                        else if (threatLevel === 'suspicious') suspiciousCount++;
+                                        else if (threatLevel === 'malicious') maliciousCount++;
+                                        
+                                        const item = document.createElement('div');
+                                        item.className = `process-item ${threatClass}`;
+                                        item.innerHTML = `
+                                            <strong>${proc.name}</strong>
+                                            <span class="threat-badge badge-${threatLevel}">${threatLevel.toUpperCase()}</span>
+                                            <div class="process-details">
+                                                CPU: ${(proc.cpu_percent || 0).toFixed(1)}% | Memory: ${(proc.memory_percent || 0).toFixed(1)}%
+                                            </div>
+                                            <div class="meta-info">
+                                                PID: ${proc.pid} | Status: ${proc.status} | Time: ${proc.timestamp?.slice(0, 19) || 'Unknown'}
+                                            </div>
+                                        `;
+                                        processList.appendChild(item);
+                                    });
+                                    
+                                    // Update process stats
+                                    document.getElementById('processTotal').textContent = data.data.length;
+                                    document.getElementById('processSuspicious').textContent = suspiciousCount;
+                                    document.getElementById('processMalicious').textContent = maliciousCount;
+                                    updateThreatLevel('processThreatLevel', safeCount, suspiciousCount, maliciousCount);
+                                }
+                                
+                                // Combine threats from network and processes
+                                const totalSafe = (networkThreats?.safe || 0) + safeCount;
+                                const totalSuspicious = (networkThreats?.suspicious || 0) + suspiciousCount;
+                                const totalMalicious = (networkThreats?.malicious || 0) + maliciousCount;
+                                
+                                updateSecurityStatus(totalSafe, totalSuspicious, totalMalicious);
+                            }
+                        });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+        
+        // Start auto-update if monitoring is active
+        {% if is_monitoring %}
+        startAutoUpdate();
+        {% endif %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Logs - Cyber Security</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 40px;
+            margin: 30px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #00b4db;
+            background: rgba(0, 180, 219, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .file-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .format-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .format-info h3 {
+            color: #00b4db;
+            margin-bottom: 15px;
+        }
+        
+        .format-info ul {
+            padding-left: 20px;
+        }
+        
+        .format-info li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        /* Header Navigation Styles */
+        .main-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0, 180, 219, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <div class="nav-container">
+            <div class="logo">🛡️ CyberShield</div>
+            <div class="nav-links">
+                <a href="/" class="nav-btn">🏠 Home</a>
+                <a href="/detect-threat" class="nav-btn">🔍 Custom Detection</a>
+                <a href="/dashboard" class="nav-btn">📊 Live Dashboard</a>
+                <a href="/upload-logs" class="nav-btn active">📁 Upload Logs</a>
+                <a href="/real-time-dashboard" class="nav-btn">📈 Real-time Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="header">
+            <h1>📁 Upload Log Files</h1>
+            <p>Batch analyze multiple network logs for threat detection</p>
+        </div>
+
+        {% if error %}
+        <div class="error">
+            <h3>❌ Upload Error</h3>
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <div class="upload-section">
+            <h2>Upload Network Logs</h2>
+            <p>Select JSON or CSV files containing network activity data</p>
+            
+            <form method="POST" enctype="multipart/form-data">
+                <div class="upload-area" onclick="document.getElementById('log_file').click()">
+                    <div class="upload-icon">📤</div>
+                    <h3>Click to Select Files</h3>
+                    <p>or drag and drop your log files here</p>
+                    <p><small>Supports: .json, .csv (Max 100 logs per file)</small></p>
+                </div>
+                
+                <input type="file" id="log_file" name="log_file" class="file-input" accept=".json,.csv" required>
+                
+                <div class="file-info" id="fileInfo">
+                    <strong>Selected File:</strong> <span id="fileName"></span>
+                    <br>
+                    <small>Size: <span id="fileSize"></span></small>
+                </div>
+                
+                <button type="submit" class="btn">🚀 Analyze Logs</button>
+            </form>
+        </div>
+
+        <div class="format-info">
+            <h3>📋 Expected File Formats</h3>
+            
+            <h4>JSON Format:</h4>
+            <div class="code-block">
+[
+  {
+    "tool": "nmap",
+    "attack_type": "reconnaissance",
+    "severity": "high",
+    "proto": "tcp",
+    "src_ip": "192.168.1.100",
+    "dest_ip": "192.168.1.1",
+    "dest_port": 22,
+    "dur": 0.1,
+    "spkts": 150,
+    "dpkts": 0,
+    "sbytes": 600,
+    "dbytes": 0,
+    "rate": 1200.5
+  }
+]
+            </div>
+
+            <h4>CSV Format:</h4>
+            <div class="code-block">
+tool,attack_type,severity,proto,src_ip,dest_ip,dest_port,dur,spkts,dpkts,sbytes,dbytes,rate
+nmap,reconnaissance,high,tcp,192.168.1.100,192.168.1.1,22,0.1,150,0,600,0,1200.5
+hydra,bruteforce,critical,tcp,10.0.0.50,192.168.1.1,22,2.5,500,500,25000,25000,200.0
+            </div>
+
+            <h4>Required Fields:</h4>
+            <ul>
+                <li><strong>tool</strong>: Application name (nmap, hydra, gobuster, etc.)</li>
+                <li><strong>attack_type</strong>: Type of activity (reconnaissance, bruteforce, dos, etc.)</li>
+                <li><strong>severity</strong>: Severity level (low, medium, high, critical)</li>
+                <li><strong>proto</strong>: Protocol (tcp, udp, icmp)</li>
+                <li><strong>src_ip</strong>: Source IP address</li>
+                <li><strong>dest_ip</strong>: Destination IP address</li>
+                <li><strong>dest_port</strong>: Destination port number</li>
+                <li><strong>dur</strong>: Duration in seconds</li>
+                <li><strong>spkts</strong>: Source packets count</li>
+                <li><strong>dpkts</strong>: Destination packets count</li>
+                <li><strong>sbytes</strong>: Source bytes transferred</li>
+                <li><strong>dbytes</strong>: Destination bytes transferred</li>
+                <li><strong>rate</strong>: Traffic rate</li>
+            </ul>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/" class="btn btn-secondary">🏠 Home</a>
+            <a href="/detect-threat" class="btn btn-secondary">🔍 Single Detection</a>
+            <a href="/dashboard" class="btn btn-secondary">📊 Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('log_file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+                document.getElementById('fileInfo').style.display = 'block';
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.querySelector('.upload-area');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            uploadArea.style.borderColor = '#00b4db';
+            uploadArea.style.background = 'rgba(0, 180, 219, 0.1)';
+        }
+
+        function unhighlight() {
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            uploadArea.style.background = 'transparent';
+        }
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('log_file').files = files;
+            
+            const file = files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+                document.getElementById('fileInfo').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

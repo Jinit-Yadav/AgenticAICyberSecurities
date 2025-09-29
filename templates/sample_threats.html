@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Scenarios - Cyber Security</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* New Header Styles */
+        .main-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 20px;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .nav-btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .scenario-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 180, 219, 0.3);
+        }
+        
+        .scenario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .scenario-icon {
+            font-size: 2.5em;
+            margin-right: 15px;
+        }
+        
+        .scenario-title {
+            flex: 1;
+        }
+        
+        .scenario-title h3 {
+            color: #00b4db;
+            margin-bottom: 5px;
+        }
+        
+        .severity-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+        
+        .badge-critical { background: #e74c3c; }
+        .badge-high { background: #e67e22; }
+        .badge-medium { background: #f1c40f; color: #000; }
+        .badge-low { background: #2ecc71; }
+        
+        .scenario-description {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        .scenario-details {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #00b4db;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1em;
+        }
+        
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .result-section {
+            margin-top: 40px;
+            display: none;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid;
+            margin-bottom: 20px;
+        }
+        
+        .result-critical { border-left-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .result-high { border-left-color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+        .result-medium { border-left-color: #f1c40f; background: rgba(241, 196, 15, 0.1); }
+        .result-low { border-left-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .explanation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #00b4db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .demo-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-btn {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- New Header with Navigation -->
+        <header class="main-header">
+            <nav class="nav-container">
+                <a href="/" class="nav-btn">🏠 Home</a>
+                <a href="/detect-threat" class="nav-btn">🔍 Custom Detection</a>
+                <a href="/dashboard" class="nav-btn">📊 Live Dashboard</a>
+                <a href="/upload-logs" class="nav-btn">📤 Upload Logs</a>
+                <a href="/real-time-dashboard" class="nav-btn">📈 Real-time Dashboard</a>
+            </nav>
+        </header>
+
+        <div class="header">
+            <h1>🎯 Demo Threat Scenarios</h1>
+            <p>Test the detection system with pre-built attack scenarios</p>
+        </div>
+
+        <div class="demo-info">
+            <h3>🚀 How to Use</h3>
+            <p>Click "Analyze This Scenario" on any attack scenario below to see how the system detects and explains threats.</p>
+            <p>Each scenario includes AI-powered explanations and actionable recommendations.</p>
+        </div>
+
+        <div class="scenarios-grid">
+            <!-- Scenario 1: Port Scanning -->
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <div class="scenario-icon">🔍</div>
+                    <div class="scenario-title">
+                        <h3>Port Scanning (Nmap)</h3>
+                        <p>Reconnaissance activity</p>
+                    </div>
+                    <span class="severity-badge badge-high">HIGH</span>
+                </div>
+                
+                <div class="scenario-description">
+                    Simulates a network reconnaissance scan where an attacker probes multiple ports to discover active services and potential vulnerabilities.
+                </div>
+                
+                <div class="scenario-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Tool:</span>
+                        <span>nmap</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Target Ports:</span>
+                        <span>21, 22, 80, 443, 3389</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Technique:</span>
+                        <span>SYN Scan (-sS)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Duration:</span>
+                        <span>0.1 seconds</span>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="analyzeScenario(0)">🚀 Analyze This Scenario</button>
+            </div>
+
+            <!-- Scenario 2: Brute Force Attack -->
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <div class="scenario-icon">💥</div>
+                    <div class="scenario-title">
+                        <h3>Brute Force (Hydra)</h3>
+                        <p>Password attack</p>
+                    </div>
+                    <span class="severity-badge badge-critical">CRITICAL</span>
+                </div>
+                
+                <div class="scenario-description">
+                    Simulates a password spraying attack targeting SSH services with multiple authentication attempts in a short timeframe.
+                </div>
+                
+                <div class="scenario-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Tool:</span>
+                        <span>hydra</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Target Service:</span>
+                        <span>SSH (Port 22)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Attempts:</span>
+                        <span>500+ requests</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Duration:</span>
+                        <span>2.5 seconds</span>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="analyzeScenario(1)">🚀 Analyze This Scenario</button>
+            </div>
+
+            <!-- Scenario 3: DoS Attack -->
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <div class="scenario-icon">🌊</div>
+                    <div class="scenario-title">
+                        <h3>DoS Attack (hping3)</h3>
+                        <p>Flood attack</p>
+                    </div>
+                    <span class="severity-badge badge-high">HIGH</span>
+                </div>
+                
+                <div class="scenario-description">
+                    Simulates a denial-of-service attack flooding a web server with TCP packets to overwhelm resources and disrupt service availability.
+                </div>
+                
+                <div class="scenario-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Tool:</span>
+                        <span>hping3</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Target Service:</span>
+                        <span>HTTP (Port 80)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Packet Rate:</span>
+                        <span>20,000 packets/sec</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Duration:</span>
+                        <span>0.05 seconds</span>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="analyzeScenario(2)">🚀 Analyze This Scenario</button>
+            </div>
+
+            <!-- Scenario 4: Web Scanning -->
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <div class="scenario-icon">🕸️</div>
+                    <div class="scenario-title">
+                        <h3>Web Scanning (Gobuster)</h3>
+                        <p>Directory brute-forcing</p>
+                    </div>
+                    <span class="severity-badge badge-medium">MEDIUM</span>
+                </div>
+                
+                <div class="scenario-description">
+                    Simulates web application reconnaissance scanning for hidden directories, files, and endpoints using directory brute-forcing techniques.
+                </div>
+                
+                <div class="scenario-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Tool:</span>
+                        <span>gobuster</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Target:</span>
+                        <span>Web Server</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Technique:</span>
+                        <span>Directory Brute-forcing</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Requests:</span>
+                        <span>300+ HTTP requests</span>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="analyzeScenario(3)">🚀 Analyze This Scenario</button>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Analyzing threat scenario with AI detection...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div class="result-section" id="resultSection">
+            <h2 style="text-align: center; margin-bottom: 20px;">📊 Detection Results</h2>
+            <div id="resultContent"></div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/detect-threat" class="btn btn-secondary">🔍 Custom Detection</a>
+            <a href="/dashboard" class="btn btn-secondary">📊 Live Dashboard</a>
+            <a href="/" class="btn btn-secondary">🏠 Home</a>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeScenario(scenarioId) {
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            
+            try {
+                const response = await fetch(`/analyze-sample/${scenarioId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (data.success) {
+                    displayResult(data.result);
+                } else {
+                    displayError(data.error);
+                }
+                
+            } catch (error) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                displayError('Failed to analyze scenario: ' + error.message);
+            }
+        }
+        
+        function displayResult(result) {
+            const resultContent = document.getElementById('resultContent');
+            const severityClass = `result-${result.severity}`;
+            
+            resultContent.innerHTML = `
+                <div class="result-card ${severityClass}">
+                    <div class="result-header">
+                        <h3>🚨 ${result.attack_type}</h3>
+                        <span class="severity-badge badge-${result.severity}">
+                            ${result.severity.toUpperCase()}
+                        </span>
+                    </div>
+                    
+                    <div class="scenario-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Confidence:</span>
+                            <span>${(result.final_confidence * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Source IP:</span>
+                            <span>${result.source_ip}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Target:</span>
+                            <span>${result.target_ip}:${result.target_port}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Protocol:</span>
+                            <span>${result.protocol}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Detection Methods:</span>
+                            <span>${result.detection_methods.join(', ')}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h4>🤖 AI Explanation:</h4>
+                        <p>${result.description}</p>
+                    </div>
+                    
+                    ${result.recommendations ? `
+                    <div class="scenario-details">
+                        <h4>🛡️ Recommendations:</h4>
+                        <ul>
+                            ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="margin-top: 15px; opacity: 0.7; font-size: 0.9em;">
+                        Analyzed at: ${result.timestamp_analyzed}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('resultSection').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('resultSection').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+        
+        function displayError(error) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div class="result-card result-critical">
+                    <h3>❌ Analysis Failed</h3>
+                    <p>${error}</p>
+                    <p>Please try again or check the system configuration.</p>
+                </div>
+            `;
+            document.getElementById('resultSection').style.display = 'block';
+        }
+        
+        // Add some sample scenarios for demonstration
+        const sampleScenarios = [
+            {
+                name: 'Port Scanning',
+                description: 'Network reconnaissance activity',
+                severity: 'high'
+            },
+            {
+                name: 'Brute Force Attack', 
+                description: 'Password spraying attack',
+                severity: 'critical'
+            },
+            {
+                name: 'DoS Attack',
+                description: 'Flood attack on web services',
+                severity: 'high'
+            },
+            {
+                name: 'Web Scanning',
+                description: 'Directory brute-forcing',
+                severity: 'medium'
+            }
+        ];
+    </script>
+</body>
+</html>

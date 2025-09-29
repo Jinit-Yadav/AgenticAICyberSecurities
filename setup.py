@@ -13,7 +13,7 @@ def get_requirements(file_path: str) -> List[str]:
     return requirements
 
 setup(
-    name='StudentPerformancePrediction',
+    name='CyberSecurity_Agentic_AI',
     version='0.0.1',
     author='Jinit Yadav',
     author_email= 'yadavjinit8@gmail.com',

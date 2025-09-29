@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - Cyber Security</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stats-overview {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(0, 180, 219, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #00b4db;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00b4db;
+            margin-bottom: 5px;
+        }
+        
+        .results-section {
+            margin: 30px 0;
+        }
+        
+        .threat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            transition: transform 0.2s ease;
+        }
+        
+        .threat-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .threat-critical { border-left-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .threat-high { border-left-color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+        .threat-medium { border-left-color: #f1c40f; background: rgba(241, 196, 15, 0.1); }
+        .threat-low { border-left-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        
+        .threat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .threat-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .badge-critical { background: #e74c3c; }
+        .badge-high { background: #e67e22; }
+        .badge-medium { background: #f1c40f; color: #000; }
+        .badge-low { background: #2ecc71; }
+        
+        .threat-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .detail-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+        }
+        
+        .explanation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        .recommendations {
+            margin-top: 15px;
+        }
+        
+        .recommendations ul {
+            padding-left: 20px;
+        }
+        
+        .recommendations li {
+            margin-bottom: 8px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .no-threats {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .severity-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: #00b4db;
+            border-color: #00b4db;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(0, 180, 219, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Analysis Results</h1>
+            <p>Batch threat detection results with AI explanations</p>
+        </div>
+
+        <div class="stats-overview">
+            <h2>Detection Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_logs }}</div>
+                    <div>Total Logs Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ results|length }}</div>
+                    <div>Threats Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {{ (results|selectattr('severity', 'equalto', 'critical')|list|length) }}
+                    </div>
+                    <div>Critical Threats</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {{ "%d"|format((results|length / total_logs * 100) if total_logs > 0 else 0) }}%
+                    </div>
+                    <div>Threat Ratio</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="severity-filter" id="severityFilter">
+            <button class="filter-btn active" data-severity="all">All Threats</button>
+            <button class="filter-btn" data-severity="critical">Critical</button>
+            <button class="filter-btn" data-severity="high">High</button>
+            <button class="filter-btn" data-severity="medium">Medium</button>
+            <button class="filter-btn" data-severity="low">Low</button>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            {% if results %}
+                {% for result in results %}
+                <div class="threat-card threat-{{ result.severity }}" data-severity="{{ result.severity }}">
+                    <div class="threat-header">
+                        <h3>
+                            {% if result.attack_type == 'Coordinated Attack' %}
+                                🎯 {{ result.attack_type }}
+                            {% else %}
+                                🚨 {{ result.attack_type }}
+                            {% endif %}
+                        </h3>
+                        <div>
+                            <span class="threat-badge badge-{{ result.severity }}">
+                                {{ result.severity|upper }}
+                            </span>
+                            <span style="margin-left: 10px; opacity: 0.8;">
+                                {{ "%.1f"|format(result.final_confidence * 100) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="threat-details">
+                        <div class="detail-item">
+                            <strong>Source:</strong> {{ result.source_ip }}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Target:</strong> {{ result.target_ip }}:{{ result.target_port }}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Protocol:</strong> {{ result.protocol }}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Tool:</strong> {{ result.tool }}
+                        </div>
+                    </div>
+
+                    <div class="explanation">
+                        <h4>🤖 AI Explanation:</h4>
+                        <p>{{ result.description }}</p>
+                    </div>
+
+                    {% if result.recommendations %}
+                    <div class="recommendations">
+                        <h4>🛡️ Recommendations:</h4>
+                        <ul>
+                            {% for recommendation in result.recommendations %}
+                            <li>{{ recommendation }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if result.campaign_details %}
+                    <div class="campaign-info">
+                        <h4>🎯 Campaign Details:</h4>
+                        <p><strong>Techniques Used:</strong> {{ result.campaign_details.techniques_used|join(', ') }}</p>
+                        <p><strong>Total Techniques:</strong> {{ result.campaign_details.total_techniques }}</p>
+                        <p><strong>Time Range:</strong> {{ result.campaign_details.time_range }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div style="margin-top: 15px; opacity: 0.7; font-size: 0.9em;">
+                        Detected at: {{ result.timestamp_analyzed }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-threats">
+                    <h2>✅ No Threats Detected</h2>
+                    <p>All analyzed network activities appear to be normal.</p>
+                    <p>The system did not find any suspicious patterns in the provided logs.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/upload-logs" class="btn">📁 Upload More Logs</a>
+            <a href="/detect-threat" class="btn btn-secondary">🔍 Single Detection</a>
+            <a href="/dashboard" class="btn btn-secondary">📊 Live Dashboard</a>
+            <a href="/" class="btn btn-secondary">🏠 Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Severity filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const severity = this.getAttribute('data-severity');
+                const threats = document.querySelectorAll('.threat-card');
+                
+                threats.forEach(threat => {
+                    if (severity === 'all' || threat.getAttribute('data-severity') === severity) {
+                        threat.style.display = 'block';
+                    } else {
+                        threat.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Auto-expand critical threats
+        document.querySelectorAll('.threat-card.threat-critical').forEach(card => {
+            card.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

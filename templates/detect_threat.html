@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Threat Detection - Cyber Security</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Header Navigation Styles */
+        .main-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0, 180, 219, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px 8px 0 0;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
+        }
+        
+        .form-section, .result-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #00b4db;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00b4db;
+            box-shadow: 0 0 10px rgba(0, 180, 219, 0.3);
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            background: linear-gradient(45deg, #00b4db, #0083b0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .quick-presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .preset-btn {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(0, 180, 219, 0.3);
+            border-color: #00b4db;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+        
+        .threat-critical { border-left-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .threat-high { border-left-color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+        .threat-medium { border-left-color: #f1c40f; background: rgba(241, 196, 15, 0.1); }
+        .threat-low { border-left-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        .threat-normal { border-left-color: #3498db; background: rgba(52, 152, 219, 0.1); }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .threat-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .badge-critical { background: #e74c3c; }
+        .badge-high { background: #e67e22; }
+        .badge-medium { background: #f1c40f; color: #000; }
+        .badge-low { background: #2ecc71; }
+        .badge-normal { background: #3498db; }
+        
+        .explanation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        .recommendations {
+            margin-top: 15px;
+        }
+        
+        .recommendations ul {
+            padding-left: 20px;
+        }
+        
+        .recommendations li {
+            margin-bottom: 8px;
+        }
+        
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-buttons .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00b4db;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .risk-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .risk-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+        }
+        
+        .risk-low { background: #2ecc71; width: 25%; }
+        .risk-medium { background: #f1c40f; width: 50%; }
+        .risk-high { background: #e67e22; width: 75%; }
+        .risk-critical { background: #e74c3c; width: 95%; }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted #00b4db;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1a1a2e;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid #00b4db;
+            font-size: 0.9em;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <div class="nav-container">
+            <div class="logo">🛡️ CyberShield</div>
+            <div class="nav-links">
+                <a href="/" class="nav-btn">🏠 Home</a>
+                <a href="/detect-threat" class="nav-btn active">🔍 Custom Detection</a>
+                <a href="/dashboard" class="nav-btn">📊 Live Dashboard</a>
+                <a href="/upload-logs" class="nav-btn">📁 Upload Logs</a>
+                <a href="/real-time-dashboard" class="nav-btn">📈 Real-time Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Advanced Threat Detection</h1>
+            <p>Comprehensive network activity analysis with AI-powered threat intelligence</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('basic')">Basic Analysis</button>
+            <button class="tab" onclick="switchTab('advanced')">Advanced Analysis</button>
+            <button class="tab" onclick="switchTab('custom')">Custom Log</button>
+        </div>
+
+        <div class="content">
+            <!-- Left: Input Form -->
+            <div class="form-section">
+                <!-- Quick Presets -->
+                <div class="quick-presets">
+                    <button type="button" class="preset-btn" onclick="loadPreset('normal')">🟢 Normal Traffic</button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('portscan')">🟡 Port Scan</button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('bruteforce')">🔴 Brute Force</button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('dos')">🟠 DDoS Attack</button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('webscan')">🟣 Web Scan</button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('malware')">⚫ Malware</button>
+                </div>
+
+                <!-- Basic Analysis Tab -->
+                <div id="basic" class="tab-content active">
+                    <h2>Basic Network Analysis</h2>
+                    <form method="POST" id="threatForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tool">Tool/Application: <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">The application or tool generating this network activity</span>
+                                </span></label>
+                                <select id="tool" name="tool" required>
+                                    <option value="unknown">Unknown</option>
+                                    <option value="nmap">Nmap (Port Scanner)</option>
+                                    <option value="hydra">Hydra (Brute Force)</option>
+                                    <option value="gobuster">Gobuster (Web Scanner)</option>
+                                    <option value="hping3">Hping3 (DoS Tool)</option>
+                                    <option value="nikto">Nikto (Web Scanner)</option>
+                                    <option value="metasploit">Metasploit (Exploitation)</option>
+                                    <option value="wireshark">Wireshark (Sniffer)</option>
+                                    <option value="nessus">Nessus (Vulnerability Scanner)</option>
+                                    <option value="burpsuite">Burp Suite (Web Proxy)</option>
+                                    <option value="sqlmap">SQLmap (SQL Injection)</option>
+                                    <option value="john">John the Ripper (Password Crack)</option>
+                                    <option value="aircrack">Aircrack-ng (Wireless)</option>
+                                    <option value="browser">Web Browser</option>
+                                    <option value="email_client">Email Client</option>
+                                    <option value="normal_activity">Normal Activity</option>
+                                    <option value="custom">Custom Tool</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="attack_category">Attack Category: <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Type of attack or network activity</span>
+                                </span></label>
+                                <select id="attack_category" name="attack_category" required>
+                                    <option value="unknown">Unknown</option>
+                                    <option value="reconnaissance">Reconnaissance</option>
+                                    <option value="bruteforce">Brute Force</option>
+                                    <option value="dos">Denial of Service</option>
+                                    <option value="web_scanning">Web Scanning</option>
+                                    <option value="malware">Malware Activity</option>
+                                    <option value="data_exfiltration">Data Exfiltration</option>
+                                    <option value="lateral_movement">Lateral Movement</option>
+                                    <option value="privilege_escalation">Privilege Escalation</option>
+                                    <option value="phishing">Phishing</option>
+                                    <option value="ransomware">Ransomware</option>
+                                    <option value="botnet">Botnet Activity</option>
+                                    <option value="crypto_mining">Cryptocurrency Mining</option>
+                                    <option value="normal">Normal Traffic</option>
+                                    <option value="suspicious">Suspicious Activity</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="severity">Severity Level: <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Initial assessment of threat severity</span>
+                                </span></label>
+                                <select id="severity" name="severity" required>
+                                    <option value="info">Info</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="protocol">Protocol: <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Network protocol used</span>
+                                </span></label>
+                                <select id="protocol" name="protocol" required>
+                                    <option value="tcp" selected>TCP</option>
+                                    <option value="udp">UDP</option>
+                                    <option value="icmp">ICMP</option>
+                                    <option value="http">HTTP</option>
+                                    <option value="https">HTTPS</option>
+                                    <option value="ssh">SSH</option>
+                                    <option value="ftp">FTP</option>
+                                    <option value="dns">DNS</option>
+                                    <option value="dhcp">DHCP</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="source_ip">Source IP: <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Originating IP address</span>
+                                </span></label>
+                                <input type="text" id="source_ip" name="source_ip" value="192.168.1.100" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="target_ip">Target IP: <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Destination IP address</span>
+                                </span></label>
+                                <input type="text" id="target_ip" name="target_ip" value="192.168.1.1" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target_port">Target Port: <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Destination port number</span>
+                                </span></label>
+                                <input type="number" id="target_port" name="target_port" value="80" min="1" max="65535" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dur">Duration (seconds): <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Connection duration</span>
+                                </span></label>
+                                <input type="number" id="dur" name="dur" value="0.5" step="0.1" min="0" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">🚀 Analyze Threat</button>
+                    </form>
+                </div>
+
+                <!-- Advanced Analysis Tab -->
+                <div id="advanced" class="tab-content">
+                    <h2>Advanced Network Metrics</h2>
+                    <form method="POST" id="advancedForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="spkts">Source Packets:</label>
+                                <input type="number" id="spkts" name="spkts" value="10" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dpkts">Destination Packets:</label>
+                                <input type="number" id="dpkts" name="dpkts" value="8" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sbytes">Source Bytes:</label>
+                                <input type="number" id="sbytes" name="sbytes" value="1200" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dbytes">Destination Bytes:</label>
+                                <input type="number" id="dbytes" name="dbytes" value="800" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rate">Packet Rate (pps):</label>
+                                <input type="number" id="rate" name="rate" value="20.5" step="0.1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sttl">Source TTL:</label>
+                                <input type="number" id="sttl" name="sttl" value="64" min="1" max="255" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dttl">Destination TTL:</label>
+                                <input type="number" id="dttl" name="dttl" value="64" min="1" max="255" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sload">Source Load (bps):</label>
+                                <input type="number" id="sload" name="sload" value="1000.0" step="0.1" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dload">Destination Load (bps):</label>
+                                <input type="number" id="dload" name="dload" value="800.0" step="0.1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sinpkt">Inter-packet Time (ms):</label>
+                                <input type="number" id="sinpkt" name="sinpkt" value="50.0" step="0.1" min="0" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">🔬 Advanced Analysis</button>
+                    </form>
+                </div>
+
+                <!-- Custom Log Tab -->
+                <div id="custom" class="tab-content">
+                    <h2>Custom Log Analysis</h2>
+                    <form method="POST" id="customForm">
+                        <div class="form-group">
+                            <label for="custom_log">Paste Log Data (JSON/CSV format):</label>
+                            <textarea id="custom_log" name="custom_log" placeholder='{"tool": "nmap", "attack_type": "reconnaissance", "severity": "high", "proto": "tcp", "src_ip": "192.168.1.100", "dest_ip": "192.168.1.1", "dest_port": 22, "dur": 0.1, "spkts": 150, "dpkts": 0, "sbytes": 600, "dbytes": 0}'></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="log_format">Log Format:</label>
+                            <select id="log_format" name="log_format">
+                                <option value="json">JSON</option>
+                                <option value="csv">CSV</option>
+                                <option value="syslog">Syslog</option>
+                                <option value="cef">CEF</option>
+                                <option value="leef">LEEF</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn">📊 Analyze Custom Log</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Results Section -->
+            <div class="result-section">
+                <h2>Detection Results</h2>
+                
+                {% if error %}
+                <div class="error">
+                    <h3>❌ Analysis Error</h3>
+                    <p>{{ error }}</p>
+                </div>
+                {% endif %}
+
+                {% if result %}
+                <!-- Risk Assessment -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ "%.1f"|format(result.final_confidence * 100) }}%</div>
+                        <div class="stat-label">Confidence</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ result.risk_score or "N/A" }}</div>
+                        <div class="stat-label">Risk Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ result.attack_type }}</div>
+                        <div class="stat-label">Attack Type</div>
+                    </div>
+                </div>
+
+                <!-- Risk Meter -->
+                <div class="risk-meter">
+                    <div class="risk-fill risk-{{ result.severity }}"></div>
+                </div>
+
+                <div class="result-card threat-{{ result.severity }}">
+                    <div class="result-header">
+                        <h3>
+                            {% if result.threat_detected %}
+                                🚨 {{ result.attack_type }}
+                            {% else %}
+                                ✅ Normal Activity
+                            {% endif %}
+                        </h3>
+                        <span class="threat-badge badge-{{ result.severity }}">
+                            {{ result.severity|upper }}
+                        </span>
+                    </div>
+
+                    <div class="result-details">
+                        <p><strong>🔧 Tool:</strong> {{ result.tool or 'Unknown' }}</p>
+                        <p><strong>🎯 Confidence:</strong> {{ "%.2f"|format(result.final_confidence * 100) }}%</p>
+                        <p><strong>🌐 Source:</strong> {{ result.source_ip }} → {{ result.target_ip }}:{{ result.target_port }}</p>
+                        <p><strong>📡 Protocol:</strong> {{ result.proto or 'tcp' }}</p>
+                        <p><strong>⏱️ Duration:</strong> {{ result.dur or '0.0' }} seconds</p>
+                    </div>
+
+                    <div class="explanation">
+                        <h4>🤖 AI Threat Intelligence:</h4>
+                        <p>{{ result.description }}</p>
+                    </div>
+
+                    {% if result.recommendations %}
+                    <div class="recommendations">
+                        <h4>🛡️ Security Recommendations:</h4>
+                        <ul>
+                            {% for recommendation in result.recommendations %}
+                            <li>{{ recommendation }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="result-meta">
+                        <p><small>🕒 Detected at: {{ result.timestamp_analyzed }}</small></p>
+                        {% if result.mitigation_time %}
+                        <p><small>⚡ Mitigation Time: {{ result.mitigation_time }} seconds</small></p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="result-card threat-normal">
+                    <h3>📋 Ready for Analysis</h3>
+                    <p>Fill out the form and click "Analyze Threat" to detect potential cyber threats.</p>
+                    <p>The system uses advanced AI algorithms to provide detailed threat intelligence and recommendations.</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">95%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">&lt;1s</div>
+                            <div class="stat-label">Response Time</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-label">Threat Types</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="nav-buttons">
+                    <a href="/" class="btn">🏠 Dashboard</a>
+                    <a href="/real-time-dashboard" class="btn btn-secondary">📊 Live Monitor</a>
+                    <a href="/sample-threats" class="btn btn-secondary">🎯 Demo Scenarios</a>
+                    <a href="/upload-logs" class="btn">📁 Upload Logs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activate selected tab
+            event.target.classList.add('active');
+        }
+
+        function loadPreset(preset) {
+            const presets = {
+                normal: {
+                    tool: 'normal_activity',
+                    attack_category: 'normal',
+                    severity: 'low',
+                    protocol: 'tcp',
+                    source_ip: '192.168.1.100',
+                    target_ip: '192.168.1.1',
+                    target_port: '443',
+                    dur: '2.5',
+                    spkts: '25',
+                    dpkts: '35',
+                    sbytes: '2000',
+                    dbytes: '50000'
+                },
+                portscan: {
+                    tool: 'nmap',
+                    attack_category: 'reconnaissance',
+                    severity: 'high',
+                    protocol: 'tcp',
+                    source_ip: '10.0.2.15',
+                    target_ip: '192.168.1.1',
+                    target_port: '22',
+                    dur: '0.1',
+                    spkts: '150',
+                    dpkts: '0',
+                    sbytes: '600',
+                    dbytes: '0'
+                },
+                bruteforce: {
+                    tool: 'hydra',
+                    attack_category: 'bruteforce',
+                    severity: 'critical',
+                    protocol: 'tcp',
+                    source_ip: '10.0.0.50',
+                    target_ip: '192.168.1.1',
+                    target_port: '22',
+                    dur: '2.5',
+                    spkts: '500',
+                    dpkts: '500',
+                    sbytes: '25000',
+                    dbytes: '25000'
+                },
+                dos: {
+                    tool: 'hping3',
+                    attack_category: 'dos',
+                    severity: 'critical',
+                    protocol: 'tcp',
+                    source_ip: '172.16.0.25',
+                    target_ip: '192.168.1.1',
+                    target_port: '80',
+                    dur: '0.05',
+                    spkts: '1000',
+                    dpkts: '0',
+                    sbytes: '50000',
+                    dbytes: '0'
+                },
+                webscan: {
+                    tool: 'gobuster',
+                    attack_category: 'web_scanning',
+                    severity: 'medium',
+                    protocol: 'http',
+                    source_ip: '192.168.1.150',
+                    target_ip: '192.168.1.1',
+                    target_port: '80',
+                    dur: '1.2',
+                    spkts: '200',
+                    dpkts: '180',
+                    sbytes: '8000',
+                    dbytes: '12000'
+                },
+                malware: {
+                    tool: 'unknown',
+                    attack_category: 'malware',
+                    severity: 'high',
+                    protocol: 'tcp',
+                    source_ip: '192.168.1.77',
+                    target_ip: '45.33.32.156',
+                    target_port: '443',
+                    dur: '5.0',
+                    spkts: '50',
+                    dpkts: '45',
+                    sbytes: '15000',
+                    dbytes: '8000'
+                }
+            };
+
+            const presetData = presets[preset];
+            if (presetData) {
+                for (const [key, value] of Object.entries(presetData)) {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = value;
+                    }
+                }
+                // Switch to basic tab
+                switchTab('basic');
+            }
+        }
+
+        // Auto-switch to basic tab on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTab('basic');
+        });
+    </script>
+</body>
+</html>

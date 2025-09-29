@@ -1,52 +1,91 @@
 import sys
 import pandas as pd
-from src.exception import CustomException
 from src.utils import load_object
 
 class PredictPipeline:
     def __init__(self):
-        pass
-    def predict(self, features):
+        self.model = None
+        self.preprocessor = None
+        
+    def load_artifacts(self):
+        """Load model and preprocessor"""
         try:
-            model_path = 'artifacts/model.pkl'
-            preprocessor_path = 'artifacts/preprocessor.pkl'
-            model = load_object(file_path=model_path)
-            preprocessor = load_object(file_path=preprocessor_path)
-            data_scaled = preprocessor.transform(features)
-            preds = model.predict(data_scaled)
-            return preds
+            self.model = load_object('artifacts/cyber_threat_model.pkl')
+            # Try to load preprocessor if it exists
+            try:
+                self.preprocessor = load_object('artifacts/preprocessor.pkl')
+            except:
+                self.preprocessor = None
         except Exception as e:
-            raise CustomException(e, sys)
+            raise Exception(f"Error loading artifacts: {e}")
+    
+    def predict(self, features):
+        """Make prediction"""
+        try:
+            # Load artifacts if not loaded
+            if self.model is None:
+                self.load_artifacts()
+            
+            # If we have a preprocessor, use it
+            if self.preprocessor is not None:
+                features = self.preprocessor.transform(features)
+            
+            # Make prediction
+            predictions = self.model.predict(features)
+            return predictions
+            
+        except Exception as e:
+            raise Exception(f"Error during prediction: {e}")
 
 class CustomData:
-    def __init__(self,
-                gender: str,
-                race_ethnicity: str,
-                parental_level_of_education: str,
-                lunch: str,
-                test_preparation_course: str,
-                reading_score: int,
-                writing_score: int):
-        self.gender = gender
-        self.race_ethnicity = race_ethnicity
-        self.parental_level_of_education = parental_level_of_education
-        self.lunch = lunch
-        self.test_preparation_course = test_preparation_course
-        self.reading_score = reading_score 
-        self.writing_score = writing_score
-
+    """Class for cybersecurity threat prediction data"""
+    
+    def __init__(self, 
+                 tool: str,
+                 attack_category: str, 
+                 severity: str,
+                 protocol: str,
+                 source_ip: str,
+                 target_ip: str,
+                 target_port: int,
+                 dur: float = 0.0,
+                 spkts: int = 0,
+                 dpkts: int = 0,
+                 sbytes: int = 0,
+                 dbytes: int = 0):
+        
+        self.tool = tool
+        self.attack_category = attack_category
+        self.severity = severity
+        self.protocol = protocol
+        self.source_ip = source_ip
+        self.target_ip = target_ip
+        self.target_port = target_port
+        self.dur = dur
+        self.spkts = spkts
+        self.dpkts = dpkts
+        self.sbytes = sbytes
+        self.dbytes = dbytes
+    
     def get_data_as_data_frame(self):
+        """Convert input data to dataframe"""
         try:
             custom_data_input_dict = {
-                'gender': [self.gender],
-                'race_ethnicity': [self.race_ethnicity],
-                'parental_level_of_education': [self.parental_level_of_education],
-                'lunch': [self.lunch],
-                'test_preparation_course': [self.test_preparation_course],
-                'reading_score': [self.reading_score],
-                'writing_score': [self.writing_score]
+                'tool': [self.tool],
+                'attack_category': [self.attack_category],
+                'severity': [self.severity],
+                'protocol': [self.protocol],
+                'source_ip': [self.source_ip],
+                'target_ip': [self.target_ip],
+                'target_port': [self.target_port],
+                'dur': [self.dur],
+                'spkts': [self.spkts],
+                'dpkts': [self.dpkts],
+                'sbytes': [self.sbytes],
+                'dbytes': [self.dbytes]
             }
+            
             return pd.DataFrame(custom_data_input_dict)
-        
+            
         except Exception as e:
-            raise CustomException(e, sys)
+            raise Exception(f"Error creating dataframe: {e}")
