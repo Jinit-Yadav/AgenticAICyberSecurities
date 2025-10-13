@@ -245,3 +245,20 @@ notebook/data/UNSW_NB15_*.csv
 artifacts/
 notebook/data/friend_attack_logs/
 catboost_info/
+
+
+
+# .gitignore
+.env
+*.env
+.env.local
+.env.production
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+artifacts/
+*.log

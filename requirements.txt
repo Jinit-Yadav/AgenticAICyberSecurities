@@ -11,3 +11,4 @@ joblib
 dill
 pickle5
 flask
+lightgbm

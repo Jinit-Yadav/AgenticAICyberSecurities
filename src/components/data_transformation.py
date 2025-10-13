@@ -4,8 +4,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from dataclasses import dataclass
-from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
-from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
 import warnings
 warnings.filterwarnings('ignore')
@@ -37,7 +36,7 @@ class DataTransformationConfig:
 class DataTransformation:
     """
     Data Transformation component for Cyber Security Detection System
-    Handles feature engineering, scaling, and encoding for HYBRID dataset (UNSW-NB15 + Real attack logs)
+    Handles feature engineering, scaling, and encoding for BALANCED dataset
     """
     
     def __init__(self):
@@ -46,41 +45,40 @@ class DataTransformation:
         self.label_encoder = LabelEncoder()
         self.imputer = SimpleImputer(strategy='most_frequent')
         
-    def load_attack_data(self, processed_attack_data_path):
+    def load_balanced_data(self, balanced_data_path):
         """
-        Load the processed hybrid data from HybridDetectionAgent
+        Load the balanced dataset with both normal and attack traffic
         """
-        logging.info("📁 Loading processed hybrid data for ML transformation")
+        logging.info("📁 Loading balanced dataset for ML transformation")
         
         try:
-            if not os.path.exists(processed_attack_data_path):
-                raise CustomException(f"Processed hybrid data not found at: {processed_attack_data_path}")
+            if not os.path.exists(balanced_data_path):
+                raise CustomException(f"Balanced dataset not found at: {balanced_data_path}")
             
             # Load with explicit dtype handling to avoid type issues
-            df = pd.read_csv(processed_attack_data_path, low_memory=False)
+            df = pd.read_csv(balanced_data_path, low_memory=False)
             
             # Clean the dataframe first
             df = self._clean_dataframe(df)
             
-            logging.info(f"✅ Loaded {len(df)} hybrid records with {len(df.columns)} features")
+            logging.info(f"✅ Loaded {len(df)} balanced records with {len(df.columns)} features")
             
             # Display dataset composition
-            print(f"\n📊 HYBRID Dataset Info:")
+            print(f"\n📊 BALANCED Dataset Info:")
             print(f"   • Shape: {df.shape}")
             print(f"   • Total Records: {len(df)}")
             
             # Check dataset composition
-            if 'tool' in df.columns:
-                unsw_count = len(df[df['tool'] == 'unsw_dataset'])
-                real_attack_count = len(df[df['tool'] != 'unsw_dataset'])
-                print(f"   • UNSW-NB15 Records: {unsw_count} ({unsw_count/len(df)*100:.1f}%)")
-                print(f"   • Real Attack Records: {real_attack_count} ({real_attack_count/len(df)*100:.1f}%)")
-            
             if 'is_threat' in df.columns:
                 threat_count = df['is_threat'].sum()
                 normal_count = len(df) - threat_count
                 print(f"   • Threat Records: {threat_count} ({threat_count/len(df)*100:.1f}%)")
                 print(f"   • Normal Records: {normal_count} ({normal_count/len(df)*100:.1f}%)")
+            
+            if 'dataset_source' in df.columns:
+                source_counts = df['dataset_source'].value_counts()
+                for source, count in source_counts.items():
+                    print(f"   • {source}: {count} ({count/len(df)*100:.1f}%)")
             
             # Show available columns
             print(f"   • Available Columns: {list(df.columns)}")
@@ -88,7 +86,7 @@ class DataTransformation:
             return df
             
         except Exception as e:
-            raise CustomException(f"Failed to load hybrid data: {e}", sys)
+            raise CustomException(f"Failed to load balanced data: {e}", sys)
     
     def _clean_dataframe(self, df):
         """
@@ -138,9 +136,9 @@ class DataTransformation:
     
     def create_cybersecurity_features(self, df):
         """
-        Create advanced cybersecurity-specific features for hybrid dataset
+        Create advanced cybersecurity-specific features for balanced dataset
         """
-        logging.info("🔧 Creating cybersecurity-specific features for hybrid dataset")
+        logging.info("🔧 Creating cybersecurity-specific features for balanced dataset")
         
         try:
             # Use safer copy method
@@ -182,7 +180,8 @@ class DataTransformation:
                     feature_df['is_recon_tool'] = feature_df['tool'].isin(recon_tools).astype(int)
                     
                     # Dataset source indicator
-                    feature_df['is_real_attack'] = (feature_df['tool'] != 'unsw_dataset').astype(int)
+                    feature_df['is_real_attack'] = (feature_df['dataset_source'] == 'real_attacks').astype(int)
+                    feature_df['is_cic_data'] = (feature_df['dataset_source'] == 'cic_ids2017').astype(int)
                     feature_df['is_unsw_data'] = (feature_df['tool'] == 'unsw_dataset').astype(int)
                 except Exception as tool_error:
                     print(f"⚠️  Tool feature creation failed: {tool_error}")
@@ -196,6 +195,10 @@ class DataTransformation:
                     
                     # Normal traffic indicator
                     feature_df['is_normal_traffic'] = (feature_df['attack_category'] == 'normal').astype(int)
+                    
+                    # Reconnaissance activities
+                    recon_categories = ['reconnaissance', 'web_scanning', 'network_scanning']
+                    feature_df['is_recon_activity'] = feature_df['attack_category'].isin(recon_categories).astype(int)
                 except Exception as category_error:
                     print(f"⚠️  Category feature creation failed: {category_error}")
             
@@ -205,6 +208,9 @@ class DataTransformation:
                     # Common attack ports
                     common_attack_ports = [21, 22, 23, 25, 53, 80, 110, 443, 993, 995, 1433, 1521, 3306, 3389]
                     feature_df['is_common_attack_port'] = feature_df['target_port'].isin(common_attack_ports).astype(int)
+                    
+                    # Well-known ports (0-1023)
+                    feature_df['is_well_known_port'] = (feature_df['target_port'] <= 1023).astype(int)
                 except Exception as port_error:
                     print(f"⚠️  Port feature creation failed: {port_error}")
             
@@ -216,20 +222,6 @@ class DataTransformation:
                     feature_df['is_icmp'] = (feature_df['protocol'] == 'icmp').astype(int)
                 except Exception as protocol_error:
                     print(f"⚠️  Protocol feature creation failed: {protocol_error}")
-            
-            # Session-based features (using attack_session_id if available)
-            if 'attack_session_id' in feature_df.columns:
-                try:
-                    feature_df['requests_per_session'] = feature_df.groupby('attack_session_id')['attack_session_id'].transform('count')
-                except Exception as session_error:
-                    print(f"⚠️  Session feature creation failed: {session_error}")
-            
-            # Advanced threat indicators
-            try:
-                feature_df['high_frequency_flag'] = (feature_df['requests_per_ip'] > 50).astype(int) if 'requests_per_ip' in feature_df.columns else 0
-                feature_df['multiple_targets_flag'] = (feature_df['unique_targets_per_ip'] > 3).astype(int) if 'unique_targets_per_ip' in feature_df.columns else 0
-            except Exception as indicator_error:
-                print(f"⚠️  Indicator feature creation failed: {indicator_error}")
             
             # UNSW-specific feature preservation
             if 'service' in feature_df.columns:
@@ -247,7 +239,18 @@ class DataTransformation:
                 except Exception as state_error:
                     print(f"⚠️  State feature creation failed: {state_error}")
             
-            # Composite threat score (enhanced for hybrid data)
+            # CIC-specific features preservation
+            cic_features = ['dur', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate']
+            for feature in cic_features:
+                if feature in feature_df.columns:
+                    try:
+                        # Normalize CIC features
+                        if feature_df[feature].max() > 0:
+                            feature_df[f'{feature}_norm'] = feature_df[feature] / feature_df[feature].max()
+                    except Exception as cic_error:
+                        print(f"⚠️  CIC feature {feature} processing failed: {cic_error}")
+            
+            # Composite threat score (enhanced for balanced data)
             feature_df = self._calculate_enhanced_threat_score(feature_df)
             
             new_features_count = len([col for col in feature_df.columns if col not in df.columns])
@@ -278,7 +281,7 @@ class DataTransformation:
     
     def _calculate_enhanced_threat_score(self, df):
         """
-        Calculate enhanced composite threat score for hybrid dataset
+        Calculate enhanced composite threat score for balanced dataset
         """
         try:
             # Initialize threat score
@@ -288,7 +291,7 @@ class DataTransformation:
             tool_scores = {
                 'hydra': 0.9, 'ftp_bruteforce': 0.9, 'hping3': 0.8,
                 'nmap': 0.4, 'gobuster': 0.5, 'nikto': 0.5, 'smb': 0.6,
-                'unsw_dataset': 0.5  # Default for UNSW data
+                'unsw_dataset': 0.5, 'cic_dataset': 0.3, 'unknown': 0.3
             }
             if 'tool' in df.columns:
                 try:
@@ -302,7 +305,7 @@ class DataTransformation:
                 'bruteforce': 0.9, 'dos_testing': 0.8, 'exploitation': 0.9,
                 'reconnaissance': 0.5, 'web_scanning': 0.6, 'network_scanning': 0.5,
                 'fuzzing': 0.4, 'backdoor': 0.9, 'malware': 0.9, 'generic_attack': 0.7,
-                'normal': 0.1, 'unknown': 0.3
+                'normal': 0.1, 'unknown': 0.3, 'directory_bruteforce': 0.7
             }
             if 'attack_category' in df.columns:
                 try:
@@ -321,25 +324,19 @@ class DataTransformation:
                     print(f"⚠️  Severity threat score failed: {e}")
             
             # Behavioral scoring
-            if 'high_frequency_flag' in df.columns:
+            if 'is_high_risk_tool' in df.columns:
                 try:
-                    df['threat_score'] += df['high_frequency_flag'] * 0.15
+                    df['threat_score'] += df['is_high_risk_tool'] * 0.15
                 except: pass
             
-            if 'multiple_targets_flag' in df.columns:
+            if 'is_high_severity_category' in df.columns:
                 try:
-                    df['threat_score'] += df['multiple_targets_flag'] * 0.1
+                    df['threat_score'] += df['is_high_severity_category'] * 0.1
                 except: pass
             
-            if 'is_night' in df.columns:
-                try:
-                    df['threat_score'] += df['is_night'] * 0.05
-                except: pass
-            
-            # Dataset source adjustment
             if 'is_real_attack' in df.columns:
                 try:
-                    df['threat_score'] += df['is_real_attack'] * 0.1
+                    df['threat_score'] += df['is_real_attack'] * 0.05
                 except: pass
             
             # Normal traffic adjustment
@@ -363,9 +360,9 @@ class DataTransformation:
     
     def handle_missing_values(self, df):
         """
-        Handle missing values in the hybrid dataset
+        Handle missing values in the balanced dataset
         """
-        logging.info("🔧 Handling missing values in hybrid dataset")
+        logging.info("🔧 Handling missing values in balanced dataset")
         
         try:
             # Use safe copy
@@ -385,6 +382,14 @@ class DataTransformation:
                             cleaned_df[col] = cleaned_df[col].fillna('unknown')
                         elif col == 'severity':
                             cleaned_df[col] = cleaned_df[col].fillna('low')
+                        elif col == 'protocol':
+                            cleaned_df[col] = cleaned_df[col].fillna('unknown')
+                        elif col == 'service':
+                            cleaned_df[col] = cleaned_df[col].fillna('unknown')
+                        elif col == 'state':
+                            cleaned_df[col] = cleaned_df[col].fillna('unknown')
+                        elif col == 'dataset_source':
+                            cleaned_df[col] = cleaned_df[col].fillna('unknown')
                         else:
                             cleaned_df[col] = cleaned_df[col].fillna('unknown')
                     except Exception as col_error:
@@ -395,7 +400,11 @@ class DataTransformation:
             for col in numerical_columns:
                 if col in cleaned_df.columns and col != 'is_threat':  # Don't fill target variable
                     try:
-                        cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].median())
+                        if cleaned_df[col].isna().sum() > 0:
+                            if col in ['source_port', 'target_port']:
+                                cleaned_df[col] = cleaned_df[col].fillna(0)
+                            else:
+                                cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].median())
                     except:
                         cleaned_df[col] = cleaned_df[col].fillna(0)
             
@@ -407,9 +416,9 @@ class DataTransformation:
     
     def encode_categorical_features(self, df):
         """
-        Encode categorical features for machine learning - enhanced for hybrid data
+        Encode categorical features for machine learning - enhanced for balanced data
         """
-        logging.info("🔠 Encoding categorical features for hybrid dataset")
+        logging.info("🔠 Encoding categorical features for balanced dataset")
         
         try:
             encoded_df = self._safe_dataframe_copy(df)
@@ -417,31 +426,32 @@ class DataTransformation:
             if encoded_df.empty:
                 return encoded_df
             
-            # Encode tool types (including UNSW dataset)
+            # Encode tool types (including UNSW dataset, CIC, and real attacks)
             tool_mapping = {
                 'nmap': 0, 'gobuster': 1, 'hping3': 2, 'hydra': 3,
-                'nikto': 4, 'smb': 5, 'ftp_bruteforce': 6, 'unsw_dataset': 7, 'unknown': 8
+                'nikto': 4, 'smb': 5, 'ftp_bruteforce': 6, 
+                'unsw_dataset': 7, 'cic_dataset': 8, 'unknown': 9
             }
             if 'tool' in encoded_df.columns:
                 try:
-                    encoded_df['tool_encoded'] = encoded_df['tool'].map(tool_mapping).fillna(8)
+                    encoded_df['tool_encoded'] = encoded_df['tool'].map(tool_mapping).fillna(9)
                 except Exception as e:
                     print(f"⚠️  Tool encoding failed: {e}")
-                    encoded_df['tool_encoded'] = 8
+                    encoded_df['tool_encoded'] = 9
             
-            # Encode attack categories (including UNSW categories)
+            # Encode attack categories (including UNSW categories, CIC, and normal traffic)
             category_mapping = {
                 'reconnaissance': 0, 'bruteforce': 1, 'dos_testing': 2,
                 'web_scanning': 3, 'network_scanning': 4, 'exploitation': 5,
                 'fuzzing': 6, 'backdoor': 7, 'malware': 8, 'generic_attack': 9,
-                'normal': 10, 'unknown': 11
+                'directory_bruteforce': 10, 'normal': 11, 'unknown': 12
             }
             if 'attack_category' in encoded_df.columns:
                 try:
-                    encoded_df['attack_category_encoded'] = encoded_df['attack_category'].map(category_mapping).fillna(11)
+                    encoded_df['attack_category_encoded'] = encoded_df['attack_category'].map(category_mapping).fillna(12)
                 except Exception as e:
                     print(f"⚠️  Category encoding failed: {e}")
-                    encoded_df['attack_category_encoded'] = 11
+                    encoded_df['attack_category_encoded'] = 12
             
             # Encode severity levels
             severity_mapping = {'low': 0, 'medium': 1, 'high': 2, 'critical': 3}
@@ -461,7 +471,19 @@ class DataTransformation:
                     print(f"⚠️  Protocol encoding failed: {e}")
                     encoded_df['protocol_encoded'] = 3
             
-            logging.info("✅ Categorical features encoded successfully for hybrid dataset")
+            # Encode service
+            service_mapping = {
+                'http': 0, 'dns': 1, 'smtp': 2, 'ftp': 3, 'ssh': 4,
+                'unknown': 5
+            }
+            if 'service' in encoded_df.columns:
+                try:
+                    encoded_df['service_encoded'] = encoded_df['service'].map(service_mapping).fillna(5)
+                except Exception as e:
+                    print(f"⚠️  Service encoding failed: {e}")
+                    encoded_df['service_encoded'] = 5
+            
+            logging.info("✅ Categorical features encoded successfully for balanced dataset")
             return encoded_df
             
         except Exception as e:
@@ -482,15 +504,24 @@ class DataTransformation:
             # Select numerical features to scale (excluding the target variable and encoded categoricals)
             numerical_features = [
                 'hour', 'day_of_week', 'requests_per_ip', 'unique_targets_per_ip',
-                'requests_per_session', 'threat_score', 'complexity_score',
-                'tool_threat_score', 'category_threat_score', 'severity_threat_score'
+                'threat_score', 'tool_threat_score', 'category_threat_score', 'severity_threat_score',
+                'dur', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate',
+                'dur_norm', 'spkts_norm', 'dpkts_norm', 'sbytes_norm', 'dbytes_norm', 'rate_norm'
             ]
             
-            # Only scale features that exist in the dataframe
-            existing_numerical = [col for col in numerical_features if col in scaled_df.columns and col != 'is_threat']
+            # Only scale features that exist in the dataframe and are numerical
+            existing_numerical = [
+                col for col in numerical_features 
+                if col in scaled_df.columns and col != 'is_threat' and scaled_df[col].dtype in [np.number]
+            ]
             
             if existing_numerical:
                 try:
+                    # Handle infinite values
+                    for col in existing_numerical:
+                        scaled_df[col] = scaled_df[col].replace([np.inf, -np.inf], np.nan)
+                        scaled_df[col] = scaled_df[col].fillna(scaled_df[col].median())
+                    
                     scaled_df[existing_numerical] = self.scaler.fit_transform(scaled_df[existing_numerical])
                     logging.info(f"✅ Scaled {len(existing_numerical)} numerical features")
                     
@@ -508,29 +539,37 @@ class DataTransformation:
     
     def select_ml_features(self, df):
         """
-        Select final features for machine learning - enhanced for hybrid data
+        Select final features for machine learning - enhanced for balanced data
         """
-        logging.info("🎯 Selecting final ML features for hybrid dataset")
+        logging.info("🎯 Selecting final ML features for balanced dataset")
         
         try:
             # Base features that are always useful
             base_features = [
                 'tool_encoded', 'attack_category_encoded', 'severity_encoded',
-                'protocol_encoded', 'threat_score', 'complexity_score',
+                'protocol_encoded', 'service_encoded', 'threat_score', 
                 'is_high_risk_tool', 'is_recon_tool', 'is_high_severity_category',
-                'is_normal_traffic', 'is_real_attack', 'is_unsw_data'
+                'is_normal_traffic', 'is_real_attack', 'is_cic_data', 'is_unsw_data',
+                'is_recon_activity'
             ]
             
             # Additional engineered features
             engineered_features = [
                 'hour', 'day_of_week', 'is_weekend', 'is_night',
-                'requests_per_ip', 'unique_targets_per_ip', 'high_frequency_flag',
-                'multiple_targets_flag', 'requests_per_session',
-                'is_common_attack_port', 'is_tcp', 'is_udp', 'is_icmp'
+                'requests_per_ip', 'unique_targets_per_ip',
+                'is_common_attack_port', 'is_well_known_port', 
+                'is_tcp', 'is_udp', 'is_icmp',
+                'is_common_service', 'is_established'
+            ]
+            
+            # CIC-specific features
+            cic_features = [
+                'dur', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate',
+                'dur_norm', 'spkts_norm', 'dpkts_norm', 'sbytes_norm', 'dbytes_norm', 'rate_norm'
             ]
             
             # Combine all possible features
-            all_possible_features = base_features + engineered_features
+            all_possible_features = base_features + engineered_features + cic_features
             
             # Select only features that exist in the dataframe
             final_features = [col for col in all_possible_features if col in df.columns]
@@ -542,7 +581,7 @@ class DataTransformation:
             # Create final dataset
             ml_df = df[final_features].copy()
             
-            logging.info(f"✅ Selected {len(final_features)} features for ML from hybrid dataset")
+            logging.info(f"✅ Selected {len(final_features)} features for ML from balanced dataset")
             print(f"\n🎯 Final ML Features ({len(final_features)}):")
             for i, feature in enumerate(final_features):
                 if feature != 'is_threat':
@@ -555,7 +594,7 @@ class DataTransformation:
     
     def analyze_threat_patterns(self, df):
         """
-        Analyze differences between normal and threat patterns in hybrid dataset
+        Analyze differences between normal and threat patterns in balanced dataset
         """
         if 'is_threat' not in df.columns or df.empty:
             logging.warning("⚠️ No threat labels found for pattern analysis")
@@ -574,7 +613,7 @@ class DataTransformation:
             threat_stats = df.groupby('is_threat')[numerical_features].mean().round(3)
             
             print("\n" + "="*70)
-            print("🔍 HYBRID DATASET - THREAT vs NORMAL PATTERN ANALYSIS")
+            print("🔍 BALANCED DATASET - THREAT vs NORMAL PATTERN ANALYSIS")
             print("="*70)
             print("0 = Normal traffic, 1 = Threat traffic")
             print(threat_stats)
@@ -588,34 +627,26 @@ class DataTransformation:
             print(f"   Normal events: {total_records - total_threats} ({100 - threat_percentage:.1f}%)")
             print(f"   Threat events: {total_threats} ({threat_percentage:.1f}%)")
             
-            # Dataset composition
-            if 'is_real_attack' in df.columns:
-                real_attack_count = df['is_real_attack'].sum()
-                unsw_count = total_records - real_attack_count
-                print(f"\n📊 Dataset Composition:")
-                print(f"   UNSW-NB15 records: {unsw_count} ({unsw_count/total_records*100:.1f}%)")
-                print(f"   Real attack records: {real_attack_count} ({real_attack_count/total_records*100:.1f}%)")
-            
             print("="*70)
             
         except Exception as e:
             logging.warning(f"Threat pattern analysis failed: {e}")
     
-    def create_ml_ready_dataset(self, processed_attack_data_path):
+    def create_ml_ready_dataset(self, balanced_data_path):
         """
-        Create final ML-ready dataset from hybrid data
+        Create final ML-ready dataset from balanced data
         """
-        logging.info("🚀 Creating ML-ready dataset from hybrid data")
+        logging.info("🚀 Creating ML-ready dataset from balanced data")
         
         try:
-            # Step 1: Load the processed hybrid data
-            hybrid_data = self.load_attack_data(processed_attack_data_path)
+            # Step 1: Load the balanced data
+            balanced_data = self.load_balanced_data(balanced_data_path)
             
-            if hybrid_data.empty:
+            if balanced_data.empty:
                 raise CustomException("No data available for transformation")
             
             # Step 2: Handle missing values
-            cleaned_data = self.handle_missing_values(hybrid_data)
+            cleaned_data = self.handle_missing_values(balanced_data)
             
             # Step 3: Create cybersecurity features
             feature_data = self.create_cybersecurity_features(cleaned_data)
@@ -644,7 +675,7 @@ class DataTransformation:
             # Generate feature summary
             self.get_feature_summary(final_data)
             
-            logging.info(f"✅ ML-ready hybrid dataset created with {len(final_data)} records and {len(final_data.columns)} features")
+            logging.info(f"✅ ML-ready balanced dataset created with {len(final_data)} records and {len(final_data.columns)} features")
             logging.info(f"✅ Dataset saved to: {self.transformation_config.labeled_dataset_path}")
             
             return final_data
@@ -671,7 +702,7 @@ class DataTransformation:
             }
             
             print("\n" + "="*60)
-            print("📊 HYBRID DATASET - FEATURE ENGINEERING SUMMARY")
+            print("📊 BALANCED DATASET - FEATURE ENGINEERING SUMMARY")
             print("="*60)
             print(f"Total features created: {summary['total_features']}")
             print(f"Numerical features: {summary['numerical_features']}")
@@ -680,13 +711,6 @@ class DataTransformation:
             if 'is_threat' in df.columns:
                 print(f"Threat records: {summary['threat_records']}")
                 print(f"Normal records: {summary['total_records'] - summary['threat_records']}")
-            
-            # Dataset source info
-            if 'is_real_attack' in df.columns:
-                real_count = df['is_real_attack'].sum()
-                unsw_count = len(df) - real_count
-                print(f"UNSW-NB15 records: {unsw_count}")
-                print(f"Real attack records: {real_count}")
             print("="*60)
             
             return summary
@@ -697,31 +721,31 @@ class DataTransformation:
 
 # Example usage
 if __name__ == "__main__":
-    # This transforms the hybrid data for ML training
+    # This transforms the balanced data for ML training
     data_transformation = DataTransformation()
     
     try:
-        # Path to the processed hybrid data from HybridDetectionAgent
-        processed_attack_data_path = 'artifacts/processed_attack_data.csv'
+        # Path to the balanced dataset from BalancedDatasetCreator
+        balanced_data_path = 'artifacts/balanced_dataset.csv'
         
-        if os.path.exists(processed_attack_data_path):
-            print("🚀 Starting Data Transformation for HYBRID ML Training")
+        if os.path.exists(balanced_data_path):
+            print("🚀 Starting Data Transformation for BALANCED ML Training")
             print("="*60)
             
             transformed_data = data_transformation.create_ml_ready_dataset(
-                processed_attack_data_path
+                balanced_data_path
             )
             
-            print(f"\n🎯 HYBRID Data Transformation Results:")
+            print(f"\n🎯 BALANCED Data Transformation Results:")
             print(f"✅ Final dataset shape: {transformed_data.shape}")
             print(f"✅ Threat labels: {'is_threat' in transformed_data.columns}")
             print(f"✅ Dataset composition analyzed")
-            print(f"✅ ML-ready hybrid dataset saved to: {data_transformation.transformation_config.labeled_dataset_path}")
+            print(f"✅ ML-ready balanced dataset saved to: {data_transformation.transformation_config.labeled_dataset_path}")
             print(f"✅ You can now use this balanced data to train robust ML models!")
             
         else:
-            print(f"❌ Processed hybrid data not found at: {processed_attack_data_path}")
-            print("💡 Please run HybridDetectionAgent first to generate the hybrid data")
+            print(f"❌ Balanced dataset not found at: {balanced_data_path}")
+            print("💡 Please run data_ingestion.py first and choose option 3 to generate the balanced data")
             
     except Exception as e:
         print(f"❌ Error in data transformation: {e}")

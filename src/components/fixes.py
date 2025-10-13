@@ -1,10 +1,7 @@
-import os
-import sys
 import pandas as pd
 import numpy as np
 import joblib
 import time
-from dataclasses import dataclass
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier, VotingClassifier
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
@@ -19,28 +16,6 @@ from sklearn.decomposition import PCA
 import warnings
 warnings.filterwarnings('ignore')
 
-# Fix import paths
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(os.path.dirname(current_dir))
-sys.path.append(project_root)
-
-try:
-    from src.logger import logging
-    from src.exception import CustomException
-except ImportError:
-    from logger import logging
-    from exception import CustomException
-
-@dataclass
-class ModelTrainerConfig:
-    """
-    Configuration for Model Training in Cyber Security Detection System
-    """
-    trained_model_path: str = os.path.join('artifacts', 'ultimate_model.pkl')
-    model_performance_path: str = os.path.join('artifacts', 'model_performance.json')
-    feature_importance_path: str = os.path.join('artifacts', 'feature_importance.csv')
-    training_report_path: str = os.path.join('artifacts', 'training_report.txt')
-
 class AdvancedCybersecurityModel:
     def __init__(self):
         self.models = {}
@@ -48,26 +23,16 @@ class AdvancedCybersecurityModel:
         self.best_score = 0
         self.scaler = StandardScaler()
         self.feature_selector = None
-        self.original_features = []
-        self.engineered_features = []
-        self.removed_features = []
-        self.final_features = []
         
     def create_ultimate_dataset(self):
         """
-        Create the most comprehensive realistic dataset with detailed feature tracking
+        Create the most comprehensive realistic dataset
         """
         print("🚀 CREATING ULTIMATE CYBERSECURITY DATASET")
-        print("=" * 80)
+        print("=" * 60)
         
         # Load original data
         original_df = pd.read_csv('artifacts/balanced_dataset.csv', low_memory=False)
-        
-        # Track original features
-        self.original_features = original_df.columns.tolist()
-        print(f"📊 ORIGINAL DATASET FEATURES ({len(self.original_features)}):")
-        for i, feature in enumerate(self.original_features, 1):
-            print(f"   {i:2d}. {feature}")
         
         # Start with comprehensive safe features
         feature_columns = ['source_port', 'target_port', 'protocol', 'dur', 'spkts', 'dpkts', 
@@ -78,22 +43,16 @@ class AdvancedCybersecurityModel:
         available_features = [f for f in feature_columns if f in original_df.columns]
         safe_df = original_df[available_features].copy()
         
-        # Track features we're starting with
-        print(f"\n🎯 INITIAL FEATURES SELECTED ({len(available_features)}):")
-        for i, feature in enumerate(available_features, 1):
-            print(f"   {i:2d}. {feature}")
-        
         # Convert all features to numeric
         for col in safe_df.columns:
             if col != 'is_threat':
                 safe_df[col] = pd.to_numeric(safe_df[col], errors='coerce')
         
-        print("\n   🔧 ENGINEERING ULTIMATE FEATURES...")
+        print("   🔧 Engineering ULTIMATE features...")
         
         # === COMPREHENSIVE FEATURE ENGINEERING ===
         
         # 1. Port and Protocol Features
-        print("   📍 Creating port and protocol features...")
         safe_df['target_port_category'] = pd.cut(safe_df['target_port'], 
                                                bins=[0, 1024, 49151, 65535], 
                                                labels=[0, 1, 2],
@@ -108,28 +67,24 @@ class AdvancedCybersecurityModel:
         safe_df = pd.concat([safe_df, protocol_dummies], axis=1)
         
         # 2. Statistical Moment Features
-        print("   📊 Creating statistical features...")
         safe_df['avg_packet_size'] = (safe_df['sbytes'] + safe_df['dbytes']) / (safe_df['spkts'] + safe_df['dpkts'] + 1e-8)
         safe_df['bytes_per_second'] = (safe_df['sbytes'] + safe_df['dbytes']) / (safe_df['dur'] + 1e-8)
         safe_df['packet_size_std'] = np.sqrt((safe_df['sbytes']**2 + safe_df['dbytes']**2) / 2)
         safe_df['packet_size_skew'] = abs(safe_df['sbytes'] - safe_df['dbytes']) / (safe_df['avg_packet_size'] + 1e-8)
         
         # 3. Ratio and Asymmetry Features
-        print("   ⚖️ Creating ratio and asymmetry features...")
         safe_df['packet_ratio'] = np.log1p(safe_df['spkts']) / (np.log1p(safe_df['dpkts']) + 1e-8)
         safe_df['byte_ratio'] = np.log1p(safe_df['sbytes']) / (np.log1p(safe_df['dbytes']) + 1e-8)
         safe_df['asymmetry_score'] = abs(safe_df['spkts'] - safe_df['dpkts']) / (safe_df['spkts'] + safe_df['dpkts'] + 1e-8)
         safe_df['traffic_balance'] = 1 - safe_df['asymmetry_score']
         
         # 4. Rate and Intensity Features
-        print("   🚀 Creating rate and intensity features...")
         safe_df['packet_rate'] = (safe_df['spkts'] + safe_df['dpkts']) / (safe_df['dur'] + 1e-8)
         safe_df['burstiness'] = (safe_df['spkts'] * safe_df['sbytes'] + safe_df['dpkts'] * safe_df['dbytes']) / (safe_df['dur'] + 1e-8)
         safe_df['traffic_intensity'] = (safe_df['sbytes'] + safe_df['dbytes']) / (safe_df['dur'] + 1e-8)
         safe_df['connection_density'] = (safe_df['spkts'] + safe_df['dpkts']) / (safe_df['dur'] + 1e-8)
         
         # 5. Security-specific Features
-        print("   🛡️ Creating security-specific features...")
         safe_df['is_well_known_port'] = safe_df['target_port'].apply(lambda x: 1 if 0 <= x <= 1023 else 0)
         safe_df['is_ephemeral_port'] = safe_df['source_port'].apply(lambda x: 1 if 49152 <= x <= 65535 else 0)
         safe_df['is_system_port'] = safe_df['target_port'].apply(lambda x: 1 if x in [21, 22, 23, 25, 53, 80, 110, 443, 993, 995] else 0)
@@ -137,38 +92,27 @@ class AdvancedCybersecurityModel:
         
         # 6. TTL-based Features (if available)
         if 'sttl' in safe_df.columns and 'dttl' in safe_df.columns:
-            print("   ⏱️ Creating TTL-based features...")
             safe_df['ttl_difference'] = abs(safe_df['sttl'] - safe_df['dttl'])
             safe_df['ttl_ratio'] = safe_df['sttl'] / (safe_df['dttl'] + 1e-8)
         
         # 7. Loss-based Features (if available)
         if 'sloss' in safe_df.columns and 'dloss' in safe_df.columns:
-            print("   📉 Creating loss-based features...")
             safe_df['total_loss'] = safe_df['sloss'] + safe_df['dloss']
             safe_df['loss_ratio'] = safe_df['sloss'] / (safe_df['dloss'] + 1e-8)
         
         # 8. Advanced Interaction Features
-        print("   🔄 Creating interaction features...")
         safe_df['efficiency_score'] = (safe_df['sbytes'] + safe_df['dbytes']) / (safe_df['spkts'] + safe_df['dpkts'] + 1e-8)
         safe_df['protocol_port_interaction'] = safe_df['protocol'] * safe_df['target_port_category']
         safe_df['duration_traffic_interaction'] = safe_df['dur'] * safe_df['traffic_intensity']
         
         # 9. Log-transformed features for heavy-tailed distributions
-        print("   📈 Creating log-transformed features...")
         safe_df['log_duration'] = np.log1p(safe_df['dur'])
         safe_df['log_total_bytes'] = np.log1p(safe_df['sbytes'] + safe_df['dbytes'])
         safe_df['log_packet_rate'] = np.log1p(safe_df['packet_rate'])
         
         # 10. Binary encoded duration categories
-        print("   ⏰ Creating duration category features...")
         safe_df['is_short_connection'] = (safe_df['dur'] < 1).astype(int)
         safe_df['is_long_connection'] = (safe_df['dur'] > 10).astype(int)
-        
-        # Track all engineered features
-        self.engineered_features = [col for col in safe_df.columns if col not in available_features]
-        print(f"\n🔧 ENGINEERED FEATURES ({len(self.engineered_features)}):")
-        for i, feature in enumerate(self.engineered_features, 1):
-            print(f"   {i:2d}. {feature}")
         
         # Remove original high-risk features
         features_to_drop = ['source_port', 'target_port', 'sbytes', 'dbytes', 'spkts', 'dpkts']
@@ -177,11 +121,6 @@ class AdvancedCybersecurityModel:
         if 'sloss' in safe_df.columns:
             features_to_drop.extend(['sloss', 'dloss'])
             
-        self.removed_features = [f for f in features_to_drop if f in safe_df.columns]
-        print(f"\n🗑️ REMOVED ORIGINAL FEATURES ({len(self.removed_features)}):")
-        for i, feature in enumerate(self.removed_features, 1):
-            print(f"   {i:2d}. {feature}")
-        
         safe_df = safe_df.drop(columns=[f for f in features_to_drop if f in safe_df.columns])
         
         # Handle missing values and infinities
@@ -191,15 +130,9 @@ class AdvancedCybersecurityModel:
         # Ensure target is integer
         safe_df['is_threat'] = safe_df['is_threat'].astype(int)
         
-        # Track final feature set
-        self.final_features_before_selection = [col for col in safe_df.columns if col != 'is_threat']
-        
-        print(f"\n📊 ULTIMATE DATASET CREATED:")
-        print(f"   • Original Features: {len(self.original_features)}")
-        print(f"   • Engineered Features: {len(self.engineered_features)}")
-        print(f"   • Removed Features: {len(self.removed_features)}")
-        print(f"   • Final Features (before selection): {len(self.final_features_before_selection)}")
+        print(f"📊 ULTIMATE dataset created:")
         print(f"   • Samples: {len(safe_df):,}")
+        print(f"   • Features: {len(safe_df.columns) - 1}")
         
         safe_df.to_csv('artifacts/ultimate_dataset.csv', index=False)
         return safe_df
@@ -208,21 +141,14 @@ class AdvancedCybersecurityModel:
         """
         Apply advanced feature selection and engineering
         """
-        print("\n   🎯 ADVANCED FEATURE PROCESSING...")
+        print("   🎯 Advanced feature processing...")
         
         # Step 1: Statistical feature selection
-        k_features = min(30, X.shape[1])
-        selector = SelectKBest(score_func=f_classif, k=k_features)
+        selector = SelectKBest(score_func=f_classif, k=min(30, X.shape[1]))
         X_selected = selector.fit_transform(X, y)
         selected_features = X.columns[selector.get_support()].tolist()
         
-        print(f"   • Selected {len(selected_features)} features via ANOVA F-test")
-        print(f"   • Removed {X.shape[1] - len(selected_features)} low-variance features")
-        
-        # Display selected features
-        print(f"\n   📋 SELECTED FEATURES AFTER ANOVA ({len(selected_features)}):")
-        for i, feature in enumerate(selected_features, 1):
-            print(f"      {i:2d}. {feature}")
+        print(f"   • Selected {len(selected_features)} features via ANOVA")
         
         # Step 2: Power transformation for non-normal features
         transformer = PowerTransformer(method='yeo-johnson')
@@ -233,20 +159,14 @@ class AdvancedCybersecurityModel:
         
         self.feature_selector = selector
         self.selected_features = selected_features
-        self.final_features = selected_features
         
         return pd.DataFrame(X_scaled, columns=selected_features), selected_features
 
     def define_models(self):
         """
-        Define only efficient models (XGBoost and LightGBM) with explanations
+        Define only efficient models (XGBoost and LightGBM)
         """
-        print("\n   🤖 INITIALIZING EFFICIENT MODELS...")
-        print("   🎯 MODEL SELECTION STRATEGY:")
-        print("      • XGBoost: Best performance, handles complex patterns")
-        print("      • LightGBM: Fast training, great for large datasets")
-        print("      • Ensemble: Combines strengths of both models")
-        print("      • REMOVED: RandomForest, SVM, LogisticRegression (slower, similar performance)")
+        print("   🤖 Initializing EFFICIENT models...")
         
         self.models = {
             'XGBoost': {
@@ -257,8 +177,7 @@ class AdvancedCybersecurityModel:
                     'learning_rate': [0.05, 0.1, 0.2],
                     'subsample': [0.8, 0.9],
                     'colsample_bytree': [0.8, 0.9]
-                },
-                'reason': "Best-in-class performance, handles complex feature interactions well"
+                }
             },
             'LightGBM': {
                 'model': LGBMClassifier(random_state=42, n_jobs=-1, verbose=-1),
@@ -268,27 +187,20 @@ class AdvancedCybersecurityModel:
                     'learning_rate': [0.05, 0.1, 0.2],
                     'num_leaves': [31, 50],
                     'subsample': [0.8, 0.9]
-                },
-                'reason': "Extremely fast training, excellent for large cybersecurity datasets"
+                }
             }
+            # Removed Random Forest, Gradient Boosting, Extra Trees for efficiency
         }
 
     def fast_hyperparameter_tuning(self, X_train, y_train):
         """
         Fast hyperparameter tuning with smaller search space
         """
-        print("\n   ⚡ FAST HYPERPARAMETER TUNING...")
-        print("   🎯 TUNING STRATEGY:")
-        print("      • RandomizedSearchCV: Faster than GridSearch")
-        print("      • 10 iterations per model: Balance between speed and performance")
-        print("      • 3-fold CV: Quick cross-validation")
-        print("      • F1-Score optimization: Best for imbalanced cybersecurity data")
-        
+        print("   ⚡ Fast hyperparameter tuning...")
         tuned_models = {}
         
         for name, config in self.models.items():
-            print(f"\n      Tuning {name}...")
-            print(f"      Reason: {config['reason']}")
+            print(f"      Tuning {name}...")
             start_time = time.time()
             
             # Use smaller search space
@@ -306,7 +218,7 @@ class AdvancedCybersecurityModel:
             tuned_models[name] = search.best_estimator_
             
             end_time = time.time()
-            print(f"        ✅ {name} best score: {search.best_score_:.4f} (Time: {end_time - start_time:.1f}s)")
+            print(f"        {name} best score: {search.best_score_:.4f} (Time: {end_time - start_time:.1f}s)")
         
         return tuned_models
 
@@ -314,11 +226,7 @@ class AdvancedCybersecurityModel:
         """
         Create ensemble models
         """
-        print("\n   🎭 BUILDING ENSEMBLE MODEL...")
-        print("   🎯 ENSEMBLE STRATEGY:")
-        print("      • Soft Voting: Probabilistic combination")
-        print("      • Combines XGBoost + LightGBM predictions")
-        print("      • Reduces overfitting, improves generalization")
+        print("   🎭 Building ensemble models...")
         
         # Individual tuned models
         individual_models = list(tuned_models.items())
@@ -343,7 +251,7 @@ class AdvancedCybersecurityModel:
         Comprehensive evaluation of all models
         """
         print("\n📊 COMPREHENSIVE MODEL EVALUATION")
-        print("=" * 80)
+        print("=" * 60)
         
         results = {}
         best_model_name = None
@@ -388,7 +296,7 @@ class AdvancedCybersecurityModel:
             tn, fp, fn, tp = cm.ravel()
             
             print(f"\n🎯 BEST MODEL: {best_model_name}")
-            print(f"📈 CONFUSION MATRIX:")
+            print(f"📈 Confusion Matrix:")
             print(f"   • True Negatives (Normal): {tn:,}")
             print(f"   • False Positives (False Alarms): {fp:,}")
             print(f"   • False Negatives (Missed Threats): {fn:,}")
@@ -398,7 +306,7 @@ class AdvancedCybersecurityModel:
             fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
             fnr = fn / (fn + tp) if (fn + tp) > 0 else 0
             
-            print(f"\n📊 OPERATIONAL METRICS:")
+            print(f"\n📊 Operational Metrics:")
             print(f"   • False Positive Rate: {fpr:.4f}")
             print(f"   • False Negative Rate: {fnr:.4f}")
             print(f"   • Detection Rate: {recall:.4f}")
@@ -409,7 +317,7 @@ class AdvancedCybersecurityModel:
         """
         Save all models and metadata
         """
-        print(f"\n💾 SAVING ULTIMATE MODEL ECOSYSTEM...")
+        print(f"\n💾 Saving ultimate model ecosystem...")
         
         # Save best model
         joblib.dump(self.best_model, 'artifacts/ultimate_model.pkl')
@@ -423,36 +331,21 @@ class AdvancedCybersecurityModel:
         joblib.dump(self.feature_selector, 'artifacts/feature_selector.pkl')
         joblib.dump(self.selected_features, 'artifacts/selected_features.pkl')
         
-        # Save feature tracking information
-        feature_info = {
-            'original_features': self.original_features,
-            'engineered_features': self.engineered_features,
-            'removed_features': self.removed_features,
-            'final_features': self.final_features,
-            'feature_selection_reason': "ANOVA F-test selected top 30 most predictive features"
-        }
-        joblib.dump(feature_info, 'artifacts/feature_tracking.pkl')
-        
         # Save results summary
         results_df = pd.DataFrame(results).T
         results_df.to_csv('artifacts/model_comparison.csv')
         
         print(f"   ✅ Best model: {best_model_name} (F1: {self.best_score:.4f})")
         print(f"   ✅ All models saved to artifacts/")
-        print(f"   ✅ Feature tracking information saved")
 
     def run_ultimate_training(self):
         """
         Main training pipeline - OPTIMIZED VERSION
         """
         print("🚀 STARTING OPTIMIZED CYBERSECURITY TRAINING")
-        print("=" * 80)
-        print("🎯 STRATEGIC DECISIONS:")
-        print("   • MODELS: XGBoost + LightGBM only (best performance/speed ratio)")
-        print("   • FEATURES: 30 most predictive via ANOVA F-test")
-        print("   • TUNING: Fast randomized search with F1 optimization")
-        print("   • ENSEMBLE: Soft voting for improved generalization")
-        print("=" * 80)
+        print("=" * 60)
+        print("Using XGBoost + LightGBM only for maximum efficiency")
+        print("=" * 60)
         
         start_time = time.time()
         
@@ -471,11 +364,10 @@ class AdvancedCybersecurityModel:
             X_processed, y, test_size=0.2, random_state=42, stratify=y
         )
         
-        print(f"\n🎯 FINAL TRAINING SETUP:")
+        print(f"\n🎯 TRAINING SETUP:")
         print(f"   • Training samples: {X_train.shape[0]:,}")
         print(f"   • Test samples: {X_test.shape[0]:,}")
-        print(f"   • Final selected features: {len(selected_features)}")
-        print(f"   • Feature reduction: {len(self.final_features_before_selection)} → {len(selected_features)}")
+        print(f"   • Selected features: {len(selected_features)}")
         
         # Step 4: Define only efficient models
         self.define_models()
@@ -496,7 +388,7 @@ class AdvancedCybersecurityModel:
         total_time = (end_time - start_time) / 60  # Convert to minutes
         
         print(f"\n⏱️  TOTAL TRAINING TIME: {total_time:.1f} minutes")
-        print("=" * 80)
+        print("=" * 60)
         
         return self.best_model, self.best_score
 
@@ -512,141 +404,42 @@ def feature_importance_analysis(model, feature_names, top_n=15):
         }).sort_values('importance', ascending=False)
         
         print(f"\n🔍 TOP {top_n} FEATURE IMPORTANCES:")
-        print("-" * 50)
+        print("-" * 40)
         for i, row in importance_df.head(top_n).iterrows():
             print(f"   {i+1:2d}. {row['feature']}: {row['importance']:.4f}")
         
         return importance_df
 
-def print_feature_summary():
-    """
-    Print comprehensive feature summary
-    """
-    try:
-        feature_info = joblib.load('artifacts/feature_tracking.pkl')
-        
-        print("\n" + "=" * 80)
-        print("📊 COMPREHENSIVE FEATURE SUMMARY")
-        print("=" * 80)
-        
-        print(f"\n📈 FEATURE TRANSFORMATION JOURNEY:")
-        print(f"   • Original Features: {len(feature_info['original_features'])}")
-        print(f"   • Engineered Features: {len(feature_info['engineered_features'])}")
-        print(f"   • Removed Features: {len(feature_info['removed_features'])}")
-        print(f"   • Final Selected Features: {len(feature_info['final_features'])}")
-        
-        print(f"\n🗑️ REMOVED FEATURES & REASONS:")
-        removed_features = feature_info['removed_features']
-        if removed_features:
-            for feature in removed_features:
-                if feature in ['source_port', 'target_port']:
-                    print(f"   • {feature}: Raw port numbers → converted to categories for better patterns")
-                elif feature in ['sbytes', 'dbytes', 'spkts', 'dpkts']:
-                    print(f"   • {feature}: Raw counts → converted to ratios, rates, and statistical features")
-                elif feature in ['sttl', 'dttl', 'sloss', 'dloss']:
-                    print(f"   • {feature}: Raw values → converted to differences, ratios, and interactions")
-                else:
-                    print(f"   • {feature}: Raw feature → engineered into more meaningful representations")
-        
-        print(f"\n🔧 FEATURE ENGINEERING STRATEGY:")
-        print("   • Port Categories: Well-known vs ephemeral vs registered ports")
-        print("   • Statistical Features: Means, std, skewness for traffic patterns")
-        print("   • Ratio Features: Packet/byte ratios for asymmetry detection")
-        print("   • Rate Features: Traffic intensity and burstiness metrics")
-        print("   • Security Features: Suspicious ports, known service ports")
-        print("   • Interaction Features: Protocol-port, duration-traffic interactions")
-        print("   • Log Transforms: Handle heavy-tailed distributions")
-        
-        print(f"\n🎯 FEATURE SELECTION STRATEGY:")
-        print(f"   • Method: {feature_info['feature_selection_reason']}")
-        print(f"   • Goal: Select most predictive features for threat detection")
-        print(f"   • Benefit: Reduced overfitting, faster training, better interpretability")
-        
-    except Exception as e:
-        print(f"⚠️ Could not load feature summary: {e}")
-
-def print_model_selection_explanation():
-    """
-    Print detailed explanation of model selection strategy
-    """
-    print("\n" + "=" * 80)
-    print("🤖 MODEL SELECTION STRATEGY EXPLANATION")
-    print("=" * 80)
-    
-    print(f"\n🎯 WHY XGBOOST + LIGHTGBM ENSEMBLE?")
-    print("   • XGBoost: Best-in-class performance for structured data")
-    print("   • LightGBM: Extremely fast training, great for large datasets")
-    print("   • Ensemble: Combines strengths, reduces individual model weaknesses")
-    print("   • Efficiency: Both are optimized for performance and speed")
-    
-    print(f"\n🚫 WHY NOT OTHER MODELS?")
-    print("   • RandomForest: Slower training, similar performance to XGBoost")
-    print("   • SVM: Poor scalability for large datasets, slow training")
-    print("   • LogisticRegression: Limited capacity for complex patterns")
-    print("   • Neural Networks: Overkill for this data, slow training")
-    
-    print(f"\n⚡ OPTIMIZATION STRATEGIES:")
-    print("   • Fast Hyperparameter Tuning: RandomizedSearchCV instead of GridSearchCV")
-    print("   • Feature Selection: Top 30 features via ANOVA F-test")
-    print("   • Ensemble Voting: Soft voting for probabilistic combination")
-    print("   • Parallel Processing: n_jobs=-1 for maximum CPU utilization")
-
-# Main execution
 if __name__ == "__main__":
     print("🎯 OPTIMIZED CYBERSECURITY THREAT DETECTION")
-    print("=" * 80)
+    print("=" * 60)
     print("Using XGBoost + LightGBM Ensemble for Maximum Efficiency")
-    print("=" * 80)
+    print("=" * 60)
     
-    try:
-        # Check if we have the balanced dataset
-        data_path = 'artifacts/balanced_dataset.csv'
-        if not os.path.exists(data_path):
-            print(f"❌ Dataset not found at: {data_path}")
-            print("💡 Please run data_processing.py first")
-            sys.exit(1)
-        
-        # Initialize and run optimized training
-        cyber_model = AdvancedCybersecurityModel()
-        best_model, best_score = cyber_model.run_ultimate_training()
-        
-        # Feature importance analysis
-        if hasattr(best_model, 'feature_importances_'):
-            feature_importance_analysis(best_model, cyber_model.selected_features)
-        
-        # Print comprehensive feature summary
-        print_feature_summary()
-        
-        # Print model selection explanation
-        print_model_selection_explanation()
-        
-        # Final assessment
-        print(f"\n🎉 OPTIMIZED TRAINING COMPLETE!")
-        print("=" * 80)
-        
-        if best_score >= 0.85:
-            print("🏆 WORLD-CLASS: Exceptional performance achieved!")
-            print("   Ready for enterprise deployment")
-        elif best_score >= 0.80:
-            print("⭐ EXCELLENT: High-performing production model!")
-            print("   Suitable for critical security operations")
-        elif best_score >= 0.75:
-            print("✅ VERY GOOD: Strong realistic performance!")
-            print("   Effective for most security use cases")
-        else:
-            print("📊 GOOD: Solid baseline performance")
-            print("   Can be deployed with monitoring")
-        
-        print(f"   Best F1-Score: {best_score:.4f}")
-        print("=" * 80)
-        
-        print("\n🎯 NEXT STEPS:")
-        print("1. Use ultimate_model.pkl for real-time threat detection")
-        print("2. Monitor model performance in production")
-        print("3. Retrain periodically with new data")
-        print("4. Check artifacts/ folder for all model files and analysis")
-        
-    except Exception as e:
-        print(f"❌ Training failed: {e}")
-        import traceback
-        traceback.print_exc()
+    # Initialize and run optimized training
+    cyber_model = AdvancedCybersecurityModel()
+    best_model, best_score = cyber_model.run_ultimate_training()
+    
+    # Feature importance analysis
+    if hasattr(best_model, 'feature_importances_'):
+        feature_importance_analysis(best_model, cyber_model.selected_features)
+    
+    # Final assessment
+    print(f"\n🎉 OPTIMIZED TRAINING COMPLETE!")
+    print("=" * 50)
+    
+    if best_score >= 0.85:
+        print("🏆 WORLD-CLASS: Exceptional performance achieved!")
+        print("   Ready for enterprise deployment")
+    elif best_score >= 0.80:
+        print("⭐ EXCELLENT: High-performing production model!")
+        print("   Suitable for critical security operations")
+    elif best_score >= 0.75:
+        print("✅ VERY GOOD: Strong realistic performance!")
+        print("   Effective for most security use cases")
+    else:
+        print("📊 GOOD: Solid baseline performance")
+        print("   Can be deployed with monitoring")
+    
+    print(f"   Best F1-Score: {best_score:.4f}")
+    print("=" * 50)

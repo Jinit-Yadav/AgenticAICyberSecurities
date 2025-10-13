@@ -1,0 +1,31 @@
+CYBER THREAT DETECTION MODEL - TRAINING REPORT
+==================================================
+
+Best Model: RandomForest_Fast
+Training Time: 18.9 seconds
+Total Training Time: 0.0 seconds
+
+PERFORMANCE METRICS:
+Accuracy: 0.9977
+Precision: 0.9963
+Recall: 0.9999
+F1-Score: 0.9981
+AUC Score: 1.0000
+
+CONFUSION MATRIX:
+True Negatives (Normal): 200653
+False Positives (False Alarms): 1116
+False Negatives (Missed Threats): 28
+True Positives (Detected Threats): 302625
+
+TOP 10 FEATURES BY IMPORTANCE:
+10. is_normal_traffic: 0.2232
+6. threat_score: 0.1714
+2. attack_category_encoded: 0.1401
+19. requests_per_ip: 0.1092
+20. unique_targets_per_ip: 0.0803
+3. severity_encoded: 0.0782
+12. is_cic_data: 0.0423
+4. protocol_encoded: 0.0340
+23. is_udp: 0.0272
+1. tool_encoded: 0.0183
