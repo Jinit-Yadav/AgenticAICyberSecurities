@@ -741,7 +741,6 @@
             <div class="nav-links">
                 <a href="/" class="nav-btn"><i class="fas fa-home"></i> Home</a>
                 <a href="/detect-threat" class="nav-btn"><i class="fas fa-search"></i> Custom Detection</a>
-                <a href="/dashboard" class="nav-btn"><i class="fas fa-chart-bar"></i> Live Dashboard</a>
                 <a href="/upload-logs" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
                 <a href="/real-time-dashboard" class="nav-btn active"><i class="fas fa-chart-line"></i> Real-Time Monitor</a>
             </div>
@@ -1012,128 +1011,148 @@
     }
     
     function analyzeThreats() {
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const expertAnalysis = document.getElementById('expertAnalysis');
-        const expertContent = document.getElementById('expertAnalysisContent');
-        
-        // Show loading state
-        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-        analyzeBtn.disabled = true;
-        
-        // Call the actual backend API
-        fetch('/api/analyze-current-threats', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (data.threats_count === 0) {
-                    expertContent.innerHTML = `
-                        <div class="expert-item">
-                            <div class="expert-name">Security Analysis Team</div>
-                            <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${data.analysis.confidence}%</div>
-                            <div class="expert-key-points">
-                                <strong>Assessment:</strong> ${data.analysis.summary}
-                                <ul>
-                                    <li>All monitored activities appear normal</li>
-                                    <li>System security posture is strong</li>
-                                    <li>${data.analysis.recommendation}</li>
-                                </ul>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    let expertsHTML = '';
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const expertAnalysis = document.getElementById('expertAnalysis');
+    const expertContent = document.getElementById('expertAnalysisContent');
+    
+    // Show loading state
+    analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+    analyzeBtn.disabled = true;
+    
+    // Call the actual backend API
+    fetch('/api/analyze-current-threats', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let expertsHTML = '';
+            
+            if (data.multi_expert_analysis_used && data.analysis.experts) {
+                // Use multi-expert analysis results
+                expertsHTML += `<div style="margin-bottom: 15px; padding: 12px; background: rgba(142, 68, 173, 0.2); border-radius: 8px; border-left: 4px solid var(--ai-purple);">
+                    <strong><i class="fas fa-robot"></i> MULTI-EXPERT AI ANALYSIS ACTIVE</strong><br>
+                    <small>${data.analysis.experts.length} security experts consulted</small>
+                </div>`;
+                
+                data.analysis.experts.forEach(expert => {
+                    let keyPointsHTML = '';
+                    if (expert.key_points && expert.key_points.length > 0) {
+                        keyPointsHTML = `<div class="expert-key-points">
+                            <strong>Key Insights:</strong>
+                            <ul>${expert.key_points.map(point => `<li>${point}</li>`).join('')}</ul>
+                        </div>`;
+                    }
                     
-                    if (data.multi_expert_analysis_used && data.analysis.experts) {
-                        // Use multi-expert analysis results
-                        data.analysis.experts.forEach(expert => {
-                            expertsHTML += `
-                                <div class="expert-item">
-                                    <div class="expert-name">${expert.name}</div>
-                                    <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${expert.confidence}%</div>
-                                    <div class="expert-key-points">
-                                        <strong>Assessment:</strong> ${expert.assessment}
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        // Fallback analysis
-                        expertsHTML = `
-                            <div class="expert-item">
-                                <div class="expert-name">Network Security Specialist</div>
-                                <div class="expert-role">Real-time threat assessment</div>
-                                <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${data.analysis.confidence}%</div>
-                                <div class="expert-key-points">
-                                    <strong>Assessment:</strong> ${data.analysis.summary}
-                                    <ul>
-                                        <li>${data.analysis.recommendation}</li>
-                                        <li>Review security controls and monitoring</li>
-                                        <li>Document findings for security reporting</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        `;
+                    let recommendationsHTML = '';
+                    if (expert.recommendations && expert.recommendations.length > 0) {
+                        recommendationsHTML = `<div class="expert-key-points">
+                            <strong>Recommendations:</strong>
+                            <ul>${expert.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>
+                        </div>`;
                     }
                     
                     expertsHTML += `
-                        <div style="margin-top: 15px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-radius: 8px; border-left: 3px solid var(--success);">
-                            <strong><i class="fas fa-handshake"></i> Analysis Summary:</strong> 
-                            ${data.analysis.summary}
-                            <br><strong>Recommendation:</strong> ${data.analysis.recommendation}
-                            ${data.multi_expert_analysis_used ? '<br><small><i class="fas fa-robot"></i> Multi-Expert AI Analysis Used</small>' : '<br><small><i class="fas fa-user"></i> Basic Security Analysis</small>'}
+                        <div class="expert-item">
+                            <div class="expert-name">${expert.name}</div>
+                            <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${Math.round(expert.confidence)}%</div>
+                            <div class="expert-key-points">
+                                <strong>Assessment:</strong> ${expert.assessment}
+                                ${keyPointsHTML}
+                                ${recommendationsHTML}
+                            </div>
                         </div>
                     `;
-                    
-                    expertContent.innerHTML = expertsHTML;
-                }
-                
-                expertAnalysis.classList.add('active');
+                });
             } else {
-                expertContent.innerHTML = `
-                    <div class="expert-item">
-                        <div class="expert-name">Analysis System</div>
-                        <div class="expert-confidence"><i class="fas fa-exclamation-triangle"></i> Error</div>
-                        <div class="expert-key-points">
-                            <strong>Assessment:</strong> Unable to perform threat analysis
-                            <ul>
-                                <li>Analysis system temporarily unavailable</li>
-                                <li>Continue manual monitoring</li>
-                                <li>Check system logs for details</li>
-                            </ul>
+                // Fallback analysis
+                data.analysis.experts.forEach(expert => {
+                    let keyPointsHTML = '';
+                    if (expert.key_points && expert.key_points.length > 0) {
+                        keyPointsHTML = `<div class="expert-key-points">
+                            <strong>Key Points:</strong>
+                            <ul>${expert.key_points.map(point => `<li>${point}</li>`).join('')}</ul>
+                        </div>`;
+                    }
+                    
+                    expertsHTML += `
+                        <div class="expert-item">
+                            <div class="expert-name">${expert.name}</div>
+                            <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${expert.confidence}%</div>
+                            <div class="expert-key-points">
+                                <strong>Assessment:</strong> ${expert.assessment}
+                                ${keyPointsHTML}
+                            </div>
                         </div>
-                    </div>
-                `;
-                expertAnalysis.classList.add('active');
+                    `;
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error analyzing threats:', error);
+            
+            // Add summary
+            expertsHTML += `
+                <div style="margin-top: 15px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-radius: 8px; border-left: 3px solid var(--success);">
+                    <strong><i class="fas fa-handshake"></i> Analysis Summary:</strong> 
+                    ${data.analysis.summary}
+                    <br><strong>Recommendation:</strong> ${data.analysis.recommendation}
+                    <br><strong>Confidence:</strong> ${data.analysis.confidence}%
+                    ${data.multi_expert_analysis_used ? 
+                        '<br><small><i class="fas fa-robot"></i> Multi-Expert AI Analysis Used</small>' : 
+                        '<br><small><i class="fas fa-user"></i> Enhanced Security Analysis</small>'}
+                    ${data.analysis.threat_specific ? 
+                        `<br><small><i class="fas fa-bullseye"></i> Threat-specific: ${data.analysis.threat_type} via ${data.analysis.threat_tool}</small>` : 
+                        ''}
+                </div>
+            `;
+            
+            expertContent.innerHTML = expertsHTML;
+            expertAnalysis.classList.add('active');
+            
+            // Scroll to expert analysis
+            expertAnalysis.scrollIntoView({ behavior: 'smooth' });
+        } else {
             expertContent.innerHTML = `
                 <div class="expert-item">
                     <div class="expert-name">Analysis System</div>
                     <div class="expert-confidence"><i class="fas fa-exclamation-triangle"></i> Error</div>
                     <div class="expert-key-points">
-                        <strong>Assessment:</strong> Network error during analysis
+                        <strong>Assessment:</strong> Unable to perform threat analysis
                         <ul>
-                            <li>Cannot reach analysis service</li>
-                            <li>Check network connection</li>
-                            <li>Try again later</li>
+                            <li>Analysis system temporarily unavailable</li>
+                            <li>Continue manual monitoring</li>
+                            <li>Check system logs for details</li>
                         </ul>
                     </div>
                 </div>
             `;
             expertAnalysis.classList.add('active');
-        })
-        .finally(() => {
-            analyzeBtn.innerHTML = '<i class="fas fa-robot"></i> Multi-Expert Analysis';
-            analyzeBtn.disabled = false;
-        });
-    }
+        }
+    })
+    .catch(error => {
+        console.error('Error analyzing threats:', error);
+        expertContent.innerHTML = `
+            <div class="expert-item">
+                <div class="expert-name">Analysis System</div>
+                <div class="expert-confidence"><i class="fas fa-exclamation-triangle"></i> Error</div>
+                <div class="expert-key-points">
+                    <strong>Assessment:</strong> Network error during analysis
+                    <ul>
+                        <li>Cannot reach analysis service</li>
+                        <li>Check network connection</li>
+                        <li>Try again later</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+        expertAnalysis.classList.add('active');
+    })
+    .finally(() => {
+        analyzeBtn.innerHTML = '<i class="fas fa-robot"></i> Multi-Expert Analysis';
+        analyzeBtn.disabled = false;
+    });
+}
     
     function startMonitoring() {
         fetch('/api/real-time/start')
