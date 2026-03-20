@@ -12,3 +12,6 @@ dill
 pickle5
 flask
 lightgbm
+flask
+pandas
+psutil
