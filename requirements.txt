@@ -15,3 +15,7 @@ lightgbm
 flask
 pandas
 psutil
+flask-login
+flask-wtf 
+flask-limiter 
+cryptography

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Your existing CSS styles remain the same - I'm keeping them but omitting for brevity */
         :root {
             --primary: #00b4db;
             --primary-dark: #0083b0;
@@ -743,6 +744,11 @@
                 <a href="/detect-threat" class="nav-btn"><i class="fas fa-search"></i> Custom Detection</a>
                 <a href="/upload-logs" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
                 <a href="/real-time-dashboard" class="nav-btn active"><i class="fas fa-chart-line"></i> Real-Time Monitor</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -769,7 +775,7 @@
             </div>
         </div>
 
-        <div class="card {% if is_monitoring %}monitoring-active{% else %}monitoring-inactive{% endif %}">
+        <div class="card {% if is_monitoring %}monitoring-active{% else %}monitoring-inactive{% endif %}" id="monitoringCard">
             <div class="section-header">
                 <h2><i class="fas fa-tachometer-alt"></i> System Monitoring</h2>
             </div>
@@ -905,473 +911,581 @@
             <a href="/upload-logs" class="btn btn-secondary"><i class="fas fa-file-upload"></i> Upload Logs</a>
         </div>
     </div>
-<!-- Replace the entire JavaScript section with this: -->
-<script>
-    let updateInterval;
-    let currentThreats = [];
-    
-    function updateSecurityStatus(safeCount, suspiciousCount, maliciousCount) {
-        const securityStatus = document.getElementById('securityStatus');
-        const securityIcon = securityStatus.querySelector('.security-icon');
-        const securityTitle = securityStatus.querySelector('h3');
-        const securityDesc = securityStatus.querySelector('p');
+
+    <script>
+        // Server-side rendered configuration - FIXED SYNTAX
+        window.serverConfig = {
+            isMonitoring: {{ is_monitoring|tojson }},
+            aiEnabled: {{ ai_enabled|tojson }}
+        };
+    </script>
+
+    <script>
+        let updateInterval;
+        let currentThreats = [];
         
-        // Update threat counts
-        document.getElementById('safeCount').textContent = safeCount;
-        document.getElementById('suspiciousCount').textContent = suspiciousCount;
-        document.getElementById('maliciousCount').textContent = maliciousCount;
-        
-        // Determine overall security status
-        if (maliciousCount > 0) {
-            securityStatus.className = 'security-status security-danger';
-            securityIcon.innerHTML = '<i class="fas fa-skull-crossbones"></i>';
-            securityTitle.textContent = 'System Security: CRITICAL THREAT';
-            securityDesc.textContent = `${maliciousCount} malicious activities detected! Immediate action required.`;
-        } else if (suspiciousCount > 2) {
-            securityStatus.className = 'security-status security-warning';
-            securityIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-            securityTitle.textContent = 'System Security: SUSPICIOUS ACTIVITY';
-            securityDesc.textContent = `${suspiciousCount} suspicious activities detected. Close monitoring recommended.`;
-        } else {
-            securityStatus.className = 'security-status security-safe';
-            securityIcon.innerHTML = '<i class="fas fa-shield-alt"></i>';
-            securityTitle.textContent = 'System Security: ALL CLEAR';
-            securityDesc.textContent = 'No suspicious activities detected. All processes and connections appear normal.';
-        }
-    }
-    
-    function updateThreatLevel(elementId, safe, suspicious, malicious) {
-        const element = document.getElementById(elementId);
-        if (malicious > 0) {
-            element.textContent = 'MALICIOUS';
-            element.className = 'threat-badge badge-malicious';
-        } else if (suspicious > 0) {
-            element.textContent = 'SUSPICIOUS';
-            element.className = 'threat-badge badge-suspicious';
-        } else {
-            element.textContent = 'SAFE';
-            element.className = 'threat-badge badge-safe';
-        }
-    }
-    
-    function clearAllActivity() {
-        // Clear network connections
-        const networkList = document.getElementById('network-list');
-        networkList.innerHTML = `
-            <div class="empty-state">
-                <div class="icon"><i class="fas fa-wifi"></i></div>
-                <p>No network connections detected</p>
-                <p>Start monitoring to see live data</p>
-            </div>
-        `;
-        
-        // Clear process list
-        const processList = document.getElementById('process-list');
-        processList.innerHTML = `
-            <div class="empty-state">
-                <div class="icon"><i class="fas fa-cogs"></i></div>
-                <p>No process data available</p>
-                <p>Start monitoring to see live data</p>
-            </div>
-        `;
-        
-        // Reset network statistics
-        document.getElementById('networkTotal').textContent = '0';
-        document.getElementById('networkSuspicious').textContent = '0';
-        document.getElementById('networkMalicious').textContent = '0';
-        updateThreatLevel('networkThreatLevel', 0, 0, 0);
-        
-        // Reset process statistics
-        document.getElementById('processTotal').textContent = '0';
-        document.getElementById('processSuspicious').textContent = '0';
-        document.getElementById('processMalicious').textContent = '0';
-        updateThreatLevel('processThreatLevel', 0, 0, 0);
-        
-        // Reset threat summary
-        document.getElementById('safeCount').textContent = '0';
-        document.getElementById('suspiciousCount').textContent = '0';
-        document.getElementById('maliciousCount').textContent = '0';
-        
-        // Reset security status to "All Clear"
-        const securityStatus = document.getElementById('securityStatus');
-        securityStatus.className = 'security-status security-safe';
-        securityStatus.querySelector('.security-icon').innerHTML = '<i class="fas fa-shield-alt"></i>';
-        securityStatus.querySelector('h3').textContent = 'System Security: ALL CLEAR';
-        securityStatus.querySelector('p').textContent = 'No suspicious activities detected. All processes and connections appear normal.';
-        
-        // Clear expert analysis
-        const expertAnalysis = document.getElementById('expertAnalysis');
-        expertAnalysis.classList.remove('active');
-        document.getElementById('expertAnalysisContent').innerHTML = '';
-        
-        // Clear current threats array
-        currentThreats = [];
-        
-        console.log('✅ All activity cleared - Monitoring stopped');
-    }
-    
-    function analyzeThreats() {
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const expertAnalysis = document.getElementById('expertAnalysis');
-    const expertContent = document.getElementById('expertAnalysisContent');
-    
-    // Show loading state
-    analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-    analyzeBtn.disabled = true;
-    
-    // Call the actual backend API
-    fetch('/api/analyze-current-threats', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            let expertsHTML = '';
-            
-            if (data.multi_expert_analysis_used && data.analysis.experts) {
-                // Use multi-expert analysis results
-                expertsHTML += `<div style="margin-bottom: 15px; padding: 12px; background: rgba(142, 68, 173, 0.2); border-radius: 8px; border-left: 4px solid var(--ai-purple);">
-                    <strong><i class="fas fa-robot"></i> MULTI-EXPERT AI ANALYSIS ACTIVE</strong><br>
-                    <small>${data.analysis.experts.length} security experts consulted</small>
-                </div>`;
-                
-                data.analysis.experts.forEach(expert => {
-                    let keyPointsHTML = '';
-                    if (expert.key_points && expert.key_points.length > 0) {
-                        keyPointsHTML = `<div class="expert-key-points">
-                            <strong>Key Insights:</strong>
-                            <ul>${expert.key_points.map(point => `<li>${point}</li>`).join('')}</ul>
-                        </div>`;
-                    }
-                    
-                    let recommendationsHTML = '';
-                    if (expert.recommendations && expert.recommendations.length > 0) {
-                        recommendationsHTML = `<div class="expert-key-points">
-                            <strong>Recommendations:</strong>
-                            <ul>${expert.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>
-                        </div>`;
-                    }
-                    
-                    expertsHTML += `
-                        <div class="expert-item">
-                            <div class="expert-name">${expert.name}</div>
-                            <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${Math.round(expert.confidence)}%</div>
-                            <div class="expert-key-points">
-                                <strong>Assessment:</strong> ${expert.assessment}
-                                ${keyPointsHTML}
-                                ${recommendationsHTML}
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                // Fallback analysis
-                data.analysis.experts.forEach(expert => {
-                    let keyPointsHTML = '';
-                    if (expert.key_points && expert.key_points.length > 0) {
-                        keyPointsHTML = `<div class="expert-key-points">
-                            <strong>Key Points:</strong>
-                            <ul>${expert.key_points.map(point => `<li>${point}</li>`).join('')}</ul>
-                        </div>`;
-                    }
-                    
-                    expertsHTML += `
-                        <div class="expert-item">
-                            <div class="expert-name">${expert.name}</div>
-                            <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${expert.confidence}%</div>
-                            <div class="expert-key-points">
-                                <strong>Assessment:</strong> ${expert.assessment}
-                                ${keyPointsHTML}
-                            </div>
-                        </div>
-                    `;
-                });
+        // Clear all activity from the UI
+        function clearAllActivity() {
+            // Clear network connections
+            const networkList = document.getElementById('network-list');
+            if (networkList) {
+                networkList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon"><i class="fas fa-wifi"></i></div>
+                        <p>No network connections detected</p>
+                        <p>Start monitoring to see live data</p>
+                    </div>
+                `;
             }
             
-            // Add summary
-            expertsHTML += `
-                <div style="margin-top: 15px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-radius: 8px; border-left: 3px solid var(--success);">
-                    <strong><i class="fas fa-handshake"></i> Analysis Summary:</strong> 
-                    ${data.analysis.summary}
-                    <br><strong>Recommendation:</strong> ${data.analysis.recommendation}
-                    <br><strong>Confidence:</strong> ${data.analysis.confidence}%
-                    ${data.multi_expert_analysis_used ? 
-                        '<br><small><i class="fas fa-robot"></i> Multi-Expert AI Analysis Used</small>' : 
-                        '<br><small><i class="fas fa-user"></i> Enhanced Security Analysis</small>'}
-                    ${data.analysis.threat_specific ? 
-                        `<br><small><i class="fas fa-bullseye"></i> Threat-specific: ${data.analysis.threat_type} via ${data.analysis.threat_tool}</small>` : 
-                        ''}
-                </div>
-            `;
-            
-            expertContent.innerHTML = expertsHTML;
-            expertAnalysis.classList.add('active');
-            
-            // Scroll to expert analysis
-            expertAnalysis.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            expertContent.innerHTML = `
-                <div class="expert-item">
-                    <div class="expert-name">Analysis System</div>
-                    <div class="expert-confidence"><i class="fas fa-exclamation-triangle"></i> Error</div>
-                    <div class="expert-key-points">
-                        <strong>Assessment:</strong> Unable to perform threat analysis
-                        <ul>
-                            <li>Analysis system temporarily unavailable</li>
-                            <li>Continue manual monitoring</li>
-                            <li>Check system logs for details</li>
-                        </ul>
+            // Clear process list
+            const processList = document.getElementById('process-list');
+            if (processList) {
+                processList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon"><i class="fas fa-cogs"></i></div>
+                        <p>No process data available</p>
+                        <p>Start monitoring to see live data</p>
                     </div>
-                </div>
-            `;
-            expertAnalysis.classList.add('active');
+                `;
+            }
+            
+            // Reset network statistics
+            const networkTotal = document.getElementById('networkTotal');
+            const networkSuspicious = document.getElementById('networkSuspicious');
+            const networkMalicious = document.getElementById('networkMalicious');
+            if (networkTotal) networkTotal.textContent = '0';
+            if (networkSuspicious) networkSuspicious.textContent = '0';
+            if (networkMalicious) networkMalicious.textContent = '0';
+            
+            // Reset process statistics
+            const processTotal = document.getElementById('processTotal');
+            const processSuspicious = document.getElementById('processSuspicious');
+            const processMalicious = document.getElementById('processMalicious');
+            if (processTotal) processTotal.textContent = '0';
+            if (processSuspicious) processSuspicious.textContent = '0';
+            if (processMalicious) processMalicious.textContent = '0';
+            
+            // Reset threat summary
+            const safeCount = document.getElementById('safeCount');
+            const suspiciousCount = document.getElementById('suspiciousCount');
+            const maliciousCount = document.getElementById('maliciousCount');
+            if (safeCount) safeCount.textContent = '0';
+            if (suspiciousCount) suspiciousCount.textContent = '0';
+            if (maliciousCount) maliciousCount.textContent = '0';
+            
+            // Reset threat level indicators
+            const networkThreatLevel = document.getElementById('networkThreatLevel');
+            const processThreatLevel = document.getElementById('processThreatLevel');
+            if (networkThreatLevel) {
+                networkThreatLevel.textContent = 'SAFE';
+                networkThreatLevel.className = 'threat-badge badge-safe';
+            }
+            if (processThreatLevel) {
+                processThreatLevel.textContent = 'SAFE';
+                processThreatLevel.className = 'threat-badge badge-safe';
+            }
+            
+            // Reset security status to "All Clear"
+            const securityStatus = document.getElementById('securityStatus');
+            if (securityStatus) {
+                securityStatus.className = 'security-status security-safe';
+                const securityIcon = securityStatus.querySelector('.security-icon');
+                const securityTitle = securityStatus.querySelector('h3');
+                const securityDesc = securityStatus.querySelector('p');
+                if (securityIcon) securityIcon.innerHTML = '<i class="fas fa-shield-alt"></i>';
+                if (securityTitle) securityTitle.textContent = 'System Security: ALL CLEAR';
+                if (securityDesc) securityDesc.textContent = 'No suspicious activities detected. All processes and connections appear normal.';
+            }
+            
+            // Clear expert analysis
+            const expertAnalysis = document.getElementById('expertAnalysis');
+            const expertContent = document.getElementById('expertAnalysisContent');
+            if (expertAnalysis) expertAnalysis.classList.remove('active');
+            if (expertContent) expertContent.innerHTML = '';
+            
+            // Clear current threats array
+            currentThreats = [];
+            
+            console.log('✅ All activity cleared - Monitoring stopped');
         }
-    })
-    .catch(error => {
-        console.error('Error analyzing threats:', error);
-        expertContent.innerHTML = `
-            <div class="expert-item">
-                <div class="expert-name">Analysis System</div>
-                <div class="expert-confidence"><i class="fas fa-exclamation-triangle"></i> Error</div>
-                <div class="expert-key-points">
-                    <strong>Assessment:</strong> Network error during analysis
-                    <ul>
-                        <li>Cannot reach analysis service</li>
-                        <li>Check network connection</li>
-                        <li>Try again later</li>
-                    </ul>
-                </div>
-            </div>
-        `;
-        expertAnalysis.classList.add('active');
-    })
-    .finally(() => {
-        analyzeBtn.innerHTML = '<i class="fas fa-robot"></i> Multi-Expert Analysis';
-        analyzeBtn.disabled = false;
-    });
-}
-    
-    function startMonitoring() {
-        fetch('/api/real-time/start')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('status').innerHTML = '<i class="fas fa-check-circle"></i> Status: ACTIVE';
-                    document.getElementById('status').className = 'status-indicator status-active';
-                    document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.add('monitoring-active');
-                    document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.remove('monitoring-inactive');
-                    startAutoUpdate();
-                }
-            })
-            .catch(error => {
-                console.error('Error starting monitoring:', error);
-            });
-    }
-    
-    function stopMonitoring() {
-        fetch('/api/real-time/stop')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update UI status
-                    document.getElementById('status').innerHTML = '<i class="fas fa-times-circle"></i> Status: INACTIVE';
-                    document.getElementById('status').className = 'status-indicator status-inactive';
-                    document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.remove('monitoring-active');
-                    document.querySelector('.card.monitoring-active, .card.monitoring-inactive').classList.add('monitoring-inactive');
-                    
-                    // Clear the update interval
-                    clearInterval(updateInterval);
-                    
-                    // Clear all activity from the UI
-                    clearAllActivity();
-                    
-                    console.log('🛑 Monitoring stopped - All activity cleared');
-                }
-            })
-            .catch(error => {
-                console.error('Error stopping monitoring:', error);
-            });
-    }
-    
-    function startAutoUpdate() {
-        // Clear any existing interval
-        clearInterval(updateInterval);
         
-        // Start new interval
-        updateInterval = setInterval(updateData, 3000);
-        updateData(); // Immediate first update
-    }
-    
-    function updateData() {
-        // Update network data
-        fetch('/api/real-time/network-data')
+        function updateSecurityStatus(safeCount, suspiciousCount, maliciousCount) {
+            const securityStatus = document.getElementById('securityStatus');
+            if (!securityStatus) return;
+            
+            const securityIcon = securityStatus.querySelector('.security-icon');
+            const securityTitle = securityStatus.querySelector('h3');
+            const securityDesc = securityStatus.querySelector('p');
+            
+            // Update threat counts
+            const safeCountEl = document.getElementById('safeCount');
+            const suspiciousCountEl = document.getElementById('suspiciousCount');
+            const maliciousCountEl = document.getElementById('maliciousCount');
+            
+            if (safeCountEl) safeCountEl.textContent = safeCount;
+            if (suspiciousCountEl) suspiciousCountEl.textContent = suspiciousCount;
+            if (maliciousCountEl) maliciousCountEl.textContent = maliciousCount;
+            
+            // Determine overall security status
+            if (maliciousCount > 0) {
+                securityStatus.className = 'security-status security-danger';
+                if (securityIcon) securityIcon.innerHTML = '<i class="fas fa-skull-crossbones"></i>';
+                if (securityTitle) securityTitle.textContent = 'System Security: CRITICAL THREAT';
+                if (securityDesc) securityDesc.textContent = `${maliciousCount} malicious activities detected! Immediate action required.`;
+            } else if (suspiciousCount > 2) {
+                securityStatus.className = 'security-status security-warning';
+                if (securityIcon) securityIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                if (securityTitle) securityTitle.textContent = 'System Security: SUSPICIOUS ACTIVITY';
+                if (securityDesc) securityDesc.textContent = `${suspiciousCount} suspicious activities detected. Close monitoring recommended.`;
+            } else {
+                securityStatus.className = 'security-status security-safe';
+                if (securityIcon) securityIcon.innerHTML = '<i class="fas fa-shield-alt"></i>';
+                if (securityTitle) securityTitle.textContent = 'System Security: ALL CLEAR';
+                if (securityDesc) securityDesc.textContent = 'No suspicious activities detected. All processes and connections appear normal.';
+            }
+        }
+        
+        function updateThreatLevel(elementId, safe, suspicious, malicious) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            if (malicious > 0) {
+                element.textContent = 'MALICIOUS';
+                element.className = 'threat-badge badge-malicious';
+            } else if (suspicious > 0) {
+                element.textContent = 'SUSPICIOUS';
+                element.className = 'threat-badge badge-suspicious';
+            } else {
+                element.textContent = 'SAFE';
+                element.className = 'threat-badge badge-safe';
+            }
+        }
+        
+        function analyzeThreats() {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const expertAnalysis = document.getElementById('expertAnalysis');
+            const expertContent = document.getElementById('expertAnalysisContent');
+            
+            if (!analyzeBtn || !expertAnalysis || !expertContent) return;
+            
+            // Show loading state
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            analyzeBtn.disabled = true;
+            
+            // Call the actual backend API
+            fetch('/api/analyze-current-threats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const networkList = document.getElementById('network-list');
-                    let safeCount = 0, suspiciousCount = 0, maliciousCount = 0;
-                    currentThreats = [];
+                    let expertsHTML = '';
                     
-                    if (data.data && data.data.length > 0) {
-                        networkList.innerHTML = '';
-                        data.data.forEach(conn => {
-                            // Use the threat_level from the backend
-                            const threatLevel = conn.threat_level || 'safe';
-                            const threatClass = threatLevel;
+                    if (data.multi_expert_analysis_used && data.analysis && data.analysis.experts) {
+                        // Use multi-expert analysis results
+                        expertsHTML += `<div style="margin-bottom: 15px; padding: 12px; background: rgba(142, 68, 173, 0.2); border-radius: 8px; border-left: 4px solid var(--ai-purple);">
+                            <strong><i class="fas fa-robot"></i> MULTI-EXPERT AI ANALYSIS ACTIVE</strong><br>
+                            <small>${data.analysis.experts.length} security experts consulted</small>
+                        </div>`;
+                        
+                        data.analysis.experts.forEach(expert => {
+                            let keyPointsHTML = '';
+                            if (expert.key_points && expert.key_points.length > 0) {
+                                keyPointsHTML = `<div class="expert-key-points">
+                                    <strong>Key Insights:</strong>
+                                    <ul>${expert.key_points.map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>
+                                </div>`;
+                            }
                             
-                            if (threatLevel === 'safe') safeCount++;
-                            else if (threatLevel === 'suspicious') suspiciousCount++;
-                            else if (threatLevel === 'malicious') maliciousCount++;
+                            let recommendationsHTML = '';
+                            if (expert.recommendations && expert.recommendations.length > 0) {
+                                recommendationsHTML = `<div class="expert-key-points">
+                                    <strong>Recommendations:</strong>
+                                    <ul>${expert.recommendations.map(rec => `<li>${escapeHtml(rec)}</li>`).join('')}</ul>
+                                </div>`;
+                            }
                             
-                            // Parse local and remote addresses
-                            const localAddr = conn.local_address || 'N/A';
-                            const remoteAddr = conn.remote_address || 'N/A';
-                            
-                            // Get process name
-                            const processName = conn.process_name || 'Unknown Process';
-                            
-                            // Store threat for potential analysis
-                            currentThreats.push({
-                                type: 'network',
-                                name: processName,
-                                threatLevel: threatLevel,
-                                details: conn
-                            });
-                            
-                            const item = document.createElement('div');
-                            item.className = `connection-item ${threatClass}`;
-                            item.innerHTML = `
-                                <strong><i class="fas fa-plug"></i> ${processName}</strong>
-                                <span class="threat-badge badge-${threatLevel}">${threatLevel.toUpperCase()}</span>
-                                <div class="connection-details">
-                                    ${localAddr} → ${remoteAddr}
-                                </div>
-                                <div class="meta-info">
-                                    <span><i class="fas fa-network-wired"></i> Protocol: ${conn.protocol || 'N/A'}</span>
-                                    <span><i class="fas fa-fingerprint"></i> PID: ${conn.pid || 'N/A'}</span>
-                                    <span><i class="fas fa-info-circle"></i> Status: ${conn.status || 'N/A'}</span>
+                            expertsHTML += `
+                                <div class="expert-item">
+                                    <div class="expert-name">${escapeHtml(expert.name)}</div>
+                                    <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${Math.round(expert.confidence)}%</div>
+                                    <div class="expert-key-points">
+                                        <strong>Assessment:</strong> ${escapeHtml(expert.assessment)}
+                                        ${keyPointsHTML}
+                                        ${recommendationsHTML}
+                                    </div>
                                 </div>
                             `;
-                            networkList.appendChild(item);
                         });
-                        
-                        // Update network stats
-                        document.getElementById('networkTotal').textContent = data.data.length;
-                        document.getElementById('networkSuspicious').textContent = suspiciousCount;
-                        document.getElementById('networkMalicious').textContent = maliciousCount;
-                        updateThreatLevel('networkThreatLevel', safeCount, suspiciousCount, maliciousCount);
-                    } else {
-                        // Show empty state
-                        networkList.innerHTML = `
-                            <div class="empty-state">
-                                <div class="icon"><i class="fas fa-wifi"></i></div>
-                                <p>No active network connections</p>
-                                <p>Network monitoring is active</p>
+                    } else if (data.analysis && data.analysis.experts) {
+                        // Fallback analysis
+                        data.analysis.experts.forEach(expert => {
+                            let keyPointsHTML = '';
+                            if (expert.key_points && expert.key_points.length > 0) {
+                                keyPointsHTML = `<div class="expert-key-points">
+                                    <strong>Key Points:</strong>
+                                    <ul>${expert.key_points.map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>
+                                </div>`;
+                            }
+                            
+                            expertsHTML += `
+                                <div class="expert-item">
+                                    <div class="expert-name">${escapeHtml(expert.name)}</div>
+                                    <div class="expert-confidence"><i class="fas fa-chart-line"></i> ${expert.confidence}%</div>
+                                    <div class="expert-key-points">
+                                        <strong>Assessment:</strong> ${escapeHtml(expert.assessment)}
+                                        ${keyPointsHTML}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    // Add summary if available
+                    if (data.analysis && data.analysis.summary) {
+                        expertsHTML += `
+                            <div style="margin-top: 15px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-radius: 8px; border-left: 3px solid var(--success);">
+                                <strong><i class="fas fa-handshake"></i> Analysis Summary:</strong> 
+                                ${escapeHtml(data.analysis.summary)}
+                                ${data.analysis.recommendation ? `<br><strong>Recommendation:</strong> ${escapeHtml(data.analysis.recommendation)}` : ''}
+                                ${data.analysis.confidence ? `<br><strong>Confidence:</strong> ${data.analysis.confidence}%` : ''}
+                                ${data.multi_expert_analysis_used ? 
+                                    '<br><small><i class="fas fa-robot"></i> Multi-Expert AI Analysis Used</small>' : 
+                                    '<br><small><i class="fas fa-user"></i> Enhanced Security Analysis</small>'}
+                                ${data.analysis.threat_specific ? 
+                                    `<br><small><i class="fas fa-bullseye"></i> Threat-specific: ${escapeHtml(data.analysis.threat_type)} via ${escapeHtml(data.analysis.threat_tool)}</small>` : 
+                                    ''}
                             </div>
                         `;
                     }
                     
-                    return { safe: safeCount, suspicious: suspiciousCount, malicious: maliciousCount };
+                    expertContent.innerHTML = expertsHTML || '<div class="expert-item">No analysis results available</div>';
+                    expertAnalysis.classList.add('active');
+                    
+                    // Scroll to expert analysis
+                    expertAnalysis.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    expertContent.innerHTML = `
+                        <div class="expert-item">
+                            <div class="expert-name">Analysis System</div>
+                            <div class="expert-confidence"><i class="fas fa-exclamation-triangle"></i> Error</div>
+                            <div class="expert-key-points">
+                                <strong>Assessment:</strong> Unable to perform threat analysis
+                                <ul>
+                                    <li>Analysis system temporarily unavailable</li>
+                                    <li>Continue manual monitoring</li>
+                                    <li>Check system logs for details</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    expertAnalysis.classList.add('active');
                 }
             })
-            .then(networkThreats => {
-                // Update process data
-                return fetch('/api/real-time/process-data')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const processList = document.getElementById('process-list');
-                            let safeCount = 0, suspiciousCount = 0, maliciousCount = 0;
-                            
-                            if (data.data && data.data.length > 0) {
-                                processList.innerHTML = '';
-                                data.data.forEach(proc => {
-                                    // Use the threat_level from the backend
-                                    const threatLevel = proc.threat_level || 'safe';
-                                    const threatClass = threatLevel;
-                                    
-                                    if (threatLevel === 'safe') safeCount++;
-                                    else if (threatLevel === 'suspicious') suspiciousCount++;
-                                    else if (threatLevel === 'malicious') maliciousCount++;
-                                    
-                                    // Store threat for potential analysis
-                                    currentThreats.push({
-                                        type: 'process',
-                                        name: proc.name,
-                                        threatLevel: threatLevel,
-                                        details: proc
-                                    });
-                                    
-                                    const item = document.createElement('div');
-                                    item.className = `process-item ${threatClass}`;
-                                    item.innerHTML = `
-                                        <strong><i class="fas fa-cog"></i> ${proc.name}</strong>
-                                        <span class="threat-badge badge-${threatLevel}">${threatLevel.toUpperCase()}</span>
-                                        <div class="process-details">
-                                            <i class="fas fa-user"></i> User: ${proc.user || 'N/A'} | 
-                                            <i class="fas fa-microchip"></i> CPU: ${(proc.cpu || 0).toFixed(1)}% | 
-                                            <i class="fas fa-memory"></i> Memory: ${(proc.memory || 0).toFixed(1)}%
-                                        </div>
-                                        <div class="meta-info">
-                                            <span><i class="fas fa-fingerprint"></i> PID: ${proc.pid}</span>
-                                            <span><i class="fas fa-info-circle"></i> Status: ${proc.status || 'N/A'}</span>
-                                        </div>
-                                    `;
-                                    processList.appendChild(item);
+            .catch(error => {
+                console.error('Error analyzing threats:', error);
+                expertContent.innerHTML = `
+                    <div class="expert-item">
+                        <div class="expert-name">Analysis System</div>
+                        <div class="expert-confidence"><i class="fas fa-exclamation-triangle"></i> Error</div>
+                        <div class="expert-key-points">
+                            <strong>Assessment:</strong> Network error during analysis
+                            <ul>
+                                <li>Cannot reach analysis service</li>
+                                <li>Check network connection</li>
+                                <li>Try again later</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                expertAnalysis.classList.add('active');
+            })
+            .finally(() => {
+                analyzeBtn.innerHTML = '<i class="fas fa-robot"></i> Multi-Expert Analysis';
+                analyzeBtn.disabled = false;
+            });
+        }
+        
+        // Helper function to escape HTML special characters
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function startMonitoring() {
+            fetch('/api/real-time/start')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const statusSpan = document.getElementById('status');
+                        const monitoringCard = document.getElementById('monitoringCard');
+                        
+                        if (statusSpan) {
+                            statusSpan.innerHTML = '<i class="fas fa-check-circle"></i> Status: ACTIVE';
+                            statusSpan.className = 'status-indicator status-active';
+                        }
+                        
+                        if (monitoringCard) {
+                            monitoringCard.classList.add('monitoring-active');
+                            monitoringCard.classList.remove('monitoring-inactive');
+                        }
+                        
+                        startAutoUpdate();
+                    } else {
+                        console.error('Failed to start monitoring:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error starting monitoring:', error);
+                });
+        }
+        
+        function stopMonitoring() {
+            fetch('/api/real-time/stop')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI status
+                        const statusSpan = document.getElementById('status');
+                        const monitoringCard = document.getElementById('monitoringCard');
+                        
+                        if (statusSpan) {
+                            statusSpan.innerHTML = '<i class="fas fa-times-circle"></i> Status: INACTIVE';
+                            statusSpan.className = 'status-indicator status-inactive';
+                        }
+                        
+                        if (monitoringCard) {
+                            monitoringCard.classList.remove('monitoring-active');
+                            monitoringCard.classList.add('monitoring-inactive');
+                        }
+                        
+                        // Clear the update interval
+                        if (updateInterval) {
+                            clearInterval(updateInterval);
+                            updateInterval = null;
+                        }
+                        
+                        // Clear all activity from the UI
+                        clearAllActivity();
+                        
+                        console.log('🛑 Monitoring stopped - All activity cleared');
+                    } else {
+                        console.error('Failed to stop monitoring:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error stopping monitoring:', error);
+                });
+        }
+        
+        function startAutoUpdate() {
+            // Clear any existing interval
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            // Start new interval
+            updateInterval = setInterval(updateData, 3000);
+            updateData(); // Immediate first update
+        }
+        
+        function updateData() {
+            // Update network data
+            fetch('/api/real-time/network-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const networkList = document.getElementById('network-list');
+                        let safeCount = 0, suspiciousCount = 0, maliciousCount = 0;
+                        currentThreats = [];
+                        
+                        if (networkList && data.data && data.data.length > 0) {
+                            networkList.innerHTML = '';
+                            data.data.forEach(conn => {
+                                // Use the threat_level from the backend
+                                const threatLevel = conn.threat_level || 'safe';
+                                const threatClass = threatLevel;
+                                
+                                if (threatLevel === 'safe') safeCount++;
+                                else if (threatLevel === 'suspicious') suspiciousCount++;
+                                else if (threatLevel === 'malicious') maliciousCount++;
+                                
+                                // Parse local and remote addresses
+                                const localAddr = conn.local_address || 'N/A';
+                                const remoteAddr = conn.remote_address || 'N/A';
+                                
+                                // Get process name
+                                const processName = conn.process_name || 'Unknown Process';
+                                
+                                // Store threat for potential analysis
+                                currentThreats.push({
+                                    type: 'network',
+                                    name: processName,
+                                    threatLevel: threatLevel,
+                                    details: conn
                                 });
                                 
-                                // Update process stats
-                                document.getElementById('processTotal').textContent = data.data.length;
-                                document.getElementById('processSuspicious').textContent = suspiciousCount;
-                                document.getElementById('processMalicious').textContent = maliciousCount;
-                                updateThreatLevel('processThreatLevel', safeCount, suspiciousCount, maliciousCount);
-                            } else {
-                                // Show empty state
-                                processList.innerHTML = `
-                                    <div class="empty-state">
-                                        <div class="icon"><i class="fas fa-cogs"></i></div>
-                                        <p>No process data available</p>
-                                        <p>Process monitoring is active</p>
+                                const item = document.createElement('div');
+                                item.className = `connection-item ${threatClass}`;
+                                item.innerHTML = `
+                                    <strong><i class="fas fa-plug"></i> ${escapeHtml(processName)}</strong>
+                                    <span class="threat-badge badge-${threatLevel}">${threatLevel.toUpperCase()}</span>
+                                    <div class="connection-details">
+                                        ${escapeHtml(localAddr)} → ${escapeHtml(remoteAddr)}
+                                    </div>
+                                    <div class="meta-info">
+                                        <span><i class="fas fa-network-wired"></i> Protocol: ${escapeHtml(conn.protocol || 'N/A')}</span>
+                                        <span><i class="fas fa-fingerprint"></i> PID: ${escapeHtml(conn.pid || 'N/A')}</span>
+                                        <span><i class="fas fa-info-circle"></i> Status: ${escapeHtml(conn.status || 'N/A')}</span>
                                     </div>
                                 `;
-                            }
+                                networkList.appendChild(item);
+                            });
                             
-                            // Combine threats from network and processes
-                            const totalSafe = (networkThreats?.safe || 0) + safeCount;
-                            const totalSuspicious = (networkThreats?.suspicious || 0) + suspiciousCount;
-                            const totalMalicious = (networkThreats?.malicious || 0) + maliciousCount;
+                            // Update network stats
+                            const networkTotal = document.getElementById('networkTotal');
+                            const networkSuspicious = document.getElementById('networkSuspicious');
+                            const networkMalicious = document.getElementById('networkMalicious');
                             
-                            updateSecurityStatus(totalSafe, totalSuspicious, totalMalicious);
+                            if (networkTotal) networkTotal.textContent = data.data.length;
+                            if (networkSuspicious) networkSuspicious.textContent = suspiciousCount;
+                            if (networkMalicious) networkMalicious.textContent = maliciousCount;
+                            
+                            updateThreatLevel('networkThreatLevel', safeCount, suspiciousCount, maliciousCount);
+                        } else if (networkList) {
+                            // Show empty state
+                            networkList.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="icon"><i class="fas fa-wifi"></i></div>
+                                    <p>No active network connections</p>
+                                    <p>Network monitoring is active</p>
+                                </div>
+                            `;
                         }
-                    });
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-                // Show error states
-                document.getElementById('network-list').innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <p>Error loading network data</p>
-                        <p>Check console for details</p>
-                    </div>
-                `;
-                document.getElementById('process-list').innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <p>Error loading process data</p>
-                        <p>Check console for details</p>
-                    </div>
-                `;
-            });
-    }
-    
-    // Start auto-update if monitoring is active
-    {% if is_monitoring %}
-    startAutoUpdate();
-    {% endif %}
-</script>
+                        
+                        return { safe: safeCount, suspicious: suspiciousCount, malicious: maliciousCount };
+                    }
+                    return { safe: 0, suspicious: 0, malicious: 0 };
+                })
+                .then(networkThreats => {
+                    // Update process data
+                    return fetch('/api/real-time/process-data')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const processList = document.getElementById('process-list');
+                                let safeCount = 0, suspiciousCount = 0, maliciousCount = 0;
+                                
+                                if (processList && data.data && data.data.length > 0) {
+                                    processList.innerHTML = '';
+                                    data.data.forEach(proc => {
+                                        // Use the threat_level from the backend
+                                        const threatLevel = proc.threat_level || 'safe';
+                                        const threatClass = threatLevel;
+                                        
+                                        if (threatLevel === 'safe') safeCount++;
+                                        else if (threatLevel === 'suspicious') suspiciousCount++;
+                                        else if (threatLevel === 'malicious') maliciousCount++;
+                                        
+                                        // Store threat for potential analysis
+                                        currentThreats.push({
+                                            type: 'process',
+                                            name: proc.name,
+                                            threatLevel: threatLevel,
+                                            details: proc
+                                        });
+                                        
+                                        const item = document.createElement('div');
+                                        item.className = `process-item ${threatClass}`;
+                                        item.innerHTML = `
+                                            <strong><i class="fas fa-cog"></i> ${escapeHtml(proc.name)}</strong>
+                                            <span class="threat-badge badge-${threatLevel}">${threatLevel.toUpperCase()}</span>
+                                            <div class="process-details">
+                                                <i class="fas fa-user"></i> User: ${escapeHtml(proc.user || 'N/A')} | 
+                                                <i class="fas fa-microchip"></i> CPU: ${(proc.cpu || 0).toFixed(1)}% | 
+                                                <i class="fas fa-memory"></i> Memory: ${(proc.memory || 0).toFixed(1)}%
+                                            </div>
+                                            <div class="meta-info">
+                                                <span><i class="fas fa-fingerprint"></i> PID: ${escapeHtml(proc.pid)}</span>
+                                                <span><i class="fas fa-info-circle"></i> Status: ${escapeHtml(proc.status || 'N/A')}</span>
+                                            </div>
+                                        `;
+                                        processList.appendChild(item);
+                                    });
+                                    
+                                    // Update process stats
+                                    const processTotal = document.getElementById('processTotal');
+                                    const processSuspicious = document.getElementById('processSuspicious');
+                                    const processMalicious = document.getElementById('processMalicious');
+                                    
+                                    if (processTotal) processTotal.textContent = data.data.length;
+                                    if (processSuspicious) processSuspicious.textContent = suspiciousCount;
+                                    if (processMalicious) processMalicious.textContent = maliciousCount;
+                                    
+                                    updateThreatLevel('processThreatLevel', safeCount, suspiciousCount, maliciousCount);
+                                } else if (processList) {
+                                    // Show empty state
+                                    processList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="icon"><i class="fas fa-cogs"></i></div>
+                                            <p>No process data available</p>
+                                            <p>Process monitoring is active</p>
+                                        </div>
+                                    `;
+                                }
+                                
+                                // Combine threats from network and processes
+                                const totalSafe = (networkThreats?.safe || 0) + safeCount;
+                                const totalSuspicious = (networkThreats?.suspicious || 0) + suspiciousCount;
+                                const totalMalicious = (networkThreats?.malicious || 0) + maliciousCount;
+                                
+                                updateSecurityStatus(totalSafe, totalSuspicious, totalMalicious);
+                            }
+                        });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    // Show error states
+                    const networkList = document.getElementById('network-list');
+                    const processList = document.getElementById('process-list');
+                    
+                    if (networkList) {
+                        networkList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                <p>Error loading network data</p>
+                                <p>Check console for details</p>
+                            </div>
+                        `;
+                    }
+                    if (processList) {
+                        processList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                <p>Error loading process data</p>
+                                <p>Check console for details</p>
+                            </div>
+                        `;
+                    }
+                });
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, server monitoring state:', window.serverConfig.isMonitoring);
+            
+            // Auto-start monitoring if enabled by the server
+            if (window.serverConfig.isMonitoring) {
+                console.log('Auto-starting monitoring (server state: active)');
+                startMonitoring();
+            }
+        });
+    </script>
 </body>
 </html>

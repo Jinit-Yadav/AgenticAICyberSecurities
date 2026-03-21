@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, session
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for, flash
 import json
 import pandas as pd
 import os
@@ -21,6 +21,16 @@ import time
 from threading import Thread
 
 # =============================================================================
+# NEW AUTHENTICATION & SECURITY IMPORTS
+# =============================================================================
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from cryptography.fernet import Fernet
+
+# =============================================================================
 # CONFIGURATION
 # =============================================================================
 
@@ -33,8 +43,37 @@ class AppConfig:
     AGENTS_PATH: str = os.getenv('AGENTS_PATH', 'src/agents')
     DATABASE_PATH: str = os.getenv('DATABASE_PATH', 'threats.db')
     LOG_LEVEL: str = os.getenv('LOG_LEVEL', 'INFO')
+    # Optional encryption key path
+    ENCRYPTION_KEY_PATH: str = os.getenv('ENCRYPTION_KEY_PATH', 'key.key')
 
 config = AppConfig()
+
+# =============================================================================
+# NEW: HELPER FUNCTION FOR DECRYPTING ENVIRONMENT VARIABLES
+# =============================================================================
+def decrypt_env_var(encrypted_value: str) -> Optional[str]:
+    """
+    Decrypt a value encrypted with Fernet using the key from ENCRYPTION_KEY_PATH.
+    Returns None if decryption fails.
+    """
+    key_path = config.ENCRYPTION_KEY_PATH
+    try:
+        with open(key_path, 'rb') as f:
+            key = f.read()
+        cipher = Fernet(key)
+        return cipher.decrypt(encrypted_value.encode()).decode()
+    except Exception as e:
+        logger.error(f"Failed to decrypt environment variable: {e}")
+        return None
+
+# Decrypt email password if encrypted version exists
+EMAIL_PASSWORD_ENCRYPTED = os.getenv('EMAIL_PASSWORD_ENCRYPTED')
+if EMAIL_PASSWORD_ENCRYPTED:
+    EMAIL_PASSWORD = decrypt_env_var(EMAIL_PASSWORD_ENCRYPTED)
+else:
+    EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')   # fallback to plain text
+
+# You can similarly decrypt other secrets (e.g., API keys) here
 
 # =============================================================================
 # LOGGING SETUP - WINDOWS COMPATIBLE
@@ -123,7 +162,7 @@ def get_db_connection():
         conn.close()
 
 def init_db():
-    """Initialize database schema"""
+    """Initialize database schema (existing tables)"""
     with get_db_connection() as conn:
         conn.execute('''
             CREATE TABLE IF NOT EXISTS threat_detections (
@@ -158,6 +197,23 @@ def init_db():
         conn.commit()
 
 # =============================================================================
+# NEW: USER AUTHENTICATION DATABASE
+# =============================================================================
+def init_auth_db():
+    """Create users table if not exists"""
+    with get_db_connection() as conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+
+# =============================================================================
 # SAFE DIVISION PROTECTION
 # =============================================================================
 
@@ -176,7 +232,7 @@ def safe_divide(x, y):
 
 # Apply safe division to numpy
 np.divide = safe_divide
-logger.info("🔧 Applied SAFE numpy division protection")
+logger.info("Applied SAFE numpy division protection")
 
 # =============================================================================
 # AGENTS IMPORT
@@ -187,41 +243,41 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 agents_path = os.path.join(current_dir, 'src', 'agents')
 sys.path.insert(0, agents_path)
 
-logger.info(f"🔍 Looking for agents in: {agents_path}")
+logger.info(f"Looking for agents in: {agents_path}")
 if os.path.exists(agents_path):
-    logger.info(f"📁 Files in agents directory: {os.listdir(agents_path)}")
+    logger.info(f"Files in agents directory: {os.listdir(agents_path)}")
 else:
-    logger.warning("❌ Agents directory not found!")
+    logger.warning("Agents directory not found!")
 
 # Import the OPTIMIZED Multi-LLM Debate Agent
 try:
     from explanation_agent import SimpleOptimizedDebateAgent, initialize_optimized_debate_agent
     DEBATE_AGENT, AI_ANALYSIS_ENABLED = initialize_optimized_debate_agent()
-    logger.info(f"🤖 Multi-LLM Debate Analysis: {'✅ ENABLED' if AI_ANALYSIS_ENABLED else '🔄 FALLBACK MODE'}")
+    logger.info(f"Multi-LLM Debate Analysis: {'ENABLED' if AI_ANALYSIS_ENABLED else 'FALLBACK MODE'}")
 except Exception as e:
-    logger.error(f"❌ Multi-LLM Debate Agent disabled: {e}")
+    logger.error(f"Multi-LLM Debate Agent disabled: {e}")
     # Create a simple fallback agent
     class FallbackDebateAgent:
         def analyze_detection(self, detection_results):
             return {
                 'multi_expert_analysis_used': False,
                 'expert_count': 0,
-                'formatted_output': '🔒 Multi-Expert Analysis Temporarily Unavailable - Using Enhanced Detection Engine'
+                'formatted_output': 'Multi-Expert Analysis Temporarily Unavailable - Using Enhanced Detection Engine'
             }
         def get_status(self):
             return {'ai_enabled': False}
     
     DEBATE_AGENT = FallbackDebateAgent()
     AI_ANALYSIS_ENABLED = False
-    logger.info("🔄 Using Fallback Debate Agent")
+    logger.info("Using Fallback Debate Agent")
 
 # Import the actual detection agent
 def debug_multi_expert_connection():
     """Debug function to test multi-expert connection"""
-    logger.info("🔍 DEBUG: Testing Multi-Expert Connection...")
+    logger.info("DEBUG: Testing Multi-Expert Connection...")
     
     if not DEBATE_AGENT:
-        logger.error("❌ DEBUG: DEBATE_AGENT is None")
+        logger.error("DEBUG: DEBATE_AGENT is None")
         return False
     
     try:
@@ -239,49 +295,49 @@ def debug_multi_expert_connection():
             'risk_score': 80
         }
         
-        logger.info("🔍 DEBUG: Sending test data to DEBATE_AGENT...")
+        logger.info("DEBUG: Sending test data to DEBATE_AGENT...")
         result = DEBATE_AGENT.analyze_detection(test_data)
         
         if result:
-            logger.info(f"✅ DEBUG: Multi-Expert Analysis SUCCESS - Result: {result.get('multi_expert_analysis_used', False)}")
-            logger.info(f"🔍 DEBUG: Expert count: {result.get('expert_count', 0)}")
+            logger.info(f"DEBUG: Multi-Expert Analysis SUCCESS - Result: {result.get('multi_expert_analysis_used', False)}")
+            logger.info(f"DEBUG: Expert count: {result.get('expert_count', 0)}")
             return True
         else:
-            logger.error("❌ DEBUG: Multi-Expert Analysis returned None")
+            logger.error("DEBUG: Multi-Expert Analysis returned None")
             return False
             
     except Exception as e:
-        logger.error(f"❌ DEBUG: Multi-Expert Analysis FAILED: {e}")
+        logger.error(f"DEBUG: Multi-Expert Analysis FAILED: {e}")
         traceback.print_exc()
         return False
 
 # Run multi-expert connection test
-logger.info("🧪 Running Multi-Expert Connection Test...")
+logger.info("Running Multi-Expert Connection Test...")
 debug_multi_expert_connection()
 
 try:
     from detection_agent import AdvancedDetectionAgent
-    logger.info("✅ AdvancedDetectionAgent imported successfully")
+    logger.info("AdvancedDetectionAgent imported successfully")
     detection_agent = AdvancedDetectionAgent()
 except ImportError as e:
-    logger.error(f"❌ AdvancedDetectionAgent import failed: {e}")
+    logger.error(f"AdvancedDetectionAgent import failed: {e}")
     traceback.print_exc()
     # Enhanced fallback to stub implementation with better debugging
     class AdvancedDetectionAgent:
         def __init__(self):
             self.detection_history = []
-            logger.info("🔄 Using Enhanced Fallback Detection Agent")
+            logger.info("Using Enhanced Fallback Detection Agent")
         
         def analyze_logs_comprehensive(self, logs):
-            logger.info(f"🔍 Fallback Agent: Analyzing {len(logs)} logs")
+            logger.info(f"Fallback Agent: Analyzing {len(logs)} logs")
             
             if not logs:
-                logger.error("❌ No logs provided to analyze")
+                logger.error("No logs provided to analyze")
                 return []
             
             results = []
             for i, log in enumerate(logs):
-                logger.info(f"📝 Analyzing log {i+1}/{len(logs)}: {log.get('tool', 'unknown')}")
+                logger.info(f"Analyzing log {i+1}/{len(logs)}: {log.get('tool', 'unknown')}")
                 
                 # Enhanced mock detection logic based on actual patterns
                 tool = log.get('tool', '').lower()
@@ -302,7 +358,7 @@ except ImportError as e:
                     severity = 'high'
                     confidence = 0.87
                     risk_score = 85
-                    logger.info(f"   🚨 DETECTED: Port Scanning")
+                    logger.info(f"   DETECTED: Port Scanning")
                 
                 # Brute force detection
                 elif any(pattern in tool for pattern in ['hydra', 'medusa', 'patator']) or 'brute' in attack_type or 'password' in description:
@@ -310,7 +366,7 @@ except ImportError as e:
                     severity = 'critical'
                     confidence = 0.95
                     risk_score = 92
-                    logger.info(f"   🚨 DETECTED: Brute Force Attack")
+                    logger.info(f"   DETECTED: Brute Force Attack")
                 
                 # DoS detection
                 elif any(pattern in tool for pattern in ['hping3', 'slowloris', 'goldeneye']) or 'dos' in attack_type or 'ddos' in description:
@@ -318,7 +374,15 @@ except ImportError as e:
                     severity = 'critical'
                     confidence = 0.91
                     risk_score = 88
-                    logger.info(f"   🚨 DETECTED: DoS Attack")
+                    logger.info(f"   DETECTED: DoS Attack")
+                
+                # Resource consumption detection
+                elif any(pattern in tool for pattern in ['resource_tool', 'cpu_tool']) or 'resource' in attack_type or 'consumption' in description:
+                    threat_detected = True
+                    severity = 'medium'
+                    confidence = 0.78
+                    risk_score = 75
+                    logger.info(f"   DETECTED: Resource Consumption Attack")
                 
                 # Web attack detection
                 elif any(pattern in tool for pattern in ['sqlmap', 'nikto', 'gobuster']) or 'web' in attack_type or 'sql' in description or 'xss' in description:
@@ -326,7 +390,7 @@ except ImportError as e:
                     severity = 'medium'
                     confidence = 0.78
                     risk_score = 75
-                    logger.info(f"   🚨 DETECTED: Web Attack")
+                    logger.info(f"   DETECTED: Web Attack")
                 
                 # Malware detection
                 elif any(pattern in tool for pattern in ['metasploit', 'cobalt', 'empire']) or 'exploit' in attack_type:
@@ -334,10 +398,10 @@ except ImportError as e:
                     severity = 'critical'
                     confidence = 0.89
                     risk_score = 90
-                    logger.info(f"   🚨 DETECTED: Malware/Exploit")
+                    logger.info(f"   DETECTED: Malware/Exploit")
                 
                 else:
-                    logger.info(f"   ✅ No threat detected - Normal traffic")
+                    logger.info(f"   No threat detected - Normal traffic")
                 
                 result = {
                     'threat_detected': threat_detected,
@@ -359,7 +423,7 @@ except ImportError as e:
                 results.append(result)
                 self.detection_history.append(result)
             
-            logger.info(f"📊 Fallback Analysis Complete: {len([r for r in results if r['threat_detected']])} threats found")
+            logger.info(f"Fallback Analysis Complete: {len([r for r in results if r['threat_detected']])} threats found")
             return results
         
         def _generate_description(self, log, threat_detected):
@@ -369,9 +433,9 @@ except ImportError as e:
             dest_port = log.get('dest_port')
             
             if threat_detected:
-                return f"🚨 MALICIOUS ACTIVITY DETECTED: {tool.upper()} from {src_ip} targeting {dest_ip}:{dest_port}. Enhanced detection identified this as suspicious based on network behavior patterns."
+                return f"MALICIOUS ACTIVITY DETECTED: {tool.upper()} from {src_ip} targeting {dest_ip}:{dest_port}. Enhanced detection identified this as suspicious based on network behavior patterns."
             else:
-                return f"✅ NORMAL ACTIVITY: {tool} connection from {src_ip} to {dest_ip}:{dest_port}. No threats detected by enhanced analysis."
+                return f"NORMAL ACTIVITY: {tool} connection from {src_ip} to {dest_ip}:{dest_port}. No threats detected by enhanced analysis."
         
         def _generate_recommendations(self, threat_detected, tool, attack_type):
             if not threat_detected:
@@ -401,6 +465,12 @@ except ImportError as e:
                     'Configure rate limiting',
                     'Contact ISP about malicious traffic'
                 ])
+            elif 'resource' in attack_type:
+                recommendations.extend([
+                    'Implement resource quotas',
+                    'Monitor system performance',
+                    'Deploy process throttling'
+                ])
             
             return recommendations
         
@@ -413,6 +483,7 @@ except ImportError as e:
                     'reconnaissance': len([t for t in threats if 'scan' in t['attack_type'].lower()]),
                     'bruteforce': len([t for t in threats if 'brute' in t['attack_type'].lower()]),
                     'dos': len([t for t in threats if 'dos' in t['attack_type'].lower()]),
+                    'resource_consumption': len([t for t in threats if 'resource' in t['attack_type'].lower()]),
                     'web_attack': len([t for t in threats if 'web' in t['attack_type'].lower()]),
                     'malware': len([t for t in threats if 'exploit' in t['attack_type'].lower()])
                 },
@@ -437,33 +508,65 @@ app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
 
 # =============================================================================
-# REAL-TIME MONITORING
+# NEW: FLASK EXTENSIONS INITIALIZATION
+# =============================================================================
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+
+csrf = CSRFProtect(app)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+# =============================================================================
+# NEW: USER CLASS AND LOADER
+# =============================================================================
+class User(UserMixin):
+    def __init__(self, id, username, email):
+        self.id = id
+        self.username = username
+        self.email = email
+
+@login_manager.user_loader
+def load_user(user_id):
+    with get_db_connection() as conn:
+        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if user:
+            return User(user['id'], user['username'], user['email'])
+    return None
+
+# =============================================================================
+# REAL-TIME MONITORING WITH THREAT DETECTION SYSTEM
 # =============================================================================
 
 class RealTimeMonitor:
     def __init__(self):
         self.is_monitoring = False
+        self.detection_agent = detection_agent
     
     def start_monitoring(self):
         self.is_monitoring = True
-        logger.info("🔄 Real-time monitoring started - Reading actual system data")
+        logger.info("Real-time monitoring started - Using Threat Detection System")
     
     def stop_monitoring(self):
         self.is_monitoring = False
-        logger.info("🛑 Real-time monitoring stopped")
+        logger.info("Real-time monitoring stopped")
     
     def get_actual_network_connections(self):
-        """Get real network connections from the system"""
+        """Get real network connections from the system and analyze with threat detection"""
         connections = []
         try:
             # Get all network connections
             for conn in psutil.net_connections(kind='inet'):
                 try:
                     if conn.status == 'ESTABLISHED':
-                        threat_level = 'safe'
-                        process_name = 'Unknown Process'
-                        
                         # Get process name if PID is available
+                        process_name = 'Unknown Process'
                         if hasattr(conn, 'pid') and conn.pid:
                             try:
                                 process = psutil.Process(conn.pid)
@@ -471,36 +574,46 @@ class RealTimeMonitor:
                             except (psutil.NoSuchProcess, psutil.AccessDenied):
                                 process_name = f'Process ({conn.pid})'
                         
-                        # Check for suspicious connections
-                        if conn.raddr:  # Has remote address
-                            remote_ip = conn.raddr.ip
-                            remote_port = conn.raddr.port
-                            
-                            # Suspicious port detection
-                            suspicious_ports = [22, 23, 135, 139, 445, 1433, 3389, 5900, 4444, 1337]
-                            if remote_port in suspicious_ports and remote_ip not in ['127.0.0.1', 'localhost', '::1']:
-                                threat_level = 'suspicious'
-                            
-                            # Check for known malicious patterns in process names
-                            if any(malicious in process_name.lower() for malicious in ['mimikatz', 'metasploit', 'cobalt', 'empire', 'meterpreter']):
-                                threat_level = 'malicious'
+                        # Extract connection details
+                        local_ip = conn.laddr.ip if conn.laddr else 'N/A'
+                        local_port = conn.laddr.port if conn.laddr else 'N/A'
+                        remote_ip = conn.raddr.ip if conn.raddr else 'N/A'
+                        remote_port = conn.raddr.port if conn.raddr else 'N/A'
                         
-                        # Format addresses
-                        local_addr = f"{conn.laddr.ip}:{conn.laddr.port}" if conn.laddr else 'N/A'
-                        remote_addr = f"{conn.raddr.ip}:{conn.raddr.port}" if conn.raddr else 'N/A'
+                        # Create log entry for threat detection
+                        log_entry = {
+                            'timestamp': datetime.now().isoformat(),
+                            'src_ip': local_ip,
+                            'dest_ip': remote_ip,
+                            'src_port': local_port,
+                            'dest_port': remote_port,
+                            'proto': 'tcp' if conn.type == socket.SOCK_STREAM else 'udp',
+                            'tool': process_name.lower(),
+                            'attack_type': 'network_connection',
+                            'description': f"Network connection: {process_name} from {local_ip}:{local_port} to {remote_ip}:{remote_port}",
+                            'severity': 'medium'
+                        }
+                        
+                        # Enhance with network features
+                        enhanced_entry = safe_enhance_log_with_network_features(log_entry)
+                        
+                        # Analyze with threat detection system
+                        threat_result = self._analyze_connection_with_detection_system(enhanced_entry)
                         
                         connection_info = {
                             'pid': conn.pid,
                             'process_name': process_name,
-                            'local_address': local_addr,
-                            'remote_address': remote_addr,
-                            'local_ip': conn.laddr.ip if conn.laddr else 'N/A',
-                            'local_port': conn.laddr.port if conn.laddr else 'N/A',
-                            'remote_ip': conn.raddr.ip if conn.raddr else 'N/A',
-                            'remote_port': conn.raddr.port if conn.raddr else 'N/A',
+                            'local_address': f"{local_ip}:{local_port}",
+                            'remote_address': f"{remote_ip}:{remote_port}",
+                            'local_ip': local_ip,
+                            'local_port': local_port,
+                            'remote_ip': remote_ip,
+                            'remote_port': remote_port,
                             'status': conn.status,
                             'protocol': 'tcp' if conn.type == socket.SOCK_STREAM else 'udp',
-                            'threat_level': threat_level,
+                            'threat_level': threat_result['threat_level'],
+                            'threat_confidence': threat_result['confidence'],
+                            'threat_type': threat_result['threat_type'],
                             'timestamp': datetime.now().isoformat()
                         }
                         connections.append(connection_info)
@@ -513,34 +626,65 @@ class RealTimeMonitor:
         
         return connections
     
+    def _analyze_connection_with_detection_system(self, log_entry):
+        """Analyze connection using our threat detection system"""
+        try:
+            # Use the detection agent to analyze the connection
+            compatible_entries = ensure_detection_agent_compatibility([log_entry])
+            results = self.detection_agent.analyze_logs_comprehensive(compatible_entries)
+            
+            if results and len(results) > 0:
+                result = results[0]
+                if result.get('threat_detected', False):
+                    return {
+                        'threat_level': 'malicious' if result['severity'] in ['critical', 'high'] else 'suspicious',
+                        'confidence': result['final_confidence'],
+                        'threat_type': result['attack_type']
+                    }
+            
+            # No threat detected
+            return {
+                'threat_level': 'safe',
+                'confidence': 0.1,
+                'threat_type': 'normal'
+            }
+            
+        except Exception as e:
+            logger.error(f"Threat detection analysis failed: {e}")
+            return {
+                'threat_level': 'safe',
+                'confidence': 0.1,
+                'threat_type': 'unknown'
+            }
+    
     def get_actual_processes(self):
-        """Get real running processes from the system"""
+        """Get real running processes from the system and analyze with threat detection"""
         processes = []
         try:
             for proc in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 'memory_percent', 'status']):
                 try:
-                    threat_level = 'safe'
                     process_info = proc.info
-                    
-                    # Suspicious process detection
                     process_name = process_info['name'].lower()
-                    suspicious_processes = [
-                        'powershell', 'cmd', 'wscript', 'cscript', 'mshta', 'rundll32',
-                        'regsvr32', 'schtasks', 'certutil', 'bitsadmin'
-                    ]
                     
-                    # High CPU usage detection
-                    if process_info['cpu_percent'] > 50:
-                        threat_level = 'suspicious'
+                    # Create log entry for threat detection
+                    log_entry = {
+                        'timestamp': datetime.now().isoformat(),
+                        'src_ip': 'localhost',
+                        'dest_ip': 'unknown',
+                        'src_port': 'unknown',
+                        'dest_port': 'unknown',
+                        'proto': 'process',
+                        'tool': process_name,
+                        'attack_type': 'process_activity',
+                        'description': f"Process: {process_name} (PID: {process_info['pid']}) using {process_info['cpu_percent']}% CPU",
+                        'severity': 'medium'
+                    }
                     
-                    # Known suspicious process names
-                    if any(suspicious in process_name for suspicious in suspicious_processes):
-                        threat_level = 'suspicious'
+                    # Enhance with network features
+                    enhanced_entry = safe_enhance_log_with_network_features(log_entry)
                     
-                    # Known malicious process names
-                    malicious_processes = ['mimikatz', 'metasploit', 'cobaltstrike', 'empire', 'backdoor']
-                    if any(malicious in process_name for malicious in malicious_processes):
-                        threat_level = 'malicious'
+                    # Analyze with threat detection system
+                    threat_result = self._analyze_process_with_detection_system(enhanced_entry, process_info)
                     
                     process_data = {
                         'pid': process_info['pid'],
@@ -549,7 +693,9 @@ class RealTimeMonitor:
                         'cpu': round(process_info['cpu_percent'], 1),
                         'memory': round(process_info['memory_percent'], 1),
                         'status': process_info['status'],
-                        'threat_level': threat_level,
+                        'threat_level': threat_result['threat_level'],
+                        'threat_confidence': threat_result['confidence'],
+                        'threat_type': threat_result['threat_type'],
                         'timestamp': datetime.now().isoformat()
                     }
                     processes.append(process_data)
@@ -562,13 +708,73 @@ class RealTimeMonitor:
         
         return processes
     
-    def get_network_stats(self):
-        """Get real network statistics"""
+    def _analyze_process_with_detection_system(self, log_entry, process_info):
+        """Analyze process using our threat detection system"""
         try:
-            # Get actual network connections
+            # Use the detection agent to analyze the process
+            compatible_entries = ensure_detection_agent_compatibility([log_entry])
+            results = self.detection_agent.analyze_logs_comprehensive(compatible_entries)
+            
+            if results and len(results) > 0:
+                result = results[0]
+                if result.get('threat_detected', False):
+                    return {
+                        'threat_level': 'malicious' if result['severity'] in ['critical', 'high'] else 'suspicious',
+                        'confidence': result['final_confidence'],
+                        'threat_type': result['attack_type']
+                    }
+            
+            # Additional process-specific threat detection
+            process_name = process_info['name'].lower()
+            cpu_usage = process_info['cpu_percent']
+            
+            # Check for suspicious process patterns
+            if self._is_suspicious_process(process_name, cpu_usage):
+                return {
+                    'threat_level': 'suspicious',
+                    'confidence': 0.7,
+                    'threat_type': 'suspicious_process'
+                }
+            
+            # No threat detected
+            return {
+                'threat_level': 'safe',
+                'confidence': 0.1,
+                'threat_type': 'normal'
+            }
+            
+        except Exception as e:
+            logger.error(f"Process threat detection failed: {e}")
+            return {
+                'threat_level': 'safe',
+                'confidence': 0.1,
+                'threat_type': 'unknown'
+            }
+    
+    def _is_suspicious_process(self, process_name, cpu_usage):
+        """Check if process exhibits suspicious behavior"""
+        suspicious_processes = [
+            'mimikatz', 'metasploit', 'cobaltstrike', 'empire', 'backdoor',
+            'powershell', 'cmd', 'wscript', 'cscript', 'mshta', 'rundll32'
+        ]
+        
+        # Check for known suspicious process names
+        if any(suspicious in process_name for suspicious in suspicious_processes):
+            return True
+        
+        # Check for high CPU usage
+        if cpu_usage > 80:
+            return True
+        
+        return False
+    
+    def get_network_stats(self):
+        """Get real network statistics with threat detection"""
+        try:
+            # Get actual network connections with threat analysis
             connections = self.get_actual_network_connections()
             
-            # Count threat levels
+            # Count threat levels from our detection system
             safe_connections = sum(1 for conn in connections if conn['threat_level'] == 'safe')
             suspicious_connections = sum(1 for conn in connections if conn['threat_level'] == 'suspicious')
             malicious_connections = sum(1 for conn in connections if conn['threat_level'] == 'malicious')
@@ -583,7 +789,8 @@ class RealTimeMonitor:
                 'safe_connections': safe_connections,
                 'suspicious_connections': suspicious_connections,
                 'malicious_connections': malicious_connections,
-                'total_connections': len(connections)
+                'total_connections': len(connections),
+                'threat_detection_system': 'ACTIVE'
             }
         except Exception as e:
             logger.error(f"Error getting network stats: {e}")
@@ -594,16 +801,17 @@ class RealTimeMonitor:
                 'safe_connections': 0,
                 'suspicious_connections': 0,
                 'malicious_connections': 0,
-                'total_connections': 0
+                'total_connections': 0,
+                'threat_detection_system': 'ERROR'
             }
     
     def get_process_stats(self):
-        """Get real process statistics"""
+        """Get real process statistics with threat detection"""
         try:
-            # Get actual processes
+            # Get actual processes with threat analysis
             processes = self.get_actual_processes()
             
-            # Count threat levels
+            # Count threat levels from our detection system
             safe_processes = sum(1 for proc in processes if proc['threat_level'] == 'safe')
             suspicious_processes = sum(1 for proc in processes if proc['threat_level'] == 'suspicious')
             malicious_processes = sum(1 for proc in processes if proc['threat_level'] == 'malicious')
@@ -619,7 +827,8 @@ class RealTimeMonitor:
                 'safe_processes': safe_processes,
                 'cpu_usage': f"{cpu_percent:.1f}%",
                 'memory_usage': f"{memory.percent:.1f}%",
-                'total_memory': f"{memory.total / 1024 / 1024 / 1024:.1f} GB"
+                'total_memory': f"{memory.total / 1024 / 1024 / 1024:.1f} GB",
+                'threat_detection_system': 'ACTIVE'
             }
         except Exception as e:
             logger.error(f"Error getting process stats: {e}")
@@ -630,40 +839,12 @@ class RealTimeMonitor:
                 'safe_processes': 0,
                 'cpu_usage': '0%',
                 'memory_usage': '0%',
-                'total_memory': '0 GB'
+                'total_memory': '0 GB',
+                'threat_detection_system': 'ERROR'
             }
-        
-    def _infer_tool_from_connection(self, conn):
-        """Infer tool from connection details"""
-        process_name = conn.get('process_name', '').lower()
-        remote_port = conn.get('remote_port', 0)
-        
-        if any(name in process_name for name in ['powershell', 'cmd', 'wscript']):
-            return 'script_tool'
-        elif remote_port in [22, 23, 3389]:
-            return 'remote_access'
-        elif remote_port in [135, 139, 445]:
-            return 'network_tool'
-        elif 'sql' in process_name:
-            return 'database_tool'
-        else:
-            return 'network_utility'
-        
-    def _infer_tool_from_process(self, proc):
-        """Infer tool from process details"""
-        process_name = proc.get('name', '').lower()
-        
-        if any(name in process_name for name in ['powershell', 'cmd', 'wscript', 'cscript']):
-            return 'script_host'
-        elif any(name in process_name for name in ['mimikatz', 'metasploit', 'cobalt']):
-            return 'security_tool'
-        elif proc.get('cpu', 0) > 80:
-            return 'resource_tool'
-        else:
-            return 'system_process'
-            
+    
     def get_current_threats_for_analysis(self):
-        """Get current threats in format suitable for multi-expert analysis - IMPROVED"""
+        """Get current threats in format suitable for multi-expert analysis"""
         network_connections = self.get_actual_network_connections()
         processes = self.get_actual_processes()
         
@@ -672,29 +853,19 @@ class RealTimeMonitor:
         # Convert network connections to threat format
         for conn in network_connections:
             if conn['threat_level'] in ['suspicious', 'malicious']:
-                # Extract IP addresses properly
-                local_ip = conn.get('local_ip', 'unknown')
-                remote_ip = conn.get('remote_ip', 'unknown')
-                
-                # Handle IP:Port format
-                if ':' in str(local_ip):
-                    local_ip = str(local_ip).split(':')[0]
-                if ':' in str(remote_ip):
-                    remote_ip = str(remote_ip).split(':')[0]
-                
                 threat_info = {
                     'type': 'network_connection',
-                    'tool': self._infer_tool_from_connection(conn),
-                    'src_ip': local_ip,
-                    'dest_ip': remote_ip,
-                    'dest_port': conn.get('remote_port', 'unknown'),
-                    'proto': conn.get('protocol', 'tcp'),
-                    'attack_type': self._infer_attack_type_from_connection(conn),
+                    'tool': conn['process_name'],
+                    'src_ip': conn['local_ip'],
+                    'dest_ip': conn['remote_ip'],
+                    'dest_port': conn['remote_port'],
+                    'proto': conn['protocol'],
+                    'attack_type': conn['threat_type'],
                     'severity': 'high' if conn['threat_level'] == 'malicious' else 'medium',
-                    'description': f"{conn['threat_level'].upper()} network connection: {conn['process_name']} from {local_ip} to {remote_ip}:{conn.get('remote_port', 'unknown')}",
+                    'description': f"{conn['threat_level'].upper()} network connection: {conn['process_name']} from {conn['local_ip']} to {conn['remote_ip']}:{conn['remote_port']}",
                     'process_name': conn['process_name'],
                     'threat_level': conn['threat_level'],
-                    'confidence': 85 if conn['threat_level'] == 'malicious' else 70,
+                    'confidence': conn['threat_confidence'] * 100,
                     'risk_score': 90 if conn['threat_level'] == 'malicious' else 60
                 }
                 threats.append(threat_info)
@@ -704,56 +875,23 @@ class RealTimeMonitor:
             if proc['threat_level'] in ['suspicious', 'malicious']:
                 threat_info = {
                     'type': 'process',
-                    'tool': self._infer_tool_from_process(proc),
+                    'tool': proc['name'],
                     'src_ip': 'localhost',
                     'dest_ip': 'unknown',
                     'dest_port': 'unknown',
                     'proto': 'process',
-                    'attack_type': self._infer_attack_type_from_process(proc),
+                    'attack_type': proc['threat_type'],
                     'severity': 'high' if proc['threat_level'] == 'malicious' else 'medium',
                     'description': f"{proc['threat_level'].upper()} process: {proc['name']} (PID: {proc['pid']}) using {proc.get('cpu', 0)}% CPU",
                     'process_name': proc['name'],
                     'threat_level': proc['threat_level'],
-                    'confidence': 80 if proc['threat_level'] == 'malicious' else 65,
+                    'confidence': proc['threat_confidence'] * 100,
                     'risk_score': 85 if proc['threat_level'] == 'malicious' else 55
                 }
                 threats.append(threat_info)
         
-        logger.info(f"🔍 Found {len(threats)} threats for analysis")
+        logger.info(f"Threat Detection System found {len(threats)} threats for analysis")
         return threats
-    
-    def _infer_attack_type_from_connection(self, conn):
-        """Infer attack type from connection details - IMPROVED"""
-        process_name = conn.get('process_name', '').lower()
-        remote_port = conn.get('remote_port', 0)
-        
-        if any(name in process_name for name in ['powershell', 'cmd', 'wscript']):
-            return 'script_execution'
-        elif remote_port in [22, 23, 3389]:
-            return 'remote_access_attempt'
-        elif remote_port in [135, 139, 445]:
-            return 'network_exploitation'
-        elif 'sql' in process_name:
-            return 'database_probe'
-        elif remote_port in [80, 443, 8080]:
-            return 'web_traffic'
-        else:
-            return 'suspicious_connection'
-
-    def _infer_attack_type_from_process(self, proc):
-        """Infer attack type from process details - IMPROVED"""
-        process_name = proc.get('name', '').lower()
-        
-        if any(name in process_name for name in ['powershell', 'cmd', 'wscript', 'cscript']):
-            return 'script_execution'
-        elif any(name in process_name for name in ['mimikatz', 'metasploit', 'cobalt']):
-            return 'security_tool_execution'
-        elif proc.get('cpu', 0) > 80:
-            return 'resource_consumption'
-        elif any(name in process_name for name in ['tor', 'vpn', 'proxy']):
-            return 'privacy_tool'
-        else:
-            return 'suspicious_process'
 
 # =============================================================================
 # MULTI-EXPERT FALLBACK SYSTEM
@@ -998,7 +1136,7 @@ class BackgroundMonitor(Thread):
         
     def run(self):
         self.running = True
-        logger.info("🔄 Background monitoring started")
+        logger.info("Background monitoring started")
         
         while self.running:
             try:
@@ -1019,7 +1157,7 @@ class BackgroundMonitor(Thread):
                             ))
                         conn.commit()
                     
-                    logger.info(f"🔍 Background monitor detected {len(threats)} threats")
+                    logger.info(f"Background monitor detected {len(threats)} threats")
                 
                 time.sleep(30)  # Check every 30 seconds
             except Exception as e:
@@ -1028,7 +1166,7 @@ class BackgroundMonitor(Thread):
     
     def stop(self):
         self.running = False
-        logger.info("🛑 Background monitoring stopped")
+        logger.info("Background monitoring stopped")
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -1040,7 +1178,7 @@ def safe_enhance_log_with_network_features(log_entry):
         tool = log_entry.get('tool', '').lower()
         attack_type = log_entry.get('attack_type', '').lower()
         
-        logger.info(f"🔧 SAFE Enhancing log: {tool} - {attack_type}")
+        logger.info(f"SAFE Enhancing log: {tool} - {attack_type}")
         
         # Create a safe copy with guaranteed numeric values
         enhanced_entry = log_entry.copy()
@@ -1089,46 +1227,53 @@ def safe_enhance_log_with_network_features(log_entry):
                 'dur': 0.1, 'spkts': 150, 'dpkts': 1, 'sbytes': 600, 'dbytes': 1,
                 'rate': 1200.5, 'attack_type': 'reconnaissance', 'severity': 'high'
             })
-            logger.info(f"   📡 Applied SAFE scanning features")
+            logger.info(f"   Applied SAFE scanning features")
         elif any(pattern in tool or pattern in attack_type 
                  for pattern in ['hydra', 'bruteforce', 'brute', 'password']):
             enhanced_entry.update({
                 'dur': 2.5, 'spkts': 500, 'dpkts': 500, 'sbytes': 25000, 'dbytes': 25000,
                 'rate': 200.0, 'attack_type': 'bruteforce', 'severity': 'critical'
             })
-            logger.info(f"   🔐 Applied SAFE brute force features")
+            logger.info(f"   Applied SAFE brute force features")
         elif any(pattern in tool or pattern in attack_type 
                  for pattern in ['hping', 'hping3', 'dos', 'ddos', 'flood', 'syn']):
             enhanced_entry.update({
                 'dur': 0.5, 'spkts': 1000, 'dpkts': 1, 'sbytes': 50000, 'dbytes': 1,
                 'rate': 5000.0, 'attack_type': 'dos', 'severity': 'high'
             })
-            logger.info(f"   🌊 Applied SAFE DoS features")
+            logger.info(f"   Applied SAFE DoS features")
+        elif any(pattern in tool or pattern in attack_type 
+                 for pattern in ['resource_tool', 'resource', 'consumption', 'cpu']):
+            enhanced_entry.update({
+                'dur': 3.0, 'spkts': 200, 'dpkts': 150, 'sbytes': 15000, 'dbytes': 10000,
+                'rate': 116.7, 'attack_type': 'resource_consumption', 'severity': 'medium'
+            })
+            logger.info(f"   Applied SAFE resource consumption features")
         elif any(pattern in tool or pattern in attack_type 
                  for pattern in ['sqlmap', 'sql', 'injection']):
             enhanced_entry.update({
                 'dur': 1.2, 'spkts': 80, 'dpkts': 60, 'sbytes': 5000, 'dbytes': 3000,
                 'rate': 66.7, 'attack_type': 'sql_injection', 'severity': 'high'
             })
-            logger.info(f"   🗃️ Applied SAFE SQL injection features")
+            logger.info(f"   Applied SAFE SQL injection features")
         elif any(pattern in tool or pattern in attack_type 
                  for pattern in ['metasploit', 'exploit', 'malware']):
             enhanced_entry.update({
                 'dur': 3.0, 'spkts': 200, 'dpkts': 150, 'sbytes': 15000, 'dbytes': 10000,
                 'rate': 116.7, 'attack_type': 'exploitation', 'severity': 'critical'
             })
-            logger.info(f"   🦠 Applied SAFE malware features")
+            logger.info(f"   Applied SAFE malware features")
         else:
             enhanced_entry.update({
                 'dur': 2.5, 'spkts': 25, 'dpkts': 35, 'sbytes': 2000, 'dbytes': 50000,
                 'rate': 12.0, 'attack_type': 'normal', 'severity': 'low'
             })
-            logger.info(f"   📊 Applied SAFE normal traffic features")
+            logger.info(f"   Applied SAFE normal traffic features")
         
         return enhanced_entry
         
     except Exception as e:
-        logger.error(f"❌ CRITICAL: Error in safe enhancement: {e}")
+        logger.error(f"CRITICAL: Error in safe enhancement: {e}")
         # Return absolutely safe fallback
         return {
             'dur': 1.0, 'spkts': 10, 'dpkts': 10, 'sbytes': 1000, 'dbytes': 1000,
@@ -1139,7 +1284,7 @@ def safe_enhance_log_with_network_features(log_entry):
 
 def ensure_detection_agent_compatibility(log_entries):
     """Ensure log entries have all required fields for ULTIMATE model detection"""
-    logger.info(f"🔧 Ensuring compatibility for {len(log_entries)} log entries")
+    logger.info(f"Ensuring compatibility for {len(log_entries)} log entries")
     
     compatible_entries = []
     
@@ -1174,7 +1319,7 @@ def ensure_detection_agent_compatibility(log_entries):
         }
         compatible_entries.append(compatible_entry)
     
-    logger.info(f"✅ Compatibility check complete: {len(compatible_entries)} entries ready")
+    logger.info(f"Compatibility check complete: {len(compatible_entries)} entries ready")
     return compatible_entries
 
 def prepare_log_entry(form_data):
@@ -1226,7 +1371,7 @@ def enhance_with_multi_expert_analysis(result):
             'timestamp': result.get('timestamp_analyzed', 'Unknown')
         }
         
-        logger.info(f"🤖 Sending to Multi-Expert Analysis: {detection_data['attack_type']}")
+        logger.info(f"Sending to Multi-Expert Analysis: {detection_data['attack_type']}")
         
         # Get comprehensive multi-expert analysis
         analysis_result = DEBATE_AGENT.analyze_detection(detection_data)
@@ -1240,14 +1385,14 @@ def enhance_with_multi_expert_analysis(result):
                 len(analysis_result.get('expert_analyses', [])))
             result['consensus_score'] = analysis_result.get('confidence_score', 0)
             
-            logger.info(f"✅ Multi-expert analysis applied ({result['expert_count']} experts, consensus: {result['consensus_score']:.2f})")
+            logger.info(f"Multi-expert analysis applied ({result['expert_count']} experts, consensus: {result['consensus_score']:.2f})")
         else:
             result['multi_expert_analysis_used'] = False
             result['expert_count'] = 0
             result['consensus_score'] = 0
         
     except Exception as e:
-        logger.error(f"❌ Multi-expert analysis failed: {e}")
+        logger.error(f"Multi-expert analysis failed: {e}")
         traceback.print_exc()
         result['multi_expert_analysis_used'] = False
         result['expert_count'] = 0
@@ -1263,8 +1408,8 @@ def process_uploaded_file(file):
         filename = file.filename.lower()
         file_content = file.read().decode('utf-8')
         
-        logger.info(f"📁 Processing uploaded file: {filename}")
-        logger.info(f"📄 File content preview: {file_content[:200]}...")
+        logger.info(f"Processing uploaded file: {filename}")
+        logger.info(f"File content preview: {file_content[:200]}...")
         
         if filename.endswith('.json'):
             # Process JSON files
@@ -1273,14 +1418,14 @@ def process_uploaded_file(file):
                 data = json.loads(file_content)
                 if isinstance(data, list):
                     log_entries = data
-                    logger.info(f"📊 Parsed as JSON array with {len(log_entries)} entries")
+                    logger.info(f"Parsed as JSON array with {len(log_entries)} entries")
                 else:
                     log_entries = [data]
-                    logger.info("📊 Parsed as single JSON object")
+                    logger.info("Parsed as single JSON object")
             except json.JSONDecodeError:
                 # Try line-by-line JSON
                 lines = file_content.split('\n')
-                logger.info(f"📝 Trying line-by-line JSON parsing with {len(lines)} lines")
+                logger.info(f"Trying line-by-line JSON parsing with {len(lines)} lines")
                 for line in lines:
                     line = line.strip()
                     if line:
@@ -1289,7 +1434,7 @@ def process_uploaded_file(file):
                             log_entries.append(entry)
                         except json.JSONDecodeError:
                             continue
-                logger.info(f"📊 Line-by-line parsing found {len(log_entries)} entries")
+                logger.info(f"Line-by-line parsing found {len(log_entries)} entries")
         
         elif filename.endswith('.csv'):
             # Process CSV files
@@ -1314,7 +1459,7 @@ def process_uploaded_file(file):
                             log_entry[key] = value
                     
                     log_entries.append(log_entry)
-                logger.info(f"📊 CSV parsing found {len(log_entries)} entries")
+                logger.info(f"CSV parsing found {len(log_entries)} entries")
             except Exception as e:
                 logger.error(f"CSV processing error: {e}")
                 return []
@@ -1322,7 +1467,7 @@ def process_uploaded_file(file):
         else:
             # Try to auto-detect format
             lines = file_content.split('\n')
-            logger.info(f"🔍 Auto-detecting format with {len(lines)} lines")
+            logger.info(f"Auto-detecting format with {len(lines)} lines")
             for line in lines:
                 line = line.strip()
                 if line:
@@ -1349,7 +1494,7 @@ def process_uploaded_file(file):
                             'description': line
                         }
                         log_entries.append(log_entry)
-            logger.info(f"📊 Auto-detection found {len(log_entries)} entries")
+            logger.info(f"Auto-detection found {len(log_entries)} entries")
         
         # FIX: Ensure all log entries have required fields before enhancement
         validated_entries = []
@@ -1376,15 +1521,15 @@ def process_uploaded_file(file):
                 enhanced_entry = safe_enhance_log_with_network_features(entry)
                 enhanced_entries.append(enhanced_entry)
             except Exception as e:
-                logger.error(f"❌ Error enhancing log entry: {e}")
+                logger.error(f"Error enhancing log entry: {e}")
                 # Add the original entry as fallback
                 enhanced_entries.append(entry)
         
-        logger.info(f"📁 Processed {len(enhanced_entries)} log entries from {filename}")
+        logger.info(f"Processed {len(enhanced_entries)} log entries from {filename}")
         return enhanced_entries
         
     except Exception as e:
-        logger.error(f"❌ File processing failed: {e}")
+        logger.error(f"File processing failed: {e}")
         traceback.print_exc()
         return []
 
@@ -1424,6 +1569,7 @@ def store_detection_result(result):
 
 # Initialize database
 init_db()
+init_auth_db()   # <-- NEW: create users table
 
 # Initialize components
 real_monitor = RealTimeMonitor()
@@ -1479,6 +1625,20 @@ demo_threats = [
         'protocol': 'tcp',
         'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'risk_score': 88
+    },
+    {
+        'threat_detected': True,
+        'attack_type': 'Resource Consumption',
+        'severity': 'medium',
+        'final_confidence': 78.0,
+        'description': 'High CPU usage process detected from localhost',
+        'source_ip': 'localhost',
+        'target_ip': 'unknown',
+        'target_port': 'unknown',
+        'tool': 'resource_tool',
+        'protocol': 'process',
+        'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'risk_score': 75
     }
 ]
 
@@ -1486,7 +1646,49 @@ demo_threats = [
 # FLASK ROUTES
 # =============================================================================
 
+# NEW: Login / Register / Logout routes
+@app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        with get_db_connection() as conn:
+            user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        if user and check_password_hash(user['password_hash'], password):
+            login_user(User(user['id'], user['username'], user['email']))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('main_dashboard'))
+        flash('Invalid username or password')
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        password_hash = generate_password_hash(password)
+        try:
+            with get_db_connection() as conn:
+                conn.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+                             (username, email, password_hash))
+                conn.commit()
+            flash('Registration successful. Please log in.')
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash('Username or email already exists')
+    return render_template('register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+# Protect existing routes with @login_required
 @app.route('/')
+@login_required
 def main_dashboard():
     """MAIN DASHBOARD - Shows live threats with multi-expert analysis"""
     stats = detection_agent.get_detection_stats()
@@ -1515,12 +1717,14 @@ def main_dashboard():
                          ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/home')
+@login_required
 def home():
     """System overview landing page"""
     stats = detection_agent.get_detection_stats()
     return render_template('index.html', stats=stats, ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/real-time-dashboard')
+@login_required
 def real_time_dashboard():
     """Dedicated real-time monitoring dashboard"""
     network_stats = real_monitor.get_network_stats()
@@ -1535,6 +1739,7 @@ def real_time_dashboard():
                          ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/detect-threat', methods=['GET', 'POST'])
+@login_required
 def detect_threat():
     """Single threat detection with ULTIMATE model compatibility and multi-expert analysis"""
     if request.method == 'GET':
@@ -1550,13 +1755,13 @@ def detect_threat():
         if not log_entry:
             return render_template('detect_threat.html', error="No valid log data provided", ai_enabled=AI_ANALYSIS_ENABLED, result=None)
         
-        logger.info(f"🔍 Sending to ULTIMATE detection agent: {log_entry['tool']} from {log_entry['src_ip']} to {log_entry['dest_ip']}:{log_entry['dest_port']}")
+        logger.info(f"Sending to ULTIMATE detection agent: {log_entry['tool']} from {log_entry['src_ip']} to {log_entry['dest_ip']}:{log_entry['dest_port']}")
         
         # Use the detection agent with compatible format
         compatible_entries = ensure_detection_agent_compatibility([log_entry])
         results = detection_agent.analyze_logs_comprehensive(compatible_entries)
         
-        logger.info(f"📊 ULTIMATE Detection results: {len(results) if results else 0} threats found")
+        logger.info(f"ULTIMATE Detection results: {len(results) if results else 0} threats found")
         
         if results:
             result = results[0]
@@ -1595,7 +1800,7 @@ def detect_threat():
                 'attack_type': 'Normal Traffic',
                 'severity': 'low',
                 'final_confidence': 0.1,
-                'description': f"✅ Normal {log_entry['proto'].upper()} traffic from {log_entry['src_ip']} to {log_entry['dest_ip']}:{log_entry['dest_port']}. No threats detected.",
+                'description': f"Normal {log_entry['proto'].upper()} traffic from {log_entry['src_ip']} to {log_entry['dest_ip']}:{log_entry['dest_port']}. No threats detected.",
                 'source_ip': log_entry['src_ip'],
                 'target_ip': f"{log_entry['dest_ip']}:{log_entry['dest_port']}",
                 'target_port': log_entry['dest_port'],
@@ -1613,11 +1818,12 @@ def detect_threat():
         return render_template('detect_threat.html', result=formatted_result, ai_enabled=AI_ANALYSIS_ENABLED)
         
     except Exception as e:
-        logger.error(f"❌ ULTIMATE Detection failed: {str(e)}")
+        logger.error(f"ULTIMATE Detection failed: {str(e)}")
         traceback.print_exc()
         return render_template('detect_threat.html', error=f"Detection failed: {str(e)}", ai_enabled=AI_ANALYSIS_ENABLED, result=None)
 
 @app.route('/upload-logs', methods=['GET', 'POST'])
+@login_required
 def upload_logs():
     """Batch log analysis with ULTIMATE model compatibility"""
     if request.method == 'GET':
@@ -1631,7 +1837,7 @@ def upload_logs():
         if file.filename == '':
             return render_template('upload_logs.html', error="No file selected", ai_enabled=AI_ANALYSIS_ENABLED)
         
-        logger.info(f"📁 Processing uploaded file: {file.filename}")
+        logger.info(f"Processing uploaded file: {file.filename}")
         
         # Process the uploaded file
         log_entries = process_uploaded_file(file)
@@ -1639,13 +1845,13 @@ def upload_logs():
         if not log_entries:
             return render_template('upload_logs.html', error="No valid log data found in file", ai_enabled=AI_ANALYSIS_ENABLED)
         
-        logger.info(f"🔍 Processing {len(log_entries)} log entries through ULTIMATE detection system")
+        logger.info(f"Processing {len(log_entries)} log entries through ULTIMATE detection system")
         
         # Process all log entries through ULTIMATE detection system
         compatible_entries = ensure_detection_agent_compatibility(log_entries)
         results = detection_agent.analyze_logs_comprehensive(compatible_entries)
         
-        logger.info(f"📊 Detection complete: {len(results)} threats found")
+        logger.info(f"Detection complete: {len(results)} threats found")
         
         # FIX: Enhanced results with proper threat_detected field
         enhanced_results = []
@@ -1691,11 +1897,12 @@ def upload_logs():
                             ai_enabled=AI_ANALYSIS_ENABLED)
         
     except Exception as e:
-        logger.error(f"❌ File processing failed: {str(e)}")
+        logger.error(f"File processing failed: {str(e)}")
         traceback.print_exc()
         return render_template('upload_logs.html', error=f"File processing failed: {str(e)}", ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/api/detect', methods=['POST'])
+@login_required
 def api_detect():
     """API endpoint for threat detection with ULTIMATE model compatibility"""
     try:
@@ -1704,7 +1911,7 @@ def api_detect():
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
         
-        logger.info(f"🔍 API Detection request: {data.get('tool', 'unknown')}")
+        logger.info(f"API Detection request: {data.get('tool', 'unknown')}")
         
         # Enhance with network features first
         enhanced_data = safe_enhance_log_with_network_features(data)
@@ -1755,7 +1962,7 @@ def api_detect():
             })
         
     except Exception as e:
-        logger.error(f"❌ API Detection failed: {e}")
+        logger.error(f"API Detection failed: {e}")
         traceback.print_exc()
         return jsonify({
             'success': False,
@@ -1763,6 +1970,7 @@ def api_detect():
         }), 400
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     """Real-time dashboard - shows demo threats with multi-expert analysis"""
     stats = detection_agent.get_detection_stats()
@@ -1791,11 +1999,13 @@ def dashboard():
                          ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/sample-threats')
+@login_required
 def sample_threats():
     """Demo page with sample threat scenarios for ULTIMATE model"""
     return render_template('demo_scenarios.html', ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/analyze-sample/<int:scenario_id>', methods=['POST'])
+@login_required
 def analyze_sample(scenario_id):
     """Analyze a sample threat scenario with ULTIMATE model and multi-expert analysis"""
     
@@ -1822,6 +2032,13 @@ def analyze_sample(scenario_id):
             'description': 'hping3 SYN flood attack', 'sttl': 64, 'dttl': 64, 'sloss': 0, 'dloss': 0
         },
         {
+            'tool': 'resource_tool', 'attack_type': 'resource_consumption', 'severity': 'medium',
+            'proto': 'process', 'src_ip': 'localhost', 'dest_ip': 'unknown',
+            'src_port': 54321, 'dest_port': 'unknown', 'dur': 3.0, 'spkts': 200, 'dpkts': 150,
+            'sbytes': 15000, 'dbytes': 10000, 'rate': 116.7, 'timestamp': datetime.now().isoformat(),
+            'description': 'resource consumption attack', 'sttl': 64, 'dttl': 64, 'sloss': 0, 'dloss': 0
+        },
+        {
             'tool': 'sqlmap', 'attack_type': 'sql_injection', 'severity': 'high',
             'proto': 'tcp', 'src_ip': '192.168.1.200', 'dest_ip': '192.168.1.1',
             'src_port': 54321, 'dest_port': 80, 'dur': 1.2, 'spkts': 80, 'dpkts': 60,
@@ -1846,7 +2063,7 @@ def analyze_sample(scenario_id):
     
     if 0 <= scenario_id < len(sample_scenarios):
         try:
-            logger.info(f"🔍 Analyzing sample scenario {scenario_id}: {sample_scenarios[scenario_id]['tool']}")
+            logger.info(f"Analyzing sample scenario {scenario_id}: {sample_scenarios[scenario_id]['tool']}")
             
             # Ensure compatibility and use ULTIMATE detection system
             compatible_entries = ensure_detection_agent_compatibility([sample_scenarios[scenario_id]])
@@ -1865,13 +2082,14 @@ def analyze_sample(scenario_id):
                 return jsonify({'success': False, 'error': 'No analysis results'})
                 
         except Exception as e:
-            logger.error(f"❌ Sample analysis failed: {e}")
+            logger.error(f"Sample analysis failed: {e}")
             traceback.print_exc()
             return jsonify({'success': False, 'error': str(e)})
     
     return jsonify({'success': False, 'error': 'Invalid scenario ID'})
 
 @app.route('/test-detection')
+@login_required
 def test_detection():
     """Test endpoint to verify ULTIMATE detection agent is working"""
     test_entry = {
@@ -1898,7 +2116,7 @@ def test_detection():
     }
     
     try:
-        logger.info("🧪 Running ULTIMATE detection test...")
+        logger.info("Running ULTIMATE detection test...")
         compatible_entries = ensure_detection_agent_compatibility([test_entry])
         results = detection_agent.analyze_logs_comprehensive(compatible_entries)
         
@@ -1914,7 +2132,7 @@ def test_detection():
             'multi_expert_analysis_enabled': AI_ANALYSIS_ENABLED
         })
     except Exception as e:
-        logger.error(f"❌ ULTIMATE Detection test failed: {e}")
+        logger.error(f"ULTIMATE Detection test failed: {e}")
         traceback.print_exc()
         return jsonify({
             'success': False,
@@ -1924,6 +2142,7 @@ def test_detection():
 
 # REAL-TIME MONITORING APIs
 @app.route('/api/real-time/network-data')
+@login_required
 def get_real_time_network_data():
     """API endpoint for real-time network data"""
     try:
@@ -1944,6 +2163,7 @@ def get_real_time_network_data():
         })
 
 @app.route('/api/real-time/process-data')
+@login_required
 def get_real_time_process_data():
     """API endpoint for real-time process data"""
     try:
@@ -1964,6 +2184,7 @@ def get_real_time_process_data():
         })
 
 @app.route('/api/real-time/start')
+@login_required
 def start_real_time_monitoring():
     """Start real-time monitoring"""
     if not real_monitor.is_monitoring:
@@ -1971,6 +2192,7 @@ def start_real_time_monitoring():
     return jsonify({'success': True, 'message': 'Real-time monitoring started'})
 
 @app.route('/api/real-time/stop')
+@login_required
 def stop_real_time_monitoring():
     """Stop real-time monitoring"""
     if real_monitor.is_monitoring:
@@ -1978,6 +2200,7 @@ def stop_real_time_monitoring():
     return jsonify({'success': True, 'message': 'Real-time monitoring stopped'})
 
 @app.route('/api/real-time/status')
+@login_required
 def real_time_monitoring_status():
     """Get real-time monitoring status"""
     return jsonify({
@@ -1987,24 +2210,25 @@ def real_time_monitoring_status():
     })
 
 @app.route('/api/analyze-current-threats', methods=['POST'])
+@login_required
 def analyze_current_threats():
     """Analyze current threats with Multi-LLM Debate system - ULTRA ROBUST VERSION"""
     try:
-        logger.info("🔍 Starting Multi-Expert Threat Analysis...")
+        logger.info("Starting Multi-Expert Threat Analysis...")
         
         # Get current threats in proper format
         current_threats = real_monitor.get_current_threats_for_analysis()
         
         if not current_threats:
-            logger.info("✅ No threats found for analysis")
+            logger.info("No threats found for analysis")
             return jsonify(fallback_system._generate_no_threats_analysis())
         
-        logger.info(f"🔍 Analyzing {len(current_threats)} current threats...")
+        logger.info(f"Analyzing {len(current_threats)} current threats...")
         
         # Try Multi-Expert AI Analysis first if available
         if AI_ANALYSIS_ENABLED and DEBATE_AGENT:
             try:
-                logger.info("🤖 Attempting Multi-Expert AI Analysis...")
+                logger.info("Attempting Multi-Expert AI Analysis...")
                 
                 # Prepare the most significant threat for detailed analysis
                 significant_threat = current_threats[0]
@@ -2023,7 +2247,7 @@ def analyze_current_threats():
                     'risk_score': significant_threat.get('risk_score', 60)
                 }
                 
-                logger.info(f"📤 Sending to Multi-Expert: {detection_data['attack_type']}")
+                logger.info(f"Sending to Multi-Expert: {detection_data['attack_type']}")
                 
                 # Get multi-expert analysis with timeout
                 import threading
@@ -2044,14 +2268,14 @@ def analyze_current_threats():
                 thread.join(timeout=30)  # 30 second timeout
                 
                 if thread.is_alive():
-                    logger.info("⏰ Multi-Expert Analysis timeout, using fallback")
+                    logger.info("Multi-Expert Analysis timeout, using fallback")
                     analysis_result = None
                 elif analysis_error:
-                    logger.error(f"❌ Multi-Expert Analysis error: {analysis_error}")
+                    logger.error(f"Multi-Expert Analysis error: {analysis_error}")
                     analysis_result = None
                 
                 if analysis_result and analysis_result.get('multi_expert_analysis_used', False):
-                    logger.info("✅ Multi-Expert AI Analysis successful!")
+                    logger.info("Multi-Expert AI Analysis successful!")
                     
                     # Format the response with multi-expert analysis
                     expert_analyses = analysis_result.get('expert_analyses', [])
@@ -2083,19 +2307,19 @@ def analyze_current_threats():
                     
                     return jsonify(response_data)
                 else:
-                    logger.info("🔄 Multi-Expert AI unavailable, using enhanced fallback")
+                    logger.info("Multi-Expert AI unavailable, using enhanced fallback")
                     
             except Exception as e:
-                logger.error(f"❌ Multi-Expert AI Analysis failed: {e}")
+                logger.error(f"Multi-Expert AI Analysis failed: {e}")
                 # Continue to fallback
         
         # Use enhanced fallback system
-        logger.info("🔄 Using Enhanced Fallback Analysis System")
+        logger.info("Using Enhanced Fallback Analysis System")
         return jsonify(fallback_system.generate_expert_analysis(current_threats))
             
     except Exception as e:
-        logger.error(f"❌ Critical error in threat analysis: {e}")
-        logger.error(f"❌ Critical error: {e}")
+        logger.error(f"Critical error in threat analysis: {e}")
+        logger.error(f"Critical error: {e}")
         import traceback
         traceback.print_exc()
         
@@ -2130,6 +2354,7 @@ def analyze_current_threats():
         }), 500
 
 @app.route('/api-status')
+@login_required
 def api_status():
     """Show API usage and rate limit status"""
     if DEBATE_AGENT:
@@ -2140,6 +2365,7 @@ def api_status():
     return "Debate agent not available"
 
 @app.route('/reset-api-counter')
+@login_required
 def reset_api_counter():
     """Reset API counter (for testing)"""
     if DEBATE_AGENT and hasattr(DEBATE_AGENT, 'advanced_agent') and hasattr(DEBATE_AGENT.advanced_agent.core_agent, 'usage_tracker'):
@@ -2149,6 +2375,7 @@ def reset_api_counter():
     return "Cannot reset counter"
 
 @app.route('/api/system-info')
+@login_required
 def get_system_info():
     """Get comprehensive system information"""
     try:
@@ -2199,6 +2426,7 @@ def get_system_info():
         })
 
 @app.route('/api/detection-history')
+@login_required
 def get_detection_history():
     """Get detection history from database"""
     try:
@@ -2241,34 +2469,40 @@ if __name__ == '__main__':
     os.makedirs('artifacts', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
     
-    print("🚀 ULTIMATE Cyber Threat Detection System Starting...")
+    print("ULTIMATE Cyber Threat Detection System Starting...")
     print("=" * 60)
-    print("🔧 SYSTEM STATUS:")
-    print("   • AdvancedDetectionAgent: ✅ Loaded")
-    print("   • RealTimeMonitor: ✅ Loaded") 
-    print(f"   • Multi-LLM Debate Agent: {'✅ ENABLED' if AI_ANALYSIS_ENABLED else '🔄 FALLBACK MODE'}")
-    print("   • Flask Application: ✅ Ready")
-    print("   • System Monitoring: ✅ ACTIVE (using psutil)")
-    print("   • Comprehensive Threat Analysis: ✅ ACTIVE")
-    print("   • Database: ✅ Initialized")
-    print("   • Background Monitoring: ✅ Active")
+    print("SYSTEM STATUS:")
+    print("   • AdvancedDetectionAgent: Loaded")
+    print("   • RealTimeMonitor: Loaded") 
+    print(f"   • Multi-LLM Debate Agent: {'ENABLED' if AI_ANALYSIS_ENABLED else 'FALLBACK MODE'}")
+    print("   • Flask Application: Ready")
+    print("   • System Monitoring: ACTIVE (using psutil)")
+    print("   • Comprehensive Threat Analysis: ACTIVE")
+    print("   • Database: Initialized")
+    print("   • Background Monitoring: Active")
+    print("   • User Authentication: ENABLED")
+    print("   • CSRF Protection: ENABLED")
+    print("   • Rate Limiting: ENABLED")
+    print("   • Encrypted Secrets: CONFIGURED (if key exists)")
     print("=" * 60)
-    print("🌐 APPLICATION ENDPOINTS:")
-    print("📊 MAIN DASHBOARD: http://localhost:5000/")
-    print("🔍 Threat Detection: http://localhost:5000/detect-threat")
-    print("📁 Log Upload: http://localhost:5000/upload-logs")
-    print("🖥️  Real-Time Monitor: http://localhost:5000/real-time-dashboard")
-    print("🎯 Demo Scenarios: http://localhost:5000/sample-threats")
-    print("🧪 Test Detection: http://localhost:5000/test-detection")
+    print("APPLICATION ENDPOINTS:")
+    print("MAIN DASHBOARD: http://localhost:5000/")
+    print("Login: http://localhost:5000/login")
+    print("Register: http://localhost:5000/register")
+    print("Threat Detection: http://localhost:5000/detect-threat")
+    print("Log Upload: http://localhost:5000/upload-logs")
+    print("Real-Time Monitor: http://localhost:5000/real-time-dashboard")
+    print("Demo Scenarios: http://localhost:5000/sample-threats")
+    print("Test Detection: http://localhost:5000/test-detection")
     print("")
-    print("🔍 ULTIMATE Real-time monitoring is ACTIVE and watching your system!")
-    print("📊 Reading ACTUAL system data using psutil")
-    print("🛡️  Comprehensive threat analysis for ANY attack type!")
+    print("ULTIMATE Real-time monitoring is ACTIVE and watching your system!")
+    print("Reading ACTUAL system data using psutil")
+    print("Comprehensive threat analysis for ANY attack type!")
     
     try:
         app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)
     except KeyboardInterrupt:
-        logger.info("🛑 Application shutdown requested")
+        logger.info("Application shutdown requested")
         background_monitor.stop()
         real_monitor.stop_monitoring()
-        logger.info("✅ Application shutdown complete")
+        logger.info("Application shutdown complete")

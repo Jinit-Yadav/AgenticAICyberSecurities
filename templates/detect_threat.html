@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Advanced Threat Detection - Cyber Security AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -861,8 +862,8 @@
 
                 <!-- Basic Analysis Tab -->
                 <div id="basic" class="tab-content active">
-                    <form method="POST" id="threatForm">
-                        <div class="form-row">
+                    <form method="POST" id="threatForm" action="{{ url_for('detect_threat') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>                        
                             <div class="form-group">
                                 <label for="tool">
                                     <i class="fas fa-tools"></i> Tool/Application:
@@ -1008,8 +1009,9 @@
 
                 <!-- Advanced Analysis Tab -->
 <div id="advanced" class="tab-content">
-    <form method="POST" id="advancedForm">
-        <div class="form-row">
+    <form method="POST" id="advancedForm" action="{{ url_for('detect_threat') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>        
+            <div class="form-row">
             <div class="form-group">
                 <label for="spkts"><i class="fas fa-box"></i> Source Packets:</label>
                 <input type="number" id="spkts" name="spkts" value="100" min="0" required>
@@ -1057,7 +1059,8 @@
 
                 <!-- Custom Log Tab -->
                 <div id="custom" class="tab-content">
-                    <form method="POST" id="customForm">
+                    <form method="POST" id="customForm" action="{{ url_for('detect_threat') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>                        
                         <div class="form-group">
                             <label for="custom_log">
                                 <i class="fas fa-file-code"></i> Paste Log Data (JSON/CSV format):
