@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | CyberShield AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --warning: #ffa502;
+            --dark: #0a0e27;
+            --darker: #0f1419;
+            --light: #ffffff;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .error-container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 50px 40px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .error-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--ai-purple), var(--warning));
+            animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .error-icon {
+            font-size: 5em;
+            color: var(--warning);
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .error-code {
+            font-size: 8em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple), var(--warning));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(0,212,255,0.3);
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+        
+        .error-title {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: var(--light);
+        }
+        
+        .error-message {
+            font-size: 1.1em;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .search-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .search-box p {
+            margin-bottom: 15px;
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        
+        .search-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .search-link {
+            color: var(--primary);
+            text-decoration: none;
+            padding: 5px 12px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 20px;
+            font-size: 0.9em;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s;
+        }
+        
+        .search-link:hover {
+            background: rgba(0,212,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,212,255,0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid var(--card-border);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-3px);
+        }
+        
+        .support-link {
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.6;
+        }
+        
+        .support-link a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .support-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .threat-hunter {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 2em;
+            opacity: 0.1;
+            color: var(--primary);
+            transform: rotate(15deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="threat-hunter">
+            <i class="fas fa-shield-virus"></i>
+        </div>
+        
+        <div class="error-icon">
+            <i class="fas fa-map-signs"></i>
+        </div>
+        <div class="error-code">404</div>
+        <div class="error-title">Page Not Found</div>
+        <div class="error-message">
+            The page you're looking for doesn't exist or has been moved to a different location.
+        </div>
+        
+        <div class="search-box">
+            <p><i class="fas fa-search"></i> Looking for something specific?</p>
+            <div class="search-links">
+                <a href="{{ url_for('features') }}" class="search-link">Features</a>
+                <a href="{{ url_for('architecture') }}" class="search-link">Architecture</a>
+                <a href="{{ url_for('research') }}" class="search-link">Research</a>
+                <a href="{{ url_for('documentation') }}" class="search-link">Documentation</a>
+                <a href="{{ url_for('contact') }}" class="search-link">Contact</a>
+                <a href="{{ url_for('dashboard_home') }}" class="search-link">Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home"></i> Go to Homepage
+            </a>
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </a>
+        </div>
+        
+        <div class="support-link">
+            <i class="fas fa-bug"></i> Found a broken link? <a href="{{ url_for('contact') }}">Report it</a>
+        </div>
+    </div>
+</body>
+</html>

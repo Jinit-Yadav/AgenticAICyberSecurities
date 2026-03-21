@@ -213,13 +213,13 @@
             color: var(--primary);
         }
         
-        /* How It Works Section */
-        .how-it-works {
+        /* NEW: Pipeline Visualization */
+        .pipeline-section {
             margin: 80px 0;
             text-align: center;
         }
         
-        .section-title {
+        .pipeline-title {
             font-size: 2.5em;
             margin-bottom: 20px;
             background: linear-gradient(135deg, var(--primary), var(--ai-purple));
@@ -227,47 +227,187 @@
             -webkit-text-fill-color: transparent;
         }
         
-        .section-subtitle {
+        .pipeline-subtitle {
             font-size: 1.2em;
             opacity: 0.8;
             margin-bottom: 50px;
         }
         
-        .steps-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+        .pipeline-container {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 50px 30px;
+            border: 1px solid var(--card-border);
+            position: relative;
+            overflow: hidden;
         }
         
-        .step-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
+        .pipeline-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--ai-purple), var(--primary));
+            animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .pipeline-stages {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .pipeline-stage {
+            flex: 1;
+            min-width: 180px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 30px 20px;
             border: 1px solid var(--card-border);
+            transition: all 0.3s;
             position: relative;
         }
         
-        .step-number {
-            width: 50px;
-            height: 50px;
+        .pipeline-stage:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.2);
+        }
+        
+        .stage-icon {
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, var(--primary), var(--ai-purple));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5em;
-            font-weight: bold;
             margin: 0 auto 20px;
+            font-size: 2em;
+            color: white;
         }
         
-        .step-card h3 {
-            font-size: 1.5em;
+        .stage-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .stage-desc {
+            font-size: 0.95em;
+            opacity: 0.8;
             margin-bottom: 15px;
         }
         
-        .step-card p {
-            opacity: 0.8;
+        .stage-metrics {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 0.85em;
+            color: var(--success);
+        }
+        
+        .pipeline-arrow {
+            font-size: 2em;
+            color: var(--primary);
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .pipeline-arrow {
+                transform: rotate(90deg);
+            }
+        }
+        
+        .data-flow-animation {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .flow-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .flow-dot:nth-child(2) { animation-delay: 0.4s; }
+        .flow-dot:nth-child(3) { animation-delay: 0.8s; }
+        .flow-dot:nth-child(4) { animation-delay: 1.2s; }
+        .flow-dot:nth-child(5) { animation-delay: 1.6s; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); background: var(--ai-purple); }
+        }
+        
+        /* NEW: Architecture Overview */
+        .architecture-preview {
+            margin: 60px 0;
+        }
+        
+        .arch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+        
+        .arch-item {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s;
+        }
+        
+        .arch-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .arch-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.8em;
+            color: var(--primary);
+        }
+        
+        .arch-item h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        .arch-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: var(--primary);
+            margin-top: 10px;
         }
         
         /* AI Status Badge */
@@ -336,9 +476,17 @@
                     <a href="{{ url_for('landing') }}" class="nav-btn active">Home</a>
                     <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
                     <a href="{{ url_for('about') }}" class="nav-btn">About</a>
+                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
+                    <a href="{{ url_for('research') }}" class="nav-btn">Research</a>
+                    <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
                     <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
-                    <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
-                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
+                        <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                        <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                    {% endif %}
                 </div>
             </div>
         </header>
@@ -348,7 +496,7 @@
             <p>Protect your infrastructure with advanced machine learning • XGBoost + LightGBM Ensemble • 87% threat detection rate</p>
             <div class="cta-buttons">
                 <a href="{{ url_for('register') }}" class="cta-btn cta-primary"><i class="fas fa-rocket"></i> Get Started Free</a>
-                <a href="#how-it-works" class="cta-btn cta-secondary"><i class="fas fa-play"></i> How It Works</a>
+                <a href="#pipeline" class="cta-btn cta-secondary"><i class="fas fa-project-diagram"></i> View Pipeline</a>
             </div>
         </section>
 
@@ -410,33 +558,138 @@
             </div>
         </section>
 
-        <section id="how-it-works" class="how-it-works">
-            <h2 class="section-title">How CyberShield AI Works</h2>
-            <p class="section-subtitle">From data ingestion to threat mitigation in 4 simple steps</p>
+        <!-- NEW: Data Pipeline Visualization -->
+        <section id="pipeline" class="pipeline-section">
+            <h2 class="pipeline-title">Data Processing Pipeline</h2>
+            <p class="pipeline-subtitle">Real-time threat detection workflow from ingestion to response</p>
             
-            <div class="steps-container">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <h3>Data Collection</h3>
-                    <p>Continuous ingestion of network traffic, system logs, and threat intelligence feeds from multiple sources including UNSW-NB15 and CIC-IDS2017 datasets.</p>
+            <div class="pipeline-container">
+                <div class="pipeline-stages">
+                    <!-- Stage 1: Ingestion -->
+                    <div class="pipeline-stage">
+                        <div class="stage-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stage-title">Data Ingestion</div>
+                        <div class="stage-desc">Network connections, process data, log files from multiple sources</div>
+                        <div class="stage-metrics">
+                            <span><i class="fas fa-bolt"></i> 10k/sec</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-arrow"><i class="fas fa-arrow-right"></i></div>
+                    
+                    <!-- Stage 2: Feature Engineering -->
+                    <div class="pipeline-stage">
+                        <div class="stage-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stage-title">Feature Engineering</div>
+                        <div class="stage-desc">Extract 40+ network features including duration, packet counts, TTL</div>
+                        <div class="stage-metrics">
+                            <span><i class="fas fa-calculator"></i> 40+ features</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-arrow"><i class="fas fa-arrow-right"></i></div>
+                    
+                    <!-- Stage 3: ML Ensemble -->
+                    <div class="pipeline-stage">
+                        <div class="stage-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="stage-title">ML Ensemble</div>
+                        <div class="stage-desc">XGBoost + LightGBM with weighted voting (60/40)</div>
+                        <div class="stage-metrics">
+                            <span><i class="fas fa-chart-line"></i> 87% accuracy</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-arrow"><i class="fas fa-arrow-right"></i></div>
+                    
+                    <!-- Stage 4: Multi-Expert AI -->
+                    <div class="pipeline-stage">
+                        <div class="stage-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="stage-title">Multi-Expert AI</div>
+                        <div class="stage-desc">3 LLM experts with RAG-enhanced knowledge base</div>
+                        <div class="stage-metrics">
+                            <span><i class="fas fa-robot"></i> 3 experts</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-arrow"><i class="fas fa-arrow-right"></i></div>
+                    
+                    <!-- Stage 5: Alert & Response -->
+                    <div class="pipeline-stage">
+                        <div class="stage-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="stage-title">Alert & Response</div>
+                        <div class="stage-desc">Multi-channel alerts + automated IP blocking</div>
+                        <div class="stage-metrics">
+                            <span><i class="fas fa-bell"></i> < 100ms</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <h3>Feature Engineering</h3>
-                    <p>Extract 40+ network flow features including duration, protocol type, service, flag statistics, and host-based metrics for ML model input.</p>
+                <div class="data-flow-animation">
+                    <div class="flow-dot"></div>
+                    <div class="flow-dot"></div>
+                    <div class="flow-dot"></div>
+                    <div class="flow-dot"></div>
+                    <div class="flow-dot"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW: Architecture Overview -->
+        <section class="architecture-preview">
+            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 20px;">System Architecture</h2>
+            <p style="text-align: center; opacity: 0.8; margin-bottom: 40px;">Multi-agent system with specialized components</p>
+            
+            <div class="arch-grid">
+                <div class="arch-item">
+                    <div class="arch-icon"><i class="fas fa-microchip"></i></div>
+                    <h4>Detection Agent</h4>
+                    <p style="font-size: 0.9em; opacity: 0.7;">XGBoost + LightGBM ensemble</p>
+                    <span class="arch-badge">Primary ML</span>
                 </div>
                 
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <h3>Ensemble ML Detection</h3>
-                    <p>XGBoost and LightGBM models analyze features in parallel, combining predictions through weighted voting for 87% detection accuracy.</p>
+                <div class="arch-item">
+                    <div class="arch-icon"><i class="fas fa-brain"></i></div>
+                    <h4>Debate Agent</h4>
+                    <p style="font-size: 0.9em; opacity: 0.7;">3 LLM experts with RAG</p>
+                    <span class="arch-badge">Multi-Expert</span>
                 </div>
                 
-                <div class="step-card">
-                    <div class="step-number">4</div>
-                    <h3>Automated Response</h3>
-                    <p>Real-time alerts with automated countermeasures including IP blocking, process termination, and incident reporting.</p>
+                <div class="arch-item">
+                    <div class="arch-icon"><i class="fas fa-bell"></i></div>
+                    <h4>Alert Agent</h4>
+                    <p style="font-size: 0.9em; opacity: 0.7;">Email, Slack, Discord</p>
+                    <span class="arch-badge">Multi-Channel</span>
+                </div>
+                
+                <div class="arch-item">
+                    <div class="arch-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h4>Response Agent</h4>
+                    <p style="font-size: 0.9em; opacity: 0.7;">IP blocking, process kill</p>
+                    <span class="arch-badge">Automated</span>
+                </div>
+                
+                <div class="arch-item">
+                    <div class="arch-icon"><i class="fas fa-database"></i></div>
+                    <h4>Knowledge Base</h4>
+                    <p style="font-size: 0.9em; opacity: 0.7;">FAISS vector index</p>
+                    <span class="arch-badge">1180 docs</span>
+                </div>
+                
+                <div class="arch-item">
+                    <div class="arch-icon"><i class="fas fa-chart-line"></i></div>
+                    <h4>Real-Time Monitor</h4>
+                    <p style="font-size: 0.9em; opacity: 0.7;">psutil integration</p>
+                    <span class="arch-badge">Live Data</span>
                 </div>
             </div>
         </section>

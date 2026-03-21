@@ -1736,6 +1736,39 @@ def landing():
         return redirect(url_for('dashboard_home'))
     return render_template('index_logged_out.html', ai_enabled=AI_ANALYSIS_ENABLED)
 
+@app.route('/architecture')
+def architecture():
+    """Architecture page"""
+    return render_template('architecture.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/research')
+def research():
+    """Research page"""
+    return render_template('research.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/documentation')
+def documentation():
+    """Documentation page"""
+    return render_template('documentation.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    """Contact page with form handling"""
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        subject = request.form.get('subject')
+        message = request.form.get('message')
+        
+        # Here you would typically send an email or store in database
+        logger.info(f"Contact form submission from {name} ({email}): {subject}")
+        
+        # For demonstration, just flash a success message
+        flash('Thank you for your message! We\'ll get back to you soon.', 'success')
+        return redirect(url_for('contact'))
+    
+    return render_template('contact.html', ai_enabled=AI_ANALYSIS_ENABLED)  
+
 @app.route('/dashboard')
 @login_required
 def dashboard_home():
@@ -2142,6 +2175,11 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard_home'))
     
+    # Clear non-critical flash messages on GET request
+    if request.method == 'GET':
+        # Pop and ignore any flash messages
+        session.pop('_flashes', None)
+    
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -2219,7 +2257,10 @@ def register():
 def logout():
     """Logout user"""
     logout_user()
-    flash('You have been logged out successfully', 'info')
+    # Store in session that we just logged out, but don't flash
+    session['just_logged_out'] = True
+    # Flash with a category that we'll filter
+    flash('You have been logged out successfully', 'logout_message')
     return redirect(url_for('landing'))
 
 # Keep all your existing protected routes with @login_required decorator
@@ -2400,6 +2441,32 @@ def real_time_dashboard():
                          detection_stats=detection_stats,
                          is_monitoring=real_monitor.is_monitoring,
                          ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/submit-feedback', methods=['POST'])
+@login_required
+def submit_feedback():
+    """Handle feedback form submission"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        feedback = data.get('feedbackText')
+        
+        # Log the feedback
+        logger.info(f"Feedback received from {name} ({email}): {feedback[:50]}...")
+        
+        # Store in database if needed
+        with get_db_connection() as conn:
+            conn.execute('''
+                INSERT INTO system_events (event_type, event_data, severity)
+                VALUES (?, ?, ?)
+            ''', ('feedback', json.dumps({'name': name, 'email': email, 'feedback': feedback}), 'info'))
+            conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Thank you for your feedback!'})
+    except Exception as e:
+        logger.error(f"Feedback submission error: {e}")
+        return jsonify({'success': False, 'message': 'Error submitting feedback'}), 500
 
 @app.route('/sample-threats')
 @login_required

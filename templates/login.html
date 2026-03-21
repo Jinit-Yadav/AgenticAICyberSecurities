@@ -1,103 +1,252 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - CyberShield AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --error: #ff4757;
+            --success: #00ff88;
+            --info: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+        }
+        
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
         }
-        .container {
-            background: rgba(255,255,255,0.08);
-            padding: 40px;
-            border-radius: 20px;
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27, #0f1419);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--card-border);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            width: 350px;
+        }
+        
+        .login-header {
             text-align: center;
+            margin-bottom: 30px;
         }
-        h2 {
-            color: #00b4db;
-            margin-bottom: 20px;
+        
+        .login-header i {
+            font-size: 3em;
+            color: var(--primary);
+            margin-bottom: 15px;
         }
-        .alert {
-            background: rgba(231,76,60,0.2);
-            border-left: 4px solid #e74c3c;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        label {
-            display: block;
-            text-align: left;
-            margin-bottom: 5px;
-            color: #00b4db;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 5px;
-            background: rgba(0,0,0,0.4);
+        
+        .login-header h2 {
             color: white;
+            font-size: 2em;
+            margin-bottom: 10px;
         }
-        button {
-            width: 100%;
+        
+        .login-header p {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
             padding: 12px;
-            background: linear-gradient(45deg, #00b4db, #0083b0);
-            border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .flash-success {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .flash-error {
+            background: rgba(255,71,87,0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+        
+        .flash-info {
+            background: rgba(255,165,2,0.1);
+            border: 1px solid var(--info);
+            color: var(--info);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
             color: white;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0,212,255,0.3);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        button:hover {
-            transform: translateY(-3px);
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,212,255,0.3);
         }
-        a {
-            color: #00b4db;
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 25px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .login-footer a {
+            color: var(--primary);
             text-decoration: none;
+            font-weight: 600;
         }
-        a:hover {
+        
+        .login-footer a:hover {
             text-decoration: underline;
         }
-        p {
+        
+        .back-link {
+            display: block;
+            text-align: center;
             margin-top: 20px;
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            color: var(--primary);
+        }
+        
+        .auto-hide {
+            animation: fadeOut 5s forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2><i class="fas fa-lock"></i> Login</h2>
-        {% with messages = get_flashed_messages() %}
+    <div class="login-container">
+        <div class="login-header">
+            <i class="fas fa-shield-alt"></i>
+            <h2>Welcome Back</h2>
+            <p>Login to access CyberShield AI</p>
+        </div>
+
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="alert">{{ messages[0] }}</div>
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        {% if category != 'info' %}  <!-- Hide info messages on login page -->
+                            <div class="flash-message flash-{{ category }}">
+                                <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
-        <form method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div>
-                <label>Username:</label>
-                <input type="text" name="username" required>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
             </div>
-            <div>
-                <label>Password:</label>
-                <input type="password" name="password" required>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
             </div>
-            <button type="submit">Login</button>
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
         </form>
-        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+        <div class="login-footer">
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Sign up</a></p>
+        </div>
+
+        <a href="{{ url_for('landing') }}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
     </div>
+
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(msg => {
+                setTimeout(() => {
+                    msg.style.opacity = '0';
+                    setTimeout(() => {
+                        if (msg.parentNode) {
+                            msg.remove();
+                        }
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 </html>

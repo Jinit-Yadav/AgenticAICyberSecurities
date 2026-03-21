@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield AI - Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #636e72;
+            --dark: #0a0e27;
+            --darker: #0f1419;
+            --light: #ffffff;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .main-header {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 50px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0,212,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        /* Page Layout */
+        .docs-wrapper {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .docs-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Sidebar */
+        .docs-sidebar {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--card-border);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .sidebar-title {
+            font-size: 1.3em;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+        }
+        
+        .sidebar-nav-item {
+            margin: 5px 0;
+        }
+        
+        .sidebar-nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+            border-radius: 8px;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+        
+        .sidebar-nav-link:hover,
+        .sidebar-nav-link.active {
+            background: rgba(0,212,255,0.1);
+            opacity: 1;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+        
+        .sidebar-nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .sidebar-divider {
+            height: 1px;
+            background: var(--card-border);
+            margin: 15px 0;
+        }
+        
+        /* Main Content */
+        .docs-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .content-section {
+            margin-bottom: 50px;
+            scroll-margin-top: 20px;
+        }
+        
+        .section-title {
+            font-size: 2em;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .subsection-title {
+            font-size: 1.5em;
+            margin: 30px 0 20px;
+            color: var(--ai-purple);
+        }
+        
+        .subsection-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid var(--primary);
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            color: var(--primary);
+            white-space: pre-wrap;
+        }
+        
+        .code-comment {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .code-keyword {
+            color: var(--success);
+        }
+        
+        .api-endpoint {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .endpoint-method {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .method-get {
+            background: rgba(0,212,255,0.2);
+            color: var(--primary);
+        }
+        
+        .method-post {
+            background: rgba(168,85,247,0.2);
+            color: var(--ai-purple);
+        }
+        
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+        }
+        
+        .endpoint-desc {
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+        
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .param-table th {
+            text-align: left;
+            padding: 12px;
+            background: rgba(0,212,255,0.1);
+            color: var(--primary);
+        }
+        
+        .param-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .required {
+            color: var(--error);
+            font-size: 0.85em;
+        }
+        
+        .optional {
+            color: var(--warning);
+            font-size: 0.85em;
+        }
+        
+        .info-box {
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--primary);
+        }
+        
+        .warning-box {
+            background: rgba(255,71,87,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--error);
+        }
+        
+        .info-box i, .warning-box i {
+            margin-right: 10px;
+        }
+        
+        .info-box i {
+            color: var(--primary);
+        }
+        
+        .warning-box i {
+            color: var(--error);
+        }
+        
+        /* Table of Contents */
+        .toc {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .toc h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .toc ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .toc li {
+            margin: 5px 0;
+        }
+        
+        .toc a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+        
+        .toc a:hover {
+            opacity: 1;
+            color: var(--primary);
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 1px solid var(--card-border);
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2.5em; }
+            .nav-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    CyberShield AI
+                </div>
+                <div class="nav-links">
+                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
+                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
+                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
+                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
+                    <a href="{{ url_for('research') }}" class="nav-btn">Research</a>
+                    <a href="{{ url_for('documentation') }}" class="nav-btn active">Docs</a>
+                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
+                        <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                        <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <section class="page-header">
+            <h1>Documentation</h1>
+            <p>Complete guide to installing, configuring, and using CyberShield AI</p>
+        </section>
+
+        <div class="docs-wrapper">
+            <!-- Sidebar Navigation -->
+            <div class="docs-sidebar">
+                <div class="sidebar-title">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-nav-item"><a href="#getting-started" class="sidebar-nav-link active"><i class="fas fa-rocket"></i> Getting Started</a></li>
+                    <li class="sidebar-nav-item"><a href="#installation" class="sidebar-nav-link"><i class="fas fa-download"></i> Installation</a></li>
+                    <li class="sidebar-nav-item"><a href="#configuration" class="sidebar-nav-link"><i class="fas fa-cog"></i> Configuration</a></li>
+                    
+                    <div class="sidebar-divider"></div>
+                    <li class="sidebar-nav-item"><a href="#agents" class="sidebar-nav-link"><i class="fas fa-robot"></i> Agent System</a></li>
+                    <li class="sidebar-nav-item"><a href="#detection-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Detection Agent</a></li>
+                    <li class="sidebar-nav-item"><a href="#debate-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Debate Agent</a></li>
+                    <li class="sidebar-nav-item"><a href="#alert-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Alert Agent</a></li>
+                    <li class="sidebar-nav-item"><a href="#response-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Response Agent</a></li>
+                    
+                    <div class="sidebar-divider"></div>
+                    <li class="sidebar-nav-item"><a href="#api-reference" class="sidebar-nav-link"><i class="fas fa-code"></i> API Reference</a></li>
+                    <li class="sidebar-nav-item"><a href="#ml-models" class="sidebar-nav-link"><i class="fas fa-brain"></i> ML Models</a></li>
+                    <li class="sidebar-nav-item"><a href="#database" class="sidebar-nav-link"><i class="fas fa-database"></i> Database Schema</a></li>
+                    
+                    <div class="sidebar-divider"></div>
+                    <li class="sidebar-nav-item"><a href="#usage" class="sidebar-nav-link"><i class="fas fa-user"></i> User Guide</a></li>
+                    <li class="sidebar-nav-item"><a href="#dashboard" class="sidebar-nav-link" style="padding-left: 35px;">• Dashboard</a></li>
+                    <li class="sidebar-nav-item"><a href="#detection" class="sidebar-nav-link" style="padding-left: 35px;">• Threat Detection</a></li>
+                    <li class="sidebar-nav-item"><a href="#upload" class="sidebar-nav-link" style="padding-left: 35px;">• Log Upload</a></li>
+                    
+                    <div class="sidebar-divider"></div>
+                    <li class="sidebar-nav-item"><a href="#troubleshooting" class="sidebar-nav-link"><i class="fas fa-exclamation-triangle"></i> Troubleshooting</a></li>
+                    <li class="sidebar-nav-item"><a href="#faq" class="sidebar-nav-link"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="docs-content">
+                <!-- Table of Contents -->
+                <div class="toc">
+                    <h4><i class="fas fa-list"></i> On This Page</h4>
+                    <ul>
+                        <li><a href="#getting-started">Getting Started</a></li>
+                        <li><a href="#installation">Installation</a></li>
+                        <li><a href="#configuration">Configuration</a></li>
+                        <li><a href="#agents">Agent System</a></li>
+                        <li><a href="#api-reference">API Reference</a></li>
+                        <li><a href="#usage">User Guide</a></li>
+                    </ul>
+                </div>
+
+                <!-- Getting Started -->
+                <section id="getting-started" class="content-section">
+                    <h2 class="section-title">Getting Started</h2>
+                    <p>CyberShield AI is a comprehensive cybersecurity threat detection system that uses ensemble machine learning and multi-expert AI analysis to protect your infrastructure.</p>
+                    
+                    <h3 class="subsection-title"><i class="fas fa-check-circle"></i> Prerequisites</h3>
+                    <ul style="margin-left: 20px; opacity: 0.9;">
+                        <li>Python 3.9 or higher</li>
+                        <li>pip package manager</li>
+                        <li>Git (for cloning repository)</li>
+                        <li>8GB RAM minimum (16GB recommended for full functionality)</li>
+                        <li>Windows/Linux/macOS (Windows requires admin for some firewall features)</li>
+                    </ul>
+
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i> <strong>Quick Start:</strong> Run `python application.py` after installation to start the server at http://localhost:5000
+                    </div>
+                </section>
+
+                <!-- Installation -->
+                <section id="installation" class="content-section">
+                    <h2 class="section-title">Installation</h2>
+                    
+                    <h3 class="subsection-title"><i class="fas fa-code-branch"></i> Clone Repository</h3>
+                    <div class="code-block">
+                        <pre>git clone https://github.com/yourusername/CyberShield-AI.git
+cd CyberShield-AI</pre>
+                    </div>
+
+                    <h3 class="subsection-title"><i class="fas fa-flask"></i> Create Virtual Environment</h3>
+                    <div class="code-block">
+                        <pre><span class="code-comment"># Windows</span>
+python -m venv venv
+venv\Scripts\activate
+
+<span class="code-comment"># Linux/macOS</span>
+python3 -m venv venv
+source venv/bin/activate</pre>
+                    </div>
+
+                    <h3 class="subsection-title"><i class="fas fa-cubes"></i> Install Dependencies</h3>
+                    <div class="code-block">
+                        <pre>pip install -r requirements.txt</pre>
+                    </div>
+
+                    <h3 class="subsection-title"><i class="fas fa-key"></i> Setup API Key (Optional - for Multi-Expert AI)</h3>
+                    <p>Create a <code>.env</code> file in the root directory:</p>
+                    <div class="code-block">
+                        <pre>OPENROUTER_API_KEY=your_openrouter_api_key_here
+SECRET_KEY=your_secret_key_here
+DEBUG=False
+HOST=0.0.0.0
+PORT=5000</pre>
+                    </div>
+
+                    <h3 class="subsection-title"><i class="fas fa-play"></i> Run Application</h3>
+                    <div class="code-block">
+                        <pre>python application.py</pre>
+                    </div>
+                    <p>The application will be available at <code>http://localhost:5000</code></p>
+                </section>
+
+                <!-- Configuration -->
+                <section id="configuration" class="content-section">
+                    <h2 class="section-title">Configuration</h2>
+                    
+                    <h3 class="subsection-title"><i class="fas fa-sliders-h"></i> Environment Variables</h3>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Description</th>
+                                <th>Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>SECRET_KEY</td><td>Flask secret key for sessions</td><td>cyber-threat-detection-secret-key-2024</td></tr>
+                            <tr><td>DEBUG</td><td>Enable debug mode</td><td>False</td></tr>
+                            <tr><td>HOST</td><td>Server host</td><td>0.0.0.0</td></tr>
+                            <tr><td>PORT</td><td>Server port</td><td>5000</td></tr>
+                            <tr><td>DATABASE_PATH</td><td>SQLite database path</td><td>threats.db</td></tr>
+                            <tr><td>LOG_LEVEL</td><td>Logging level</td><td>INFO</td></tr>
+                            <tr><td>OPENROUTER_API_KEY</td><td>API key for LLM access</td><td>None</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="subsection-title"><i class="fas fa-envelope"></i> Alert Configuration</h3>
+                    <p>For email alerts, configure in <code>.env</code>:</p>
+                    <div class="code-block">
+                        <pre>SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+EMAIL_SENDER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+EMAIL_RECIPIENTS=admin1@example.com,admin2@example.com</pre>
+                    </div>
+
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i> For Gmail, use an App Password instead of your regular password.
+                    </div>
+
+                    <h3 class="subsection-title"><i class="fab fa-slack"></i> Slack/Discord Webhooks</h3>
+                    <div class="code-block">
+                        <pre>SLACK_WEBHOOK=https://hooks.slack.com/services/xxx/yyy/zzz
+DISCORD_WEBHOOK=https://discord.com/api/webhooks/xxx/yyy</pre>
+                    </div>
+                </section>
+
+                <!-- Agent System -->
+                <section id="agents" class="content-section">
+                    <h2 class="section-title">Agent System</h2>
+                    
+                    <h3 id="detection-agent" class="subsection-title"><i class="fas fa-microchip"></i> DetectionAgent</h3>
+                    <p>Primary ML-based threat detection engine using XGBoost and LightGBM ensemble with sequential majority voting.</p>
+                    <div class="code-block">
+                        <pre><span class="code-keyword">from</span> detection_agent <span class="code-keyword">import</span> AdvancedDetectionAgent
+
+<span class="code-comment"># Initialize agent</span>
+agent = AdvancedDetectionAgent()
+
+<span class="code-comment"># Analyze logs</span>
+results = agent.analyze_logs_comprehensive(log_entries)
+
+<span class="code-comment"># Get statistics</span>
+stats = agent.get_detection_stats()</pre>
+                    </div>
+
+                    <h3 id="debate-agent" class="subsection-title"><i class="fas fa-brain"></i> DebateAgent</h3>
+                    <p>Multi-expert AI system with RAG (Retrieval-Augmented Generation) for comprehensive threat analysis.</p>
+                    <div class="code-block">
+                        <pre><span class="code-keyword">from</span> explanation_agent <span class="code-keyword">import</span> SimpleOptimizedDebateAgent
+
+<span class="code-comment"># Initialize agent</span>
+debate_agent, enabled = initialize_optimized_debate_agent()
+
+<span class="code-comment"># Analyze threat with multi-expert system</span>
+analysis = debate_agent.analyze_detection(detection_result)</pre>
+                    </div>
+
+                    <h3 id="alert-agent" class="subsection-title"><i class="fas fa-bell"></i> AlertAgent</h3>
+                    <p>Multi-channel alerting system for email, Slack, Discord, and logging.</p>
+                    <div class="code-block">
+                        <pre><span class="code-keyword">from</span> alert_agent <span class="code-keyword">import</span> AlertAgent, AlertConfig
+
+config = AlertConfig(
+    smtp_server="smtp.gmail.com",
+    email_sender="alerts@cybershield.ai",
+    slack_webhook="https://hooks.slack.com/..."
+)
+
+alert_agent = AlertAgent(config)
+alert_agent.start()
+
+<span class="code-comment"># Generate and queue alert</span>
+alert = alert_agent.generate_alert(threat_result)
+alert_agent.queue_alert(alert)</pre>
+                    </div>
+
+                    <h3 id="response-agent" class="subsection-title"><i class="fas fa-shield-alt"></i> ResponseAgent</h3>
+                    <p>Automated countermeasures including IP blocking and process termination.</p>
+                    <div class="code-block">
+                        <pre><span class="code-keyword">from</span> response_agent <span class="code-keyword">import</span> ResponseAgent
+
+response_agent = ResponseAgent(alert_agent, {
+    'auto_block_ips': True,
+    'auto_kill_processes': True,
+    'min_severity_for_response': 'high'
+})
+
+<span class="code-comment"># Execute automated response</span>
+response = response_agent.execute_response(alert)</pre>
+                    </div>
+                </section>
+
+                <!-- API Reference -->
+                <section id="api-reference" class="content-section">
+                    <h2 class="section-title">API Reference</h2>
+
+                    <h3 class="subsection-title"><i class="fas fa-cloud"></i> RESTful Endpoints</h3>
+
+                    <div class="api-endpoint">
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/</span>
+                        <div class="endpoint-desc">Landing page (public)</div>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/dashboard</span>
+                        <div class="endpoint-desc">User dashboard (authenticated)</div>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/api/detect</span>
+                        <div class="endpoint-desc">Threat detection API endpoint</div>
+                    </div>
+
+                    <h4>Request Body:</h4>
+                    <div class="code-block">
+                        <pre>{
+    "tool": "nmap",
+    "src_ip": "192.168.1.100",
+    "dest_ip": "192.168.1.1",
+    "dest_port": 22,
+    "proto": "tcp",
+    "attack_type": "port_scan",
+    "severity": "high",
+    "description": "Port scanning activity",
+    "confidence": 75,
+    "risk_score": 80
+}</pre>
+                    </div>
+
+                    <h4>Response:</h4>
+                    <div class="code-block">
+                        <pre>{
+    "success": true,
+    "threat_detected": true,
+    "attack_type": "port_scan",
+    "severity": "high",
+    "confidence": 87.5,
+    "explanation": "Port scanning detected...",
+    "source_ip": "192.168.1.100",
+    "target_ip": "192.168.1.1",
+    "risk_score": 85,
+    "recommendations": ["Block source IP..."]
+}</pre>
+                    </div>
+
+                    <h3 class="subsection-title"><i class="fas fa-chart-line"></i> Real-time Monitoring APIs</h3>
+
+                    <div class="api-endpoint">
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/api/real-time/network-data</span>
+                        <div class="endpoint-desc">Get real network connections</div>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/api/real-time/process-data</span>
+                        <div class="endpoint-desc">Get running processes</div>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/api/real-time/status</span>
+                        <div class="endpoint-desc">Get monitoring status</div>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/api/system-info</span>
+                        <div class="endpoint-desc">Get system metrics (CPU, memory, disk)</div>
+                    </div>
+                </section>
+
+                <!-- ML Models -->
+                <section id="ml-models" class="content-section">
+                    <h2 class="section-title">ML Models</h2>
+
+                    <h3 class="subsection-title"><i class="fas fa-chart-bar"></i> Feature Engineering</h3>
+                    <p>The system extracts 40+ features including:</p>
+                    <ul style="margin-left: 20px; opacity: 0.9; columns: 2;">
+                        <li>duration (dur)</li>
+                        <li>source packets (spkts)</li>
+                        <li>destination packets (dpkts)</li>
+                        <li>source bytes (sbytes)</li>
+                        <li>destination bytes (dbytes)</li>
+                        <li>rate (packets/sec)</li>
+                        <li>source TTL (sttl)</li>
+                        <li>destination TTL (dttl)</li>
+                        <li>source loss (sloss)</li>
+                        <li>destination loss (dloss)</li>
+                        <li>packet size statistics</li>
+                        <li>traffic asymmetry</li>
+                        <li>port categories</li>
+                        <li>protocol encoding</li>
+                    </ul>
+
+                    <h3 class="subsection-title"><i class="fas fa-microchip"></i> Model Training</h3>
+                    <div class="code-block">
+                        <pre><span class="code-comment"># Train XGBoost model</span>
+xgb_model = xgb.XGBClassifier(
+    n_estimators=100,
+    max_depth=6,
+    learning_rate=0.1,
+    random_state=42
+)
+
+<span class="code-comment"># Train LightGBM model</span>
+lgb_model = lgb.LGBMClassifier(
+    n_estimators=100,
+    max_depth=6,
+    learning_rate=0.1,
+    random_state=42
+)
+
+<span class="code-comment"># Ensemble prediction (weighted average)</span>
+ensemble_pred = 0.6 * xgb_pred + 0.4 * lgb_pred</pre>
+                    </div>
+
+                    <h3 class="subsection-title"><i class="fas fa-vote-yea"></i> Sequential Majority Voting</h3>
+                    <ol style="margin-left: 20px;">
+                        <li><strong>Stage 1:</strong> ML Ensemble (XGBoost + LightGBM) - if confidence > 0.8, accept result</li>
+                        <li><strong>Stage 2:</strong> Rule-based detection - pattern matching for known attacks</li>
+                        <li><strong>Stage 3:</strong> Behavioral analysis - anomaly detection based on baselines</li>
+                        <li><strong>Stage 4:</strong> Threat intelligence correlation - check IPs against known malicious lists</li>
+                    </ol>
+                </section>
+
+                <!-- User Guide -->
+                <section id="usage" class="content-section">
+                    <h2 class="section-title">User Guide</h2>
+
+                    <h3 id="dashboard" class="subsection-title"><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
+                    <p>The dashboard provides:</p>
+                    <ul style="margin-left: 20px;">
+                        <li>Real-time threat statistics and trends</li>
+                        <li>Threat distribution by type and severity</li>
+                        <li>Recent threat timeline</li>
+                        <li>System health metrics</li>
+                        <li>User-specific detection history</li>
+                    </ul>
+
+                    <h3 id="detection" class="subsection-title"><i class="fas fa-search"></i> Manual Threat Detection</h3>
+                    <ol style="margin-left: 20px;">
+                        <li>Navigate to "Detect Threat" from the dashboard</li>
+                        <li>Enter attack details (tool, source/target IP, port, protocol)</li>
+                        <li>Click "Analyze" to run detection</li>
+                        <li>View comprehensive results including multi-expert analysis</li>
+                    </ol>
+
+                    <h3 id="upload" class="subsection-title"><i class="fas fa-file-upload"></i> Batch Log Upload</h3>
+                    <p>Supported formats:</p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>JSON</strong> - Single object or array of objects</li>
+                        <li><strong>CSV</strong> - With headers matching field names</li>
+                        <li><strong>Plain text</strong> - Space-separated log format</li>
+                    </ul>
+
+                    <div class="info-box">
+                        <i class="fas fa-lightbulb"></i> <strong>Pro Tip:</strong> Use the sample threat scenarios to test the system's detection capabilities.
+                    </div>
+                </section>
+
+                <!-- Troubleshooting -->
+                <section id="troubleshooting" class="content-section">
+                    <h2 class="section-title">Troubleshooting</h2>
+
+                    <div class="warning-box">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Common Issues</strong>
+                    </div>
+
+                    <h3>Application fails to start with "Address already in use"</h3>
+                    <div class="code-block">
+                        <pre><span class="code-comment"># Find process using port 5000</span>
+netstat -ano | findstr :5000
+taskkill /PID <PID> /F</pre>
+                    </div>
+
+                    <h3>Multi-Expert AI not working</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Check if OPENROUTER_API_KEY is set in .env file</li>
+                        <li>Verify API key is valid at https://openrouter.ai/keys</li>
+                        <li>Check rate limits (40 requests/day)</li>
+                    </ul>
+
+                    <h3>Database errors</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Delete threats.db file and restart (will be recreated)</li>
+                        <li>Check file permissions in the directory</li>
+                    </ul>
+
+                    <h3>Real-time monitoring not showing data</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Run as administrator/root for full system access</li>
+                        <li>Check if psutil is installed correctly</li>
+                        <li>Verify firewall isn't blocking network access</li>
+                    </ul>
+                </section>
+
+                <!-- FAQ -->
+                <section id="faq" class="content-section">
+                    <h2 class="section-title">Frequently Asked Questions</h2>
+
+                    <div style="margin: 20px 0;">
+                        <h4 style="color: var(--primary);">Q: Is CyberShield AI free to use?</h4>
+                        <p>A: Yes! This is a major project demonstration. All features are freely available for testing and evaluation.</p>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <h4 style="color: var(--primary);">Q: What datasets were used for training?</h4>
+                        <p>A: The models are trained on UNSW-NB15 and CIC-IDS2017 datasets, plus custom attack logs from real penetration testing tools.</p>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <h4 style="color: var(--primary);">Q: How accurate is the threat detection?</h4>
+                        <p>A: Our ensemble model achieves 82.4% accuracy with 87% threat detection rate using XGBoost + LightGBM ensemble.</p>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <h4 style="color: var(--primary);">Q: Can I integrate this with my existing security tools?</h4>
+                        <p>A: Yes! We provide RESTful APIs for programmatic integration. You can also configure email/Slack/Discord alerts.</p>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <h4 style="color: var(--primary);">Q: Does it work on Windows?</h4>
+                        <p>A: Yes! The system includes Windows-specific adaptations including safe logging (emoji removal) and firewall integration via netsh.</p>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <h4 style="color: var(--primary);">Q: What is the Multi-Expert AI system?</h4>
+                        <p>A: Three specialized LLM experts (Network Security, Threat Intelligence, Incident Response) analyze threats and reach consensus using RAG-enhanced knowledge retrieval.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="{{ url_for('about') }}" class="footer-link">About</a>
+                <a href="{{ url_for('features') }}" class="footer-link">Features</a>
+                <a href="{{ url_for('architecture') }}" class="footer-link">Architecture</a>
+                <a href="{{ url_for('research') }}" class="footer-link">Research</a>
+                <a href="{{ url_for('documentation') }}" class="footer-link">Documentation</a>
+                <a href="{{ url_for('contact') }}" class="footer-link">Contact</a>
+            </div>
+            <div class="copyright">
+                <i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('.sidebar-nav-link, .toc a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId && targetId !== '#') {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                        
+                        // Update active state in sidebar
+                        document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                }
+            });
+        });
+
+        // Highlight active section on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.content-section');
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (scrollY >= sectionTop) {
+                    current = '#' + section.getAttribute('id');
+                }
+            });
+            
+            document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield AI - About</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #636e72;
+            --dark: #0a0e27;
+            --darker: #0f1419;
+            --light: #ffffff;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .main-header {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 50px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0,212,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(168,85,247,0.1));
+            border-radius: 30px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .page-header h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-header p {
+            font-size: 1.2em;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        /* About Content */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 60px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .about-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .about-card h2 {
+            font-size: 2em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .about-card h3 {
+            font-size: 1.5em;
+            margin: 25px 0 15px;
+            color: var(--ai-purple);
+        }
+        
+        .about-card p {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        .about-card ul {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .about-card li {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .about-card li i {
+            color: var(--success);
+            font-size: 1.2em;
+        }
+        
+        /* Team Section */
+        .team-section {
+            margin: 60px 0;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .team-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+        }
+        
+        .team-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3em;
+        }
+        
+        .team-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .team-role {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .team-bio {
+            opacity: 0.8;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+        
+        .team-social {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .team-social a {
+            color: white;
+            opacity: 0.6;
+            transition: all 0.3s;
+        }
+        
+        .team-social a:hover {
+            opacity: 1;
+            color: var(--primary);
+        }
+        
+        /* Timeline */
+        .timeline {
+            margin: 40px 0;
+            position: relative;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .timeline-year {
+            min-width: 100px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .timeline-content {
+            background: rgba(0,212,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .timeline-content h4 {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        
+        /* Metrics */
+        .about-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .metric-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .metric-label {
+            opacity: 0.8;
+            font-size: 0.95em;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 1px solid var(--card-border);
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2.5em; }
+            .nav-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    CyberShield AI
+                </div>
+                <div class="nav-links">
+                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
+                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
+                    <a href="{{ url_for('about') }}" class="nav-btn active">About</a>
+                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
+                        <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                        <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <section class="page-header">
+            <h1>About CyberShield AI</h1>
+            <p>Next-generation cybersecurity powered by advanced machine learning</p>
+        </section>
+
+        <!-- About Content -->
+        <div class="about-grid">
+            <div class="about-card">
+                <h2>Our Mission</h2>
+                <p>CyberShield AI was developed as a major project to demonstrate the power of ensemble machine learning in cybersecurity threat detection. Our mission is to create an intelligent, adaptive, and accessible security system that can protect infrastructure from evolving cyber threats.</p>
+                
+                <h3>Key Achievements</h3>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> 87% threat detection rate with ensemble learning</li>
+                    <li><i class="fas fa-check-circle"></i> Real-time monitoring of 40+ network features</li>
+                    <li><i class="fas fa-check-circle"></i> Multi-expert AI analysis with debate system</li>
+                    <li><i class="fas fa-check-circle"></i> Support for UNSW-NB15 and CIC-IDS2017 datasets</li>
+                    <li><i class="fas fa-check-circle"></i> Automated response and IP blocking capabilities</li>
+                </ul>
+
+                <div class="about-metrics">
+                    <div class="metric-item">
+                        <div class="metric-value">82.4%</div>
+                        <div class="metric-label">Model Accuracy</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">40+</div>
+                        <div class="metric-label">Features</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">3</div>
+                        <div class="metric-label">AI Experts</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">24/7</div>
+                        <div class="metric-label">Monitoring</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <h2>Technology Stack</h2>
+                
+                <h3>Backend</h3>
+                <ul>
+                    <li><i class="fas fa-code"></i> Python Flask (Web Framework)</li>
+                    <li><i class="fas fa-brain"></i> XGBoost & LightGBM (ML Models)</li>
+                    <li><i class="fas fa-database"></i> SQLite (Database)</li>
+                    <li><i class="fas fa-shield-alt"></i> Flask-Login, CSRF, Rate Limiting</li>
+                </ul>
+                
+                <h3>Frontend</h3>
+                <ul>
+                    <li><i class="fab fa-html5"></i> HTML5 / CSS3</li>
+                    <li><i class="fab fa-js"></i> JavaScript (Fetch API)</li>
+                    <li><i class="fas fa-chart-line"></i> Chart.js (Visualizations)</li>
+                    <li><i class="fas fa-icons"></i> Font Awesome Icons</li>
+                </ul>
+                
+                <h3>System Integration</h3>
+                <ul>
+                    <li><i class="fas fa-network-wired"></i> psutil (Real-time system monitoring)</li>
+                    <li><i class="fas fa-file-code"></i> JSON/CSV parsing</li>
+                    <li><i class="fas fa-robot"></i> Multi-LLM Debate Agent</li>
+                    <li><i class="fas fa-shield-virus"></i> Safe Division Protection</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="about-card" style="margin: 40px 0;">
+            <h2 style="text-align: center;">Project Timeline</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">Week 1-2</div>
+                    <div class="timeline-content">
+                        <h4>Foundation & Setup</h4>
+                        <p>Flask application setup, database design, user authentication implementation</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-year">Week 3-4</div>
+                    <div class="timeline-content">
+                        <h4>ML Model Development</h4>
+                        <p>XGBoost and LightGBM training on UNSW-NB15 dataset, feature engineering</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-year">Week 5-6</div>
+                    <div class="timeline-content">
+                        <h4>Real-Time Monitoring</h4>
+                        <p>psutil integration, network connection monitoring, process analysis</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-year">Week 7-8</div>
+                    <div class="timeline-content">
+                        <h4>Multi-Expert AI</h4>
+                        <p>Debate agent implementation, expert consensus system, fallback mechanisms</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-year">Week 9-10</div>
+                    <div class="timeline-content">
+                        <h4>Frontend & Integration</h4>
+                        <p>Dashboard development, API endpoints, file upload processing</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-year">Week 11-12</div>
+                    <div class="timeline-content">
+                        <h4>Testing & Deployment</h4>
+                        <p>Security testing, performance optimization, documentation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Section -->
+        <section class="team-section">
+            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 20px;">The Team</h2>
+            <p style="text-align: center; opacity: 0.8; margin-bottom: 40px;">Major Project - Computer Science & Engineering</p>
+            
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3>Team Lead</h3>
+                    <div class="team-role">Project Lead & ML Engineer</div>
+                    <div class="team-bio">Responsible for ML model development, ensemble learning implementation, and system architecture</div>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user-cog"></i>
+                    </div>
+                    <h3>Backend Developer</h3>
+                    <div class="team-role">Flask API & Database</div>
+                    <div class="team-bio">Developed Flask routes, database schema, user authentication, and real-time monitoring</div>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>Frontend Developer</h3>
+                    <div class="team-role">UI/UX & Visualizations</div>
+                    <div class="team-bio">Created responsive dashboards, interactive charts, and threat visualization components</div>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="{{ url_for('about') }}" class="footer-link">About</a>
+                <a href="{{ url_for('features') }}" class="footer-link">Features</a>
+                <a href="{{ url_for('architecture') }}" class="footer-link">Architecture</a>
+                <a href="{{ url_for('research') }}" class="footer-link">Research</a>
+                <a href="{{ url_for('documentation') }}" class="footer-link">Documentation</a>
+                <a href="{{ url_for('contact') }}" class="footer-link">Contact</a>
+            </div>
+            <div class="copyright">
+                <i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
