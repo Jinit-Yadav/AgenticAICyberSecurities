@@ -3,120 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield AI – Threat Detection</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Advanced Threat Detection - Cyber Security AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            --primary: #00b4db;
-            --primary-dark: #0083b0;
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
             --secondary: #636e72;
-            --dark: #0c0c0c;
-            --darker: #1a1a2e;
+            --dark: #0a0e27;
+            --darker: #0f1419;
             --light: #ffffff;
-            --success: #2ecc71;
-            --error: #e74c3c;
-            --warning: #f1c40f;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
             --critical: #c0392b;
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --card-border: rgba(255, 255, 255, 0.15);
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, var(--dark), var(--darker));
             color: var(--light);
             min-height: 100vh;
-            padding: 20px;
             line-height: 1.6;
+            overflow-x: hidden;
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+
+        /* ========== PERSISTENT MINI HEADER ========== */
+        .persistent-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        
-        /* Header Navigation Styles */
-        .main-header {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 18px 25px;
-            margin-bottom: 40px;
+
+        .mini-logo {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--card-border);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
         }
-        
-        .nav-container {
+
+        .mini-logo i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .mini-logo span {
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mini-logo:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,212,255,0.3);
+        }
+
+        .hamburger-btn {
+            width: 52px;
+            height: 52px;
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            color: var(--primary);
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .hamburger-btn:hover {
+            border-color: var(--primary);
+            background: rgba(0,212,255,0.15);
+            transform: scale(1.05);
+        }
+
+        .hamburger-btn::after {
+            content: "Ctrl + B";
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            border: 1px solid var(--card-border);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 2200;
+        }
+
+        .hamburger-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+            top: 70px;
+        }
+
+        /* ========== SLIDE-OUT NAVIGATION ========== */
+        .menu-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--card-border);
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+        }
+
+        .menu-wrapper.open {
+            transform: translateX(0);
+        }
+
+        .menu-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--card-border);
         }
-        
-        .logo {
-            font-size: 1.6em;
+
+        .menu-logo {
+            font-size: 1.3rem;
             font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(45deg, var(--primary), #fff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-btn {
-            padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
             gap: 8px;
         }
-        
-        .nav-btn:hover {
-            background: rgba(0, 180, 219, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+
+        .menu-logo i {
+            color: var(--primary);
+            -webkit-text-fill-color: initial;
         }
-        
-        .nav-btn.active {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
+
+        .close-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--light);
+            font-size: 1.6rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            border: 1px solid transparent;
         }
-        
+
+        .close-btn:hover {
+            background: rgba(0,212,255,0.2);
+            border-color: var(--primary);
+        }
+
+        .menu-nav {
+            flex: 1;
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-nav .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .menu-nav .nav-btn i {
+            width: 24px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .menu-nav .nav-btn:hover {
+            background: rgba(0,212,255,0.15);
+            transform: translateX(6px);
+            border-color: var(--primary);
+        }
+
+        .menu-nav .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+        }
+
+        .menu-nav .nav-btn.active i {
+            color: white;
+        }
+
+        .menu-footer {
+            padding: 20px;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.85rem;
+            opacity: 0.6;
+            text-align: center;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Main content adjustment */
+        .main-content {
+            max-width: 1400px;
+            margin: 30px auto 40px;
+            padding: 20px 25px;
+        }
+
+        @media (min-width: 769px) {
+            .main-content {
+                margin-left: 100px;
+            }
+        }
+
+        /* Header */
         .header {
             text-align: center;
-            padding: 40px 0;
+            padding: 20px 0;
             margin-bottom: 30px;
         }
         
         .header h1 {
             font-size: 2.8em;
             margin-bottom: 15px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 700;
-            letter-spacing: -0.5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -132,24 +314,20 @@
         }
         
         .model-badge {
-            -webkit-text-fill-color: white !important;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white !important;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
             display: inline-flex;
             align-items: center;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
             padding: 8px 18px;
             border-radius: 30px;
             font-size: 0.8em;
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             gap: 6px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
+        /* Content Grid */
         .content-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -162,7 +340,8 @@
                 grid-template-columns: 1fr;
             }
         }
-        
+
+        /* Cards */
         .card {
             background: var(--card-bg);
             padding: 30px;
@@ -192,29 +371,59 @@
         
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 180, 219, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.3);
         }
-        
+
         .section-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--card-border);
         }
         
         .section-header h2 {
             font-size: 1.8em;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
+        /* Quick Presets */
+        .quick-presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
         
-        /* Tabs Styling */
+        .preset-btn {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.2);
+        }
+
+        /* Tabs */
         .tabs {
             display: flex;
             gap: 10px;
@@ -222,7 +431,7 @@
             background: rgba(255, 255, 255, 0.05);
             padding: 10px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--card-border);
         }
         
         .tab {
@@ -237,17 +446,19 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex: 1;
+            justify-content: center;
         }
         
         .tab:hover {
-            background: rgba(0, 180, 219, 0.2);
+            background: rgba(0, 212, 255, 0.2);
             transform: translateY(-2px);
         }
         
         .tab.active {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
         }
         
         .tab-content {
@@ -257,7 +468,7 @@
         .tab-content.active {
             display: block;
         }
-        
+
         /* Form Styling */
         .form-group {
             margin-bottom: 25px;
@@ -278,16 +489,30 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         input, select, textarea {
             width: 100%;
             padding: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--card-border);
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.5);
             color: white;
             font-size: 1em;
             transition: all 0.3s ease;
+        }
+        
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: rgba(0, 0, 0, 0.5) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300d4ff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") no-repeat right 14px center;
+            background-size: 16px;
+        }
+        
+        select option {
+            background: var(--darker);
+            color: white;
+            padding: 12px;
         }
         
         textarea {
@@ -298,53 +523,48 @@
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0, 180, 219, 0.2);
-            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 5px;
+            color: var(--primary);
         }
         
-        /* Custom Select Styling */
-        select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background: rgba(255, 255, 255, 0.08) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") no-repeat right 14px center;
-            background-size: 16px;
-        }
-        
-        /* Quick Presets */
-        .quick-presets {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .preset-btn {
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: var(--darker);
             color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--primary);
             font-size: 0.9em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         
-        .preset-btn:hover {
-            background: rgba(0, 180, 219, 0.2);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.2);
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
         }
-        
-        /* Button Styling */
+
+        /* Buttons */
         .btn {
             padding: 16px 30px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border: none;
             border-radius: 10px;
@@ -356,13 +576,13 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
             width: 100%;
         }
         
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 180, 219, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
         }
         
         .btn:active {
@@ -370,24 +590,207 @@
         }
         
         .btn-secondary {
-            background: linear-gradient(45deg, var(--secondary), #2d3436);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+            border: 1px solid var(--card-border);
         }
         
         .btn-secondary:hover {
-            background: linear-gradient(45deg, #556166, #23272b);
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--primary);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+            flex-wrap: wrap;
         }
         
-        /* Multi-Expert Analysis Styling */
+        .nav-buttons .btn {
+            width: auto;
+            min-width: 180px;
+        }
+
+        /* Results Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+            text-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .risk-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .risk-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .risk-critical { background: var(--critical); width: 95%; }
+        .risk-high { background: var(--error); width: 75%; }
+        .risk-medium { background: var(--warning); width: 50%; }
+        .risk-low { background: var(--success); width: 25%; }
+        .risk-normal { background: var(--primary); width: 10%; }
+
+        /* Result Card */
+        .result-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border-left: 5px solid;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .threat-critical { border-left-color: var(--critical); background: rgba(192, 57, 43, 0.1); }
+        .threat-high { border-left-color: var(--error); background: rgba(255, 71, 87, 0.1); }
+        .threat-medium { border-left-color: var(--warning); background: rgba(255, 165, 2, 0.1); }
+        .threat-low { border-left-color: var(--success); background: rgba(0, 255, 136, 0.1); }
+        .threat-normal { border-left-color: var(--primary); background: rgba(0, 212, 255, 0.1); }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .threat-badge {
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85em;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .badge-critical { background: var(--critical); color: white; }
+        .badge-high { background: var(--error); color: white; }
+        .badge-medium { background: var(--warning); color: #000; }
+        .badge-low { background: var(--success); color: white; }
+        .badge-normal { background: var(--primary); color: white; }
+        
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .result-details {
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .result-details p {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .explanation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            line-height: 1.6;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .recommendations {
+            margin-top: 20px;
+        }
+        
+        .recommendations ul {
+            padding-left: 20px;
+        }
+        
+        .recommendations li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 10px;
+            list-style-type: none;
+        }
+        
+        .recommendations li::before {
+            content: "•";
+            color: var(--primary);
+            font-weight: bold;
+            position: absolute;
+            left: -15px;
+        }
+
+        /* Multi-Expert Analysis */
+        .multi-expert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, var(--ai-purple), var(--primary));
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
         .expert-analysis-section {
             margin: 25px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--card-border);
             border-radius: 15px;
             overflow: hidden;
         }
         
         .expert-analysis-header {
-            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            background: linear-gradient(135deg, var(--ai-purple), var(--primary-dark));
             padding: 20px;
             display: flex;
             align-items: center;
@@ -462,7 +865,7 @@
             border: 1px solid rgba(46, 204, 113, 0.3);
             border-radius: 12px;
             padding: 20px;
-            margin: 20px 0;
+            margin: 20px;
         }
         
         .consensus-header {
@@ -478,7 +881,7 @@
             border: 1px solid rgba(52, 152, 219, 0.3);
             border-radius: 12px;
             padding: 20px;
-            margin: 20px 0;
+            margin: 20px;
         }
         
         .roadmap-header {
@@ -488,204 +891,7 @@
             margin-bottom: 15px;
             color: #3498db;
         }
-        
-        /* Result Styling */
-        .result-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
-            border-left: 5px solid;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .result-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        }
-        
-        .threat-critical { border-left-color: var(--critical); background: rgba(192, 57, 43, 0.1); }
-        .threat-high { border-left-color: var(--error); background: rgba(231, 76, 60, 0.1); }
-        .threat-medium { border-left-color: var(--warning); background: rgba(241, 196, 15, 0.1); }
-        .threat-low { border-left-color: var(--success); background: rgba(46, 204, 113, 0.1); }
-        .threat-normal { border-left-color: var(--primary); background: rgba(0, 180, 219, 0.1); }
-        
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .threat-badge {
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.85em;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .badge-critical { background: var(--critical); color: white; }
-        .badge-high { background: var(--error); color: white; }
-        .badge-medium { background: var(--warning); color: #000; }
-        .badge-low { background: var(--success); color: white; }
-        .badge-normal { background: var(--primary); color: white; }
-        
-        .confidence-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-        
-        .result-details {
-            margin: 20px 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .result-details p {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid var(--primary);
-        }
-        
-        .explanation {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            line-height: 1.6;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .recommendations {
-            margin-top: 20px;
-        }
-        
-        .recommendations ul {
-            padding-left: 20px;
-        }
-        
-        .recommendations li {
-            margin-bottom: 10px;
-            position: relative;
-            padding-left: 10px;
-        }
-        
-        .recommendations li::before {
-            content: "•";
-            color: var(--primary);
-            font-weight: bold;
-            position: absolute;
-            left: -15px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 5px;
-            text-shadow: 0 2px 10px rgba(0, 180, 219, 0.3);
-        }
-        
-        .risk-meter {
-            width: 100%;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            margin: 20px 0;
-            overflow: hidden;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        
-        .risk-fill {
-            height: 100%;
-            border-radius: 10px;
-            transition: all 0.5s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .risk-low { background: var(--success); width: 25%; }
-        .risk-medium { background: var(--warning); width: 50%; }
-        .risk-high { background: #e67e22; width: 75%; }
-        .risk-critical { background: var(--critical); width: 95%; }
-        
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 40px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-buttons .btn {
-            width: auto;
-            min-width: 180px;
-        }
-        
-        /* Tooltip Styling */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-        
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 220px;
-            background-color: var(--darker);
-            color: white;
-            text-align: center;
-            border-radius: 8px;
-            padding: 12px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -110px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            border: 1px solid var(--primary);
-            font-size: 0.9em;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        
+
         /* Error and Success Messages */
         .error, .success {
             padding: 20px;
@@ -695,57 +901,42 @@
         }
         
         .error {
-            background: rgba(231, 76, 60, 0.1);
+            background: rgba(255, 71, 87, 0.1);
             border-left-color: var(--error);
         }
         
         .success {
-            background: rgba(46, 204, 113, 0.1);
+            background: rgba(0, 255, 136, 0.1);
             border-left-color: var(--success);
         }
-        
-        /* AI Explanation Badge */
-        .ai-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(45deg, #8e44ad, #9b59b6);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        /* Multi-Expert Badge */
-        .multi-expert-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        /* Responsive adjustments */
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 20px;
+            .persistent-header {
+                top: 15px;
+                left: 15px;
             }
             
-            .nav-links {
-                justify-content: center;
+            .mini-logo {
+                padding: 8px 15px;
             }
             
-            .nav-btn {
-                padding: 10px 15px;
-                font-size: 0.9em;
+            .mini-logo span {
+                font-size: 1rem;
+            }
+            
+            .hamburger-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+            
+            .main-content {
+                margin-left: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
             }
             
             .form-row {
@@ -777,42 +968,49 @@
                 grid-template-columns: 1fr;
             }
         }
-        
-        /* Animation for critical threats */
-        @keyframes pulse-critical {
-            0% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(192, 57, 43, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
-        }
-        
-        .threat-critical {
-            animation: pulse-critical 2s infinite;
-        }
     </style>
 </head>
 <body>
-    <!-- Header Navigation -->
-    <header class="main-header">
-        <div class="nav-container">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                CyberShield AI
-            </div>
-            <div class="nav-links">
-                <a href="/" class="nav-btn"><i class="fas fa-home"></i> Home</a>
-                <a href="/detect-threat" class="nav-btn active"><i class="fas fa-search"></i> Custom Detection</a>
-                <a href="/upload-logs" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
-                <a href="/real-time-dashboard" class="nav-btn"><i class="fas fa-chart-line"></i> Real-Time Monitor</a>
-            </div>
-        </div>
-    </header>
+    <!-- PERSISTENT MINI HEADER -->
+    <div class="persistent-header">
+        <a href="{{ url_for('landing') }}" class="mini-logo" style="text-decoration: none;">
+            <i class="fas fa-shield-alt"></i>
+            <span>CyberShield AI</span>
+        </a>
+        <button class="hamburger-btn" id="menuToggle" aria-label="Open menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
 
-    <div class="container">
+    <!-- SLIDE-OUT MENU -->
+    <div class="menu-wrapper" id="slideMenu">
+        <div class="menu-header">
+            <span class="menu-logo"><i class="fas fa-shield-alt"></i> CyberShield AI</span>
+            <button class="close-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="menu-nav">
+            <a href="{{ url_for('landing') }}" class="nav-btn"><i class="fas fa-home"></i> Home</a>
+            <a href="{{ url_for('features') }}" class="nav-btn"><i class="fas fa-star"></i> Features</a>
+            <a href="{{ url_for('about') }}" class="nav-btn"><i class="fas fa-info-circle"></i> About</a>
+            <a href="{{ url_for('architecture') }}" class="nav-btn"><i class="fas fa-sitemap"></i> Architecture</a>
+            <a href="{{ url_for('research') }}" class="nav-btn"><i class="fas fa-flask"></i> Research</a>
+            <a href="{{ url_for('documentation') }}" class="nav-btn"><i class="fas fa-book"></i> Docs</a>
+            <a href="{{ url_for('contact') }}" class="nav-btn"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="{{ url_for('dashboard_home') }}" class="nav-btn"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a href="{{ url_for('detect_threat') }}" class="nav-btn active"><i class="fas fa-search"></i> Threat Detection</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+        <div class="menu-footer"><i class="fas fa-arrow-circle-left"></i> slide or Ctrl+B</div>
+    </div>
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
         <div class="header">
             <h1>
                 <i class="fas fa-search"></i> Advanced Threat Detection 
-                <span class="model-badge" style="color: white;">
-                    <i class="fas fa-brain" style="color: white;"></i> MULTI-EXPERT AI
+                <span class="model-badge">
+                    <i class="fas fa-brain"></i> MULTI-EXPERT AI
                 </span>
             </h1>
             <p>Comprehensive network activity analysis with Multi-LLM Debate AI-powered threat intelligence</p>
@@ -863,7 +1061,8 @@
                 <!-- Basic Analysis Tab -->
                 <div id="basic" class="tab-content active">
                     <form method="POST" id="threatForm" action="{{ url_for('detect_threat') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>                        
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-row">
                             <div class="form-group">
                                 <label for="tool">
                                     <i class="fas fa-tools"></i> Tool/Application:
@@ -1008,62 +1207,64 @@
                 </div>
 
                 <!-- Advanced Analysis Tab -->
-<div id="advanced" class="tab-content">
-    <form method="POST" id="advancedForm" action="{{ url_for('detect_threat') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>        
-            <div class="form-row">
-            <div class="form-group">
-                <label for="spkts"><i class="fas fa-box"></i> Source Packets:</label>
-                <input type="number" id="spkts" name="spkts" value="100" min="0" required>
-            </div>
-            <div class="form-group">
-                <label for="dpkts"><i class="fas fa-box"></i> Destination Packets:</label>
-                <input type="number" id="dpkts" name="dpkts" value="0" min="0" required>
-            </div>
-        </div>
+                <div id="advanced" class="tab-content">
+                    <form method="POST" id="advancedForm" action="{{ url_for('detect_threat') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="spkts"><i class="fas fa-box"></i> Source Packets:</label>
+                                <input type="number" id="spkts" name="spkts" value="100" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dpkts"><i class="fas fa-box"></i> Destination Packets:</label>
+                                <input type="number" id="dpkts" name="dpkts" value="0" min="0" required>
+                            </div>
+                        </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="sbytes"><i class="fas fa-database"></i> Source Bytes:</label>
-                <input type="number" id="sbytes" name="sbytes" value="5000" min="0" required>
-            </div>
-            <div class="form-group">
-                <label for="dbytes"><i class="fas fa-database"></i> Destination Bytes:</label>
-                <input type="number" id="dbytes" name="dbytes" value="0" min="0" required>
-            </div>
-        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sbytes"><i class="fas fa-database"></i> Source Bytes:</label>
+                                <input type="number" id="sbytes" name="sbytes" value="5000" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dbytes"><i class="fas fa-database"></i> Destination Bytes:</label>
+                                <input type="number" id="dbytes" name="dbytes" value="0" min="0" required>
+                            </div>
+                        </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="rate"><i class="fas fa-tachometer-alt"></i> Packet Rate (pps):</label>
-                <input type="number" id="rate" name="rate" value="500.5" step="0.1" min="0" required>
-            </div>
-            <div class="form-group">
-                <label for="sttl"><i class="fas fa-hourglass-half"></i> Source TTL:</label>
-                <input type="number" id="sttl" name="sttl" value="64" min="1" max="255" required>
-            </div>
-        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rate"><i class="fas fa-tachometer-alt"></i> Packet Rate (pps):</label>
+                                <input type="number" id="rate" name="rate" value="500.5" step="0.1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sttl"><i class="fas fa-hourglass-half"></i> Source TTL:</label>
+                                <input type="number" id="sttl" name="sttl" value="64" min="1" max="255" required>
+                            </div>
+                        </div>
 
-        <!-- Add basic fields that might be needed -->
-        <input type="hidden" name="source_ip" value="192.168.1.100">
-        <input type="hidden" name="target_ip" value="192.168.1.1">
-        <input type="hidden" name="target_port" value="80">
-        <input type="hidden" name="protocol" value="tcp">
-        <input type="hidden" name="dur" value="0.1">
+                        <input type="hidden" name="source_ip" value="192.168.1.100">
+                        <input type="hidden" name="target_ip" value="192.168.1.1">
+                        <input type="hidden" name="target_port" value="80">
+                        <input type="hidden" name="protocol" value="tcp">
+                        <input type="hidden" name="dur" value="0.1">
+                        <input type="hidden" name="tool" value="custom_tool">
+                        <input type="hidden" name="attack_category" value="suspicious">
+                        <input type="hidden" name="severity" value="medium">
 
-        <button type="submit" class="btn">
-            <i class="fas fa-microscope"></i> Advanced Multi-Expert Analysis
-        </button>
-    </form>
-</div>
+                        <button type="submit" class="btn">
+                            <i class="fas fa-microscope"></i> Advanced Multi-Expert Analysis
+                        </button>
+                    </form>
+                </div>
 
                 <!-- Custom Log Tab -->
                 <div id="custom" class="tab-content">
                     <form method="POST" id="customForm" action="{{ url_for('detect_threat') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>                        
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="form-group">
                             <label for="custom_log">
-                                <i class="fas fa-file-code"></i> Paste Log Data (JSON/CSV format):
+                                <i class="fas fa-file-code"></i> Paste Log Data (JSON format):
                             </label>
                             <textarea id="custom_log" name="custom_log" placeholder='{"tool": "nmap", "attack_type": "reconnaissance", "severity": "high", "proto": "tcp", "src_ip": "192.168.1.100", "dest_ip": "192.168.1.1", "dest_port": 22, "dur": 0.1, "spkts": 150, "dpkts": 0, "sbytes": 600, "dbytes": 0}'></textarea>
                         </div>
@@ -1074,8 +1275,6 @@
                                 <option value="json">JSON</option>
                                 <option value="csv">CSV</option>
                                 <option value="syslog">Syslog</option>
-                                <option value="cef">CEF</option>
-                                <option value="leef">LEEF</option>
                             </select>
                         </div>
 
@@ -1093,10 +1292,6 @@
                     {% if ai_enabled %}
                     <span class="multi-expert-badge">
                         <i class="fas fa-robot"></i> {{ result.multi_expert_analysis_used and result.expert_count or 3 }} Experts Active
-                    </span>
-                    {% else %}
-                    <span class="ai-badge">
-                        <i class="fas fa-brain"></i> Enhanced Analysis
                     </span>
                     {% endif %}
                 </div>
@@ -1231,6 +1426,8 @@
                     <div class="result-details">
                         <p><strong><i class="fas fa-tools"></i> Tool:</strong> {{ result.tool }}</p>
                         <p><strong><i class="fas fa-laptop"></i> Source:</strong> {{ result.source_ip }}</p>
+                        <p><strong><i class="fas fa-server"></i> Target:</strong> {{ result.target_ip }}</p>
+                        <p><strong><i class="fas fa-plug"></i> Port:</strong> {{ result.target_port }}</p>
                         <p><strong><i class="fas fa-network-wired"></i> Protocol:</strong> {{ result.proto }}</p>
                         <p><strong><i class="fas fa-clock"></i> Duration:</strong> {{ result.dur }} seconds</p>
                     </div>
@@ -1262,9 +1459,12 @@
                 </div>
                 {% else %}
                 <div class="result-card threat-normal">
-                    <h3><i class="fas fa-clipboard-list"></i> Ready for Multi-Expert Analysis</h3>
-                    <p>Fill out the form and click "Analyze Threat" to get comprehensive threat intelligence from multiple AI security experts.</p>
-                    <p>The system uses advanced Multi-LLM Debate algorithms to provide detailed threat analysis and consensus recommendations.</p>
+                    <div style="text-align: center; padding: 40px;">
+                        <i class="fas fa-clipboard-list" style="font-size: 4em; color: var(--primary); margin-bottom: 15px; opacity: 0.8;"></i>
+                        <h3 style="color: var(--primary); margin-bottom: 10px;">Ready for Multi-Expert Analysis</h3>
+                        <p style="font-size: 1.1em; opacity: 0.9; margin-bottom: 20px;">Fill out the form and click "Analyze" to get comprehensive threat intelligence.</p>
+                        <p style="font-size: 0.9em; opacity: 0.7;">The system uses advanced Multi-LLM Debate algorithms to provide detailed threat analysis.</p>
+                    </div>
                     
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -1284,31 +1484,50 @@
                 {% endif %}
 
                 <div class="nav-buttons">
-                    <a href="/" class="btn btn-secondary"><i class="fas fa-home"></i> Dashboard</a>
-                    <a href="/real-time-dashboard" class="btn btn-secondary"><i class="fas fa-chart-line"></i> Live Monitor</a>
-                    <a href="/sample-threats" class="btn btn-secondary"><i class="fas fa-bullseye"></i> Demo Scenarios</a>
-                    <a href="/upload-logs" class="btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
+                    <a href="{{ url_for('dashboard_home') }}" class="btn btn-secondary"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="{{ url_for('real_time_dashboard') }}" class="btn btn-secondary"><i class="fas fa-chart-line"></i> Live Monitor</a>
+                    <a href="{{ url_for('upload_logs') }}" class="btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // DOM elements
+        const menu = document.getElementById('slideMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const openBtn = document.getElementById('menuToggle');
+        const closeBtn = document.getElementById('closeMenuBtn');
+
+        function openMenu() { menu.classList.add('open'); overlay.classList.add('active'); }
+        function closeMenu() { menu.classList.remove('open'); overlay.classList.remove('active'); }
+
+        openBtn.addEventListener('click', openMenu);
+        closeBtn.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                menu.classList.contains('open') ? closeMenu() : openMenu();
+            }
+            if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+        });
+
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
         function switchTab(tabName) {
-            // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Remove active class from all tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Show selected tab content
             document.getElementById(tabName).classList.add('active');
-            
-            // Activate selected tab
             event.target.classList.add('active');
         }
 
@@ -1408,22 +1627,16 @@
                         element.value = value;
                     }
                 }
-                // Switch to basic tab
                 switchTab('basic');
             }
         }
 
-        // Auto-switch to basic tab on page load
         document.addEventListener('DOMContentLoaded', function() {
             switchTab('basic');
-        });
-
-        // Handle form submissions
-        document.addEventListener('DOMContentLoaded', function() {
+            
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 form.addEventListener('submit', function(e) {
-                    // Add loading state
                     const submitBtn = this.querySelector('button[type="submit"]');
                     if (submitBtn) {
                         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Multi-Expert Analysis...';

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Your existing CSS styles remain the same - I'm keeping them but omitting for brevity */
+        /* Your existing CSS styles remain the same */
         :root {
             --primary: #00b4db;
             --primary-dark: #0083b0;
@@ -746,10 +746,10 @@
                 CyberShield AI
             </div>
             <div class="nav-links">
-                <a href="/" class="nav-btn"><i class="fas fa-home"></i> Home</a>
-                <a href="/detect-threat" class="nav-btn"><i class="fas fa-search"></i> Custom Detection</a>
-                <a href="/upload-logs" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
-                <a href="/real-time-dashboard" class="nav-btn active"><i class="fas fa-chart-line"></i> Real-Time Monitor</a>
+                <a href="{{ url_for('dashboard_home') }}" class="nav-btn"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="{{ url_for('detect_threat') }}" class="nav-btn"><i class="fas fa-search"></i> Custom Detection</a>
+                <a href="{{ url_for('upload_logs') }}" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn active"><i class="fas fa-chart-line"></i> Real-Time Monitor</a>
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 {% else %}
@@ -910,45 +910,46 @@
             </div>
         </div>
 
+        <!-- CORRECTED BOTTOM NAVIGATION BUTTONS -->
         <div class="nav-buttons">
-            <a href="/" class="btn btn-secondary"><i class="fas fa-home"></i> Main Dashboard</a>
-            <a href="/detect-threat" class="btn btn-secondary"><i class="fas fa-search"></i> Threat Detection</a>
-            <a href="/demo-scenarios" class="btn btn-secondary"><i class="fas fa-bullseye"></i> Demo Scenarios</a>
-            <a href="/upload-logs" class="btn btn-secondary"><i class="fas fa-file-upload"></i> Upload Logs</a>
+            <a href="{{ url_for('dashboard_home') }}" class="btn btn-secondary"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a>
+            <a href="{{ url_for('detect_threat') }}" class="btn btn-secondary"><i class="fas fa-search"></i> Threat Detection</a>
+            <a href="{{ url_for('sample_threats') }}" class="btn btn-secondary"><i class="fas fa-bullseye"></i> Demo Scenarios</a>
+            <a href="{{ url_for('upload_logs') }}" class="btn btn-secondary"><i class="fas fa-file-upload"></i> Upload Logs</a>
         </div>
     </div>
 
-    <!-- Replace the problematic script section with this -->
-<script id="server-config" type="application/json">
-{
-    "isMonitoring": {{ is_monitoring|default(false)|tojson }},
-    "aiEnabled": {{ ai_enabled|default(false)|tojson }}
-}
-</script>
-
-<script>
-    // Parse configuration from JSON script tag
-    let serverConfig;
-    try {
-        const configElement = document.getElementById('server-config');
-        if (configElement && configElement.textContent) {
-            serverConfig = JSON.parse(configElement.textContent);
-            console.log('✅ Server config loaded:', serverConfig);
-        } else {
-            throw new Error('Config element not found');
-        }
-    } catch (error) {
-        console.error('Failed to load server config:', error);
-        // Fallback values
-        serverConfig = {
-            isMonitoring: false,
-            aiEnabled: false
-        };
+    <!-- Server Configuration -->
+    <script id="server-config" type="application/json">
+    {
+        "isMonitoring": {{ is_monitoring|default(false)|tojson }},
+        "aiEnabled": {{ ai_enabled|default(false)|tojson }}
     }
-    
-    // Make config globally available
-    window.serverConfig = serverConfig;
-</script>
+    </script>
+
+    <script>
+        // Parse configuration from JSON script tag
+        let serverConfig;
+        try {
+            const configElement = document.getElementById('server-config');
+            if (configElement && configElement.textContent) {
+                serverConfig = JSON.parse(configElement.textContent);
+                console.log('✅ Server config loaded:', serverConfig);
+            } else {
+                throw new Error('Config element not found');
+            }
+        } catch (error) {
+            console.error('Failed to load server config:', error);
+            // Fallback values
+            serverConfig = {
+                isMonitoring: false,
+                aiEnabled: false
+            };
+        }
+        
+        // Make config globally available
+        window.serverConfig = serverConfig;
+    </script>
 
     <script>
         let updateInterval;
