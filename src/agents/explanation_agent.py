@@ -38,25 +38,39 @@ def test_openrouter_connection():
         'Content-Type': 'application/json'
     }
     
+    # Test with a lightweight models endpoint or simple chat completion
+    test_payload = {
+        "model": "openrouter/pony-alpha:free",
+        "messages": [{"role": "user", "content": "Test"}],
+        "max_tokens": 5
+    }
+    
     try:
-        response = requests.get(
-            'https://openrouter.ai/api/v1/auth/key',
+        response = requests.post(
+            'https://openrouter.ai/api/v1/chat/completions',
             headers=headers,
+            json=test_payload,
             timeout=10
         )
         
         if response.status_code == 200:
             print("✅ API Key is VALID - Connection successful")
             return True
+        elif response.status_code == 401:
+            print("❌ API Key is INVALID - Unauthorized")
+            return False
+        elif response.status_code == 404:
+            print("❌ Model not found - Check model ID")
+            return False
         else:
-            print(f"❌ API Key is INVALID: Status {response.status_code}")
-            print(f"Response: {response.text}")
+            print(f"❌ API Key test failed: Status {response.status_code}")
+            print(f"Response: {response.text[:200]}")
             return False
             
     except Exception as e:
         print(f"❌ API Connection failed: {e}")
         return False
-
+    
 # =============================================================================
 # ENHANCED RESPONSE CACHE
 # =============================================================================
@@ -165,7 +179,7 @@ class DebateConfig:
     # API Configuration
     API_KEY = os.getenv('OPENROUTER_API_KEY', '')
     BASE_URL = "https://openrouter.ai/api/v1"
-    PRIMARY_MODEL = "mistralai/mistral-7b-instruct:free"
+    PRIMARY_MODEL = "openrouter/pony-alpha:free" 
     EMBEDDING_MODEL = "all-MiniLM-L6-v2"
     
     # File Paths
@@ -182,28 +196,28 @@ class DebateConfig:
     
     # OPTIMIZED: 3 experts with parallel processing
     DEBATE_MODELS = [
-        {
-            "name": "Network Security Expert",
-            "model": "mistralai/mistral-7b-instruct:free",
-            "role": "Network Security Specialist", 
-            "specialty": "Port scanning analysis, firewall configurations",
-            "working": True
-        },
-        {
-            "name": "Threat Intelligence Analyst",
-            "model": "mistralai/mistral-7b-instruct:free", 
-            "role": "Threat Intelligence Analyst",
-            "specialty": "Threat assessment, attack patterns, risk analysis",
-            "working": True
-        },
-        {
-            "name": "Incident Response Expert",
-            "model": "mistralai/mistral-7b-instruct:free",
-            "role": "Incident Response Specialist",
-            "specialty": "Containment strategies, forensic analysis, recovery",
-            "working": True
-        }
-    ]
+    {
+        "name": "Network Security Expert",
+        "model": "openrouter/pony-alpha:free",  # Use this exact string
+        "role": "Network Security Specialist", 
+        "specialty": "Port scanning analysis, firewall configurations",
+        "working": True
+    },
+    {
+        "name": "Threat Intelligence Analyst",
+        "model": "openrouter/pony-alpha:free",  # Same here
+        "role": "Threat Intelligence Analyst",
+        "specialty": "Threat assessment, attack patterns, risk analysis",
+        "working": True
+    },
+    {
+        "name": "Incident Response Expert",
+        "model": "openrouter/pony-alpha:free",  # And here
+        "role": "Incident Response Specialist",
+        "specialty": "Containment strategies, forensic analysis, recovery",
+        "working": True
+    }
+]
 
 # =============================================================================
 # RATE LIMITING AND RETRY MECHANISMS

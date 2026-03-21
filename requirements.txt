@@ -19,3 +19,10 @@ flask-login
 flask-wtf 
 flask-limiter 
 cryptography
+faiss-cpu 
+joblib
+sentence-transformers 
+scikit-learn
+scipy  
+requests
+python-dotenv

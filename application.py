@@ -1701,83 +1701,6 @@ def register():
     
     return render_template('register.html')
 
-
-@app.route('/analyze-sample/<int:scenario_id>', methods=['POST'])
-@login_required
-def analyze_sample(scenario_id):
-    """Analyze sample threat scenario"""
-    sample_scenarios = [
-        {
-            'tool': 'nmap', 'attack_type': 'reconnaissance', 'severity': 'high',
-            'proto': 'tcp', 'src_ip': '192.168.1.100', 'dest_ip': '192.168.1.1',
-            'src_port': 54321, 'dest_port': 22, 'dur': 0.1, 'spkts': 150, 'dpkts': 0,
-            'sbytes': 600, 'dbytes': 0, 'rate': 1200.5,
-            'description': 'nmap port scanning activity'
-        },
-        {
-            'tool': 'hydra', 'attack_type': 'bruteforce', 'severity': 'critical',
-            'proto': 'tcp', 'src_ip': '10.0.0.50', 'dest_ip': '192.168.1.1',
-            'src_port': 54321, 'dest_port': 22, 'dur': 2.5, 'spkts': 500, 'dpkts': 500,
-            'sbytes': 25000, 'dbytes': 25000, 'rate': 200.0,
-            'description': 'hydra brute force attack'
-        },
-        {
-            'tool': 'hping3', 'attack_type': 'dos', 'severity': 'critical',
-            'proto': 'tcp', 'src_ip': '172.16.0.25', 'dest_ip': '192.168.1.1',
-            'src_port': 54321, 'dest_port': 80, 'dur': 0.5, 'spkts': 1000, 'dpkts': 1,
-            'sbytes': 50000, 'dbytes': 1, 'rate': 5000.0,
-            'description': 'hping3 SYN flood attack'
-        },
-        {
-            'tool': 'browser', 'attack_type': 'normal', 'severity': 'low',
-            'proto': 'tcp', 'src_ip': '192.168.1.100', 'dest_ip': '192.168.1.1',
-            'src_port': 54321, 'dest_port': 80, 'dur': 2.5, 'spkts': 25, 'dpkts': 35,
-            'sbytes': 2000, 'dbytes': 50000, 'rate': 12.0,
-            'description': 'normal web browsing activity'
-        }
-    ]
-    
-    if 0 <= scenario_id < len(sample_scenarios):
-        try:
-            scenario = sample_scenarios[scenario_id]
-            scenario['timestamp'] = datetime.now().isoformat()
-            
-            # Ensure compatibility and analyze
-            compatible_entries = ensure_detection_agent_compatibility([scenario])
-            results = detection_agent.analyze_logs_comprehensive(compatible_entries)
-            
-            if results and len(results) > 0:
-                result = results[0]
-                result = enhance_with_multi_expert_analysis(result)
-                store_detection_result(result)
-                return jsonify({'success': True, 'result': result})
-            else:
-                # Create a default result
-                result = {
-                    'threat_detected': True,
-                    'attack_type': scenario['attack_type'].title(),
-                    'severity': scenario['severity'],
-                    'final_confidence': 0.85,
-                    'description': f"{scenario['tool'].upper()} {scenario['attack_type']} detected from {scenario['src_ip']} to {scenario['dest_ip']}:{scenario['dest_port']}",
-                    'source_ip': scenario['src_ip'],
-                    'target_ip': scenario['dest_ip'],
-                    'target_port': scenario['dest_port'],
-                    'tool': scenario['tool'],
-                    'protocol': scenario['proto'],
-                    'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    'risk_score': 85,
-                    'recommendations': ['Block source IP', 'Monitor for follow-up attacks']
-                }
-                result = enhance_with_multi_expert_analysis(result)
-                store_detection_result(result)
-                return jsonify({'success': True, 'result': result})
-                
-        except Exception as e:
-            logger.error(f"Sample analysis failed: {e}")
-            return jsonify({'success': False, 'error': str(e)})
-    
-    return jsonify({'success': False, 'error': 'Invalid scenario ID'})
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -2454,12 +2377,17 @@ def analyze_current_threats():
 @app.route('/api-status')
 @login_required
 def api_status():
-    """Show API usage and rate limit status"""
     if DEBATE_AGENT:
         status = DEBATE_AGENT.get_status()
+        # Calculate percentage here
+        if status.get('api_daily_limit', 0) > 0:
+            status['api_usage_percent'] = (status['api_usage_today'] / status['api_daily_limit'] * 100)
+        else:
+            status['api_usage_percent'] = 0
         return render_template('api_status.html', 
-                            status=status,
-                            ai_enabled=AI_ANALYSIS_ENABLED)
+                              status=status,
+                              ai_enabled=AI_ANALYSIS_ENABLED,
+                              now=datetime.now())
     return "Debate agent not available"
 
 @app.route('/reset-api-counter')
