@@ -340,7 +340,7 @@
             </div>
         </div>
         
-        <!-- API Usage Stats -->
+        <!-- API Usage Stats - CORRECTED STRUCTURE -->
         <div class="status-card">
             <div class="card-title">📊 API Usage Statistics</div>
             <div class="api-usage">
@@ -349,7 +349,8 @@
                     <strong>{{ status.api_usage_today }} / {{ status.api_daily_limit }}</strong>
                 </div>
                 <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ status.api_usage_percent | round(1) }}%"></div>                </div>
+                    <div class="progress-fill" data-width="{{ (status.api_usage_today / status.api_daily_limit * 100) if status.api_daily_limit > 0 else 0 }}"></div>
+                </div>
                 {% if status.api_usage_today >= status.api_daily_limit %}
                 <div class="alert alert-warning">
                     ⚠️ Daily API limit reached! The system is using fallback mode until tomorrow.
@@ -468,6 +469,18 @@
     </div>
     
     <script>
+        // Set progress bar widths after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.progress-fill').forEach(el => {
+                const width = el.getAttribute('data-width');
+                if (width && !isNaN(width)) {
+                    el.style.width = Math.min(100, Math.max(0, parseFloat(width))) + '%';
+                } else {
+                    el.style.width = '0%';
+                }
+            });
+        });
+        
         function refreshStatus() {
             window.location.reload();
         }

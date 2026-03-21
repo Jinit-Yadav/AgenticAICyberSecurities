@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield AI - Advanced ML-Powered Cybersecurity</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #636e72;
+            --dark: #0a0e27;
+            --darker: #0f1419;
+            --light: #ffffff;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .main-header {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 50px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0,212,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(168,85,247,0.1));
+            border-radius: 30px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .hero h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 1.3em;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            opacity: 0.9;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-btn {
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .cta-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+        }
+        
+        .cta-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid var(--primary);
+        }
+        
+        .cta-secondary:hover {
+            background: rgba(0,212,255,0.2);
+            transform: translateY(-3px);
+        }
+        
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+        
+        .feature-card {
+            background: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,212,255,0.2);
+        }
+        
+        .feature-card i {
+            font-size: 3.5em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        /* Metrics */
+        .model-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 60px 0;
+        }
+        
+        .metric-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        /* How It Works Section */
+        .how-it-works {
+            margin: 80px 0;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .section-subtitle {
+            font-size: 1.2em;
+            opacity: 0.8;
+            margin-bottom: 50px;
+        }
+        
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .step-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            position: relative;
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+        
+        .step-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .step-card p {
+            opacity: 0.8;
+        }
+        
+        /* AI Status Badge */
+        .ai-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+        
+        .ai-enabled {
+            background: rgba(0,255,136,0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .ai-disabled {
+            background: rgba(255,71,87,0.2);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 1px solid var(--card-border);
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5em; }
+            .nav-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    CyberShield AI
+                </div>
+                <div class="nav-links">
+                    <a href="{{ url_for('landing') }}" class="nav-btn active">Home</a>
+                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
+                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
+                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                    <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>Next-Generation AI-Powered Cybersecurity</h1>
+            <p>Protect your infrastructure with advanced machine learning • XGBoost + LightGBM Ensemble • 87% threat detection rate</p>
+            <div class="cta-buttons">
+                <a href="{{ url_for('register') }}" class="cta-btn cta-primary"><i class="fas fa-rocket"></i> Get Started Free</a>
+                <a href="#how-it-works" class="cta-btn cta-secondary"><i class="fas fa-play"></i> How It Works</a>
+            </div>
+        </section>
+
+        <div class="model-metrics">
+            <div class="metric-card">
+                <div class="metric-value">82.4%</div>
+                <div>Accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">87.0%</div>
+                <div>Detection Rate</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">3</div>
+                <div>AI Experts</div>
+                <span class="ai-status {% if ai_enabled %}ai-enabled{% else %}ai-disabled{% endif %}">
+                    {% if ai_enabled %}🤖 ACTIVE{% else %}⚠️ FALLBACK{% endif %}
+                </span>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">24/7</div>
+                <div>Monitoring</div>
+            </div>
+        </div>
+
+        <section id="features">
+            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 40px;">Why Choose CyberShield AI?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-brain"></i>
+                    <h3>Multi-Expert AI</h3>
+                    <p>Three specialized AI experts analyze threats from network, intelligence, and incident response perspectives.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-microchip"></i>
+                    <h3>XGBoost + LightGBM Ensemble</h3>
+                    <p>State-of-the-art machine learning ensemble with 82.4% accuracy and 87% detection rate.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-clock"></i>
+                    <h3>Real-Time Monitoring</h3>
+                    <p>Live network connection and process monitoring with instant threat detection.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-virus"></i>
+                    <h3>Automated Response</h3>
+                    <p>Intelligent alerting and automated countermeasures with IP blocking and process killing.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-database"></i>
+                    <h3>Multi-Source Analysis</h3>
+                    <p>Analyze data from UNSW-NB15, CIC-IDS2017, and real attack logs simultaneously.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Advanced Analytics</h3>
+                    <p>Comprehensive dashboards with real-time threat visualization and historical analysis.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works">
+            <h2 class="section-title">How CyberShield AI Works</h2>
+            <p class="section-subtitle">From data ingestion to threat mitigation in 4 simple steps</p>
+            
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Data Collection</h3>
+                    <p>Continuous ingestion of network traffic, system logs, and threat intelligence feeds from multiple sources including UNSW-NB15 and CIC-IDS2017 datasets.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Feature Engineering</h3>
+                    <p>Extract 40+ network flow features including duration, protocol type, service, flag statistics, and host-based metrics for ML model input.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Ensemble ML Detection</h3>
+                    <p>XGBoost and LightGBM models analyze features in parallel, combining predictions through weighted voting for 87% detection accuracy.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Automated Response</h3>
+                    <p>Real-time alerts with automated countermeasures including IP blocking, process termination, and incident reporting.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="{{ url_for('about') }}" class="footer-link">About</a>
+                <a href="{{ url_for('features') }}" class="footer-link">Features</a>
+                <a href="{{ url_for('architecture') }}" class="footer-link">Architecture</a>
+                <a href="{{ url_for('research') }}" class="footer-link">Research</a>
+                <a href="{{ url_for('documentation') }}" class="footer-link">Documentation</a>
+                <a href="{{ url_for('contact') }}" class="footer-link">Contact</a>
+            </div>
+            <div class="copyright">
+                <i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

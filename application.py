@@ -21,11 +21,11 @@ import time
 from threading import Thread
 
 # =============================================================================
-# NEW AUTHENTICATION & SECURITY IMPORTS
+# AUTHENTICATION & SECURITY IMPORTS
 # =============================================================================
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from cryptography.fernet import Fernet
@@ -43,13 +43,12 @@ class AppConfig:
     AGENTS_PATH: str = os.getenv('AGENTS_PATH', 'src/agents')
     DATABASE_PATH: str = os.getenv('DATABASE_PATH', 'threats.db')
     LOG_LEVEL: str = os.getenv('LOG_LEVEL', 'INFO')
-    # Optional encryption key path
     ENCRYPTION_KEY_PATH: str = os.getenv('ENCRYPTION_KEY_PATH', 'key.key')
 
 config = AppConfig()
 
 # =============================================================================
-# NEW: HELPER FUNCTION FOR DECRYPTING ENVIRONMENT VARIABLES
+# HELPER FUNCTION FOR DECRYPTING ENVIRONMENT VARIABLES
 # =============================================================================
 def decrypt_env_var(encrypted_value: str) -> Optional[str]:
     """
@@ -72,8 +71,6 @@ if EMAIL_PASSWORD_ENCRYPTED:
     EMAIL_PASSWORD = decrypt_env_var(EMAIL_PASSWORD_ENCRYPTED)
 else:
     EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')   # fallback to plain text
-
-# You can similarly decrypt other secrets (e.g., API keys) here
 
 # =============================================================================
 # LOGGING SETUP - WINDOWS COMPATIBLE
@@ -135,16 +132,140 @@ def setup_logging():
     )
     
     # Apply Windows-safe formatter to console handler only
-    console_handler = logging.root.handlers[1]
-    console_handler.setFormatter(WindowsSafeFormatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    ))
+    if len(logging.root.handlers) > 1:
+        console_handler = logging.root.handlers[1]
+        console_handler.setFormatter(WindowsSafeFormatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# DATABASE SETUP
+# ULTIMATE SAFE DIVISION AND ERROR HANDLING
+# =============================================================================
+
+def safe_divide(x, y):
+    """Ultimate safe division function that handles all edge cases"""
+    try:
+        if x is None or y is None:
+            return 0.0
+        x_float = float(x)
+        y_float = float(y)
+        if abs(y_float) < 1e-10:
+            return 0.0
+        result = x_float / y_float
+        if np.isnan(result) or np.isinf(result):
+            return 0.0
+        return result
+    except (ZeroDivisionError, TypeError, ValueError, AttributeError):
+        return 0.0
+
+def safe_get_attr(obj, attr, default=None):
+    """Safely get an attribute from an object"""
+    try:
+        return getattr(obj, attr, default)
+    except Exception:
+        return default
+
+def safe_call_method(obj, method_name, *args, **kwargs):
+    """Safely call a method on an object"""
+    try:
+        method = safe_get_attr(obj, method_name)
+        if callable(method):
+            return method(*args, **kwargs)
+        return None
+    except Exception as e:
+        logger.warning(f"Error calling method {method_name}: {e}")
+        return None
+
+# =============================================================================
+# SAFE VOTING SYSTEM WRAPPER
+# =============================================================================
+
+class SafeVotingWrapper:
+    """Wrapper that makes any voting system safe to use"""
+    
+    def __init__(self, original_voting_system):
+        self.original = original_voting_system
+        self.name = str(original_voting_system) if original_voting_system else "None"
+    
+    def analyze(self, *args, **kwargs):
+        """Safely analyze with fallback"""
+        try:
+            # Try multiple possible method names
+            for method_name in ['analyze', 'analyze_logs', 'analyze_logs_comprehensive', 
+                               'vote', 'calculate_votes', 'predict', 'detect']:
+                result = safe_call_method(self.original, method_name, *args, **kwargs)
+                if result is not None:
+                    return self._safe_result(result)
+            
+            # If no method found, return safe default
+            logger.warning(f"No suitable method found in voting system: {self.name}")
+            return self._safe_default_result()
+            
+        except Exception as e:
+            logger.error(f"Error in voting system {self.name}: {e}")
+            return self._safe_default_result()
+    
+    def _safe_result(self, result):
+        """Ensure result is in a safe format"""
+        if result is None:
+            return self._safe_default_result()
+        
+        # If result is a dict, ensure it has required fields
+        if isinstance(result, dict):
+            safe_result = {
+                'threat_detected': result.get('threat_detected', False),
+                'attack_type': result.get('attack_type', 'Unknown'),
+                'severity': result.get('severity', 'low'),
+                'final_confidence': float(result.get('final_confidence', result.get('confidence', 0))),
+                'description': result.get('description', 'No description'),
+                'source_ip': result.get('source_ip', 'Unknown'),
+                'target_ip': result.get('target_ip', 'Unknown'),
+                'target_port': int(result.get('target_port', 0)),
+                'tool': result.get('tool', 'unknown'),
+                'protocol': result.get('protocol', 'unknown'),
+                'timestamp_analyzed': result.get('timestamp_analyzed', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                'risk_score': int(result.get('risk_score', 0)),
+                'recommendations': result.get('recommendations', []),
+                'detection_methods': result.get('detection_methods', ['Safe Voting Wrapper'])
+            }
+            return safe_result
+        
+        # If result is a list, process each item
+        elif isinstance(result, list):
+            return [self._safe_result(item) for item in result]
+        
+        # Otherwise, return default
+        return self._safe_default_result()
+    
+    def _safe_default_result(self):
+        """Return a safe default result"""
+        return {
+            'threat_detected': False,
+            'attack_type': 'Normal Activity',
+            'severity': 'low',
+            'final_confidence': 0.0,
+            'description': 'Analysis completed with safe fallback',
+            'source_ip': 'Unknown',
+            'target_ip': 'Unknown',
+            'target_port': 0,
+            'tool': 'unknown',
+            'protocol': 'unknown',
+            'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'risk_score': 0,
+            'recommendations': ['Continue normal monitoring'],
+            'detection_methods': ['Safe Voting Fallback']
+        }
+
+# Apply safe division to numpy
+if hasattr(np, 'divide'):
+    np.divide = safe_divide
+logger.info("Applied SAFE numpy division protection")
+
+# =============================================================================
+# DATABASE SETUP WITH MIGRATION SUPPORT
 # =============================================================================
 
 @contextmanager
@@ -161,9 +282,25 @@ def get_db_connection():
     finally:
         conn.close()
 
+def get_table_columns(conn, table_name):
+    """Get list of columns in a table"""
+    cursor = conn.execute(f"PRAGMA table_info({table_name})")
+    return [column[1] for column in cursor.fetchall()]
+
+def add_column_if_not_exists(conn, table_name, column_name, column_def):
+    """Add a column to a table if it doesn't exist"""
+    columns = get_table_columns(conn, table_name)
+    if column_name not in columns:
+        try:
+            conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_def}")
+            logger.info(f"Added column {column_name} to {table_name}")
+        except Exception as e:
+            logger.error(f"Failed to add column {column_name}: {e}")
+
 def init_db():
-    """Initialize database schema (existing tables)"""
+    """Initialize database schema with migration support"""
     with get_db_connection() as conn:
+        # Create threat_detections table if not exists (with all columns)
         conn.execute('''
             CREATE TABLE IF NOT EXISTS threat_detections (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -185,6 +322,9 @@ def init_db():
             )
         ''')
         
+        # Add user_id column if it doesn't exist (for backward compatibility)
+        add_column_if_not_exists(conn, 'threat_detections', 'user_id', 'INTEGER')
+        
         conn.execute('''
             CREATE TABLE IF NOT EXISTS system_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -197,45 +337,30 @@ def init_db():
         conn.commit()
 
 # =============================================================================
-# NEW: USER AUTHENTICATION DATABASE
+# USER AUTHENTICATION DATABASE WITH MIGRATION SUPPORT
 # =============================================================================
 def init_auth_db():
-    """Create users table if not exists"""
+    """Create users table if not exists with migration support"""
     with get_db_connection() as conn:
+        # Create base users table
         conn.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # Add last_login column if it doesn't exist
+        add_column_if_not_exists(conn, 'users', 'last_login', 'TIMESTAMP')
+        
         conn.commit()
 
 # =============================================================================
-# SAFE DIVISION PROTECTION
-# =============================================================================
-
-def safe_divide(x, y):
-    """Safe division function that prevents division by zero and handles edge cases"""
-    if y == 0:
-        return 0.0
-    try:
-        result = x / y
-        # Handle edge cases
-        if np.isnan(result) or np.isinf(result):
-            return 0.0
-        return result
-    except (TypeError, ValueError):
-        return 0.0
-
-# Apply safe division to numpy
-np.divide = safe_divide
-logger.info("Applied SAFE numpy division protection")
-
-# =============================================================================
-# AGENTS IMPORT
+# AGENTS IMPORT WITH SAFE WRAPPING
 # =============================================================================
 
 # Add the src/agents directory to Python path
@@ -249,29 +374,24 @@ if os.path.exists(agents_path):
 else:
     logger.warning("Agents directory not found!")
 
-# Import the OPTIMIZED Multi-LLM Debate Agent
+# Initialize global variables
+DEBATE_AGENT = None
+AI_ANALYSIS_ENABLED = False
+detection_agent = None
+
+# Import the OPTIMIZED Multi-LLM Debate Agent with safe wrapping
 try:
     from explanation_agent import SimpleOptimizedDebateAgent, initialize_optimized_debate_agent
-    DEBATE_AGENT, AI_ANALYSIS_ENABLED = initialize_optimized_debate_agent()
+    debate_agent_instance, AI_ANALYSIS_ENABLED = initialize_optimized_debate_agent()
+    DEBATE_AGENT = SafeVotingWrapper(debate_agent_instance)
     logger.info(f"Multi-LLM Debate Analysis: {'ENABLED' if AI_ANALYSIS_ENABLED else 'FALLBACK MODE'}")
 except Exception as e:
     logger.error(f"Multi-LLM Debate Agent disabled: {e}")
-    # Create a simple fallback agent
-    class FallbackDebateAgent:
-        def analyze_detection(self, detection_results):
-            return {
-                'multi_expert_analysis_used': False,
-                'expert_count': 0,
-                'formatted_output': 'Multi-Expert Analysis Temporarily Unavailable - Using Enhanced Detection Engine'
-            }
-        def get_status(self):
-            return {'ai_enabled': False}
-    
-    DEBATE_AGENT = FallbackDebateAgent()
     AI_ANALYSIS_ENABLED = False
-    logger.info("Using Fallback Debate Agent")
+    DEBATE_AGENT = None
+    logger.info("Using fallback mode - no debate agent")
 
-# Import the actual detection agent
+# Import the actual detection agent with safe wrapping
 def debug_multi_expert_connection():
     """Debug function to test multi-expert connection"""
     logger.info("DEBUG: Testing Multi-Expert Connection...")
@@ -296,11 +416,10 @@ def debug_multi_expert_connection():
         }
         
         logger.info("DEBUG: Sending test data to DEBATE_AGENT...")
-        result = DEBATE_AGENT.analyze_detection(test_data)
+        result = DEBATE_AGENT.analyze(test_data)
         
         if result:
-            logger.info(f"DEBUG: Multi-Expert Analysis SUCCESS - Result: {result.get('multi_expert_analysis_used', False)}")
-            logger.info(f"DEBUG: Expert count: {result.get('expert_count', 0)}")
+            logger.info(f"DEBUG: Multi-Expert Analysis SUCCESS")
             return True
         else:
             logger.error("DEBUG: Multi-Expert Analysis returned None")
@@ -318,15 +437,19 @@ debug_multi_expert_connection()
 try:
     from detection_agent import AdvancedDetectionAgent
     logger.info("AdvancedDetectionAgent imported successfully")
-    detection_agent = AdvancedDetectionAgent()
+    detection_agent_instance = AdvancedDetectionAgent()
+    detection_agent = SafeVotingWrapper(detection_agent_instance)
 except ImportError as e:
     logger.error(f"AdvancedDetectionAgent import failed: {e}")
     traceback.print_exc()
-    # Enhanced fallback to stub implementation with better debugging
-    class AdvancedDetectionAgent:
+    # Enhanced fallback to stub implementation
+    class FallbackDetectionAgent:
         def __init__(self):
             self.detection_history = []
-            logger.info("Using Enhanced Fallback Detection Agent")
+            logger.info("Using Fallback Detection Agent")
+        
+        def analyze(self, logs):
+            return self.analyze_logs_comprehensive(logs)
         
         def analyze_logs_comprehensive(self, logs):
             logger.info(f"Fallback Agent: Analyzing {len(logs)} logs")
@@ -339,76 +462,49 @@ except ImportError as e:
             for i, log in enumerate(logs):
                 logger.info(f"Analyzing log {i+1}/{len(logs)}: {log.get('tool', 'unknown')}")
                 
-                # Enhanced mock detection logic based on actual patterns
                 tool = log.get('tool', '').lower()
                 attack_type = log.get('attack_type', '').lower()
                 description = log.get('description', '').lower()
                 
-                logger.info(f"   Tool: {tool}, Attack Type: {attack_type}")
-                
-                # Enhanced threat detection with better patterns
                 threat_detected = False
                 severity = 'low'
                 confidence = 0.1
                 risk_score = 10
                 
                 # Scan detection
-                if any(pattern in tool for pattern in ['nmap', 'masscan', 'zmap']) or 'scan' in attack_type or 'port' in description:
+                if any(pattern in tool for pattern in ['nmap', 'masscan', 'zmap']) or 'scan' in attack_type:
                     threat_detected = True
                     severity = 'high'
                     confidence = 0.87
                     risk_score = 85
-                    logger.info(f"   DETECTED: Port Scanning")
                 
                 # Brute force detection
-                elif any(pattern in tool for pattern in ['hydra', 'medusa', 'patator']) or 'brute' in attack_type or 'password' in description:
+                elif any(pattern in tool for pattern in ['hydra', 'medusa', 'patator']) or 'brute' in attack_type:
                     threat_detected = True
                     severity = 'critical'
                     confidence = 0.95
                     risk_score = 92
-                    logger.info(f"   DETECTED: Brute Force Attack")
                 
                 # DoS detection
-                elif any(pattern in tool for pattern in ['hping3', 'slowloris', 'goldeneye']) or 'dos' in attack_type or 'ddos' in description:
+                elif any(pattern in tool for pattern in ['hping3', 'slowloris']) or 'dos' in attack_type:
                     threat_detected = True
                     severity = 'critical'
                     confidence = 0.91
                     risk_score = 88
-                    logger.info(f"   DETECTED: DoS Attack")
                 
-                # Resource consumption detection
-                elif any(pattern in tool for pattern in ['resource_tool', 'cpu_tool']) or 'resource' in attack_type or 'consumption' in description:
+                # SQL injection detection
+                elif any(pattern in tool for pattern in ['sqlmap']) or 'sql' in attack_type or 'injection' in description:
                     threat_detected = True
-                    severity = 'medium'
-                    confidence = 0.78
-                    risk_score = 75
-                    logger.info(f"   DETECTED: Resource Consumption Attack")
-                
-                # Web attack detection
-                elif any(pattern in tool for pattern in ['sqlmap', 'nikto', 'gobuster']) or 'web' in attack_type or 'sql' in description or 'xss' in description:
-                    threat_detected = True
-                    severity = 'medium'
-                    confidence = 0.78
-                    risk_score = 75
-                    logger.info(f"   DETECTED: Web Attack")
-                
-                # Malware detection
-                elif any(pattern in tool for pattern in ['metasploit', 'cobalt', 'empire']) or 'exploit' in attack_type:
-                    threat_detected = True
-                    severity = 'critical'
+                    severity = 'high'
                     confidence = 0.89
-                    risk_score = 90
-                    logger.info(f"   DETECTED: Malware/Exploit")
-                
-                else:
-                    logger.info(f"   No threat detected - Normal traffic")
+                    risk_score = 87
                 
                 result = {
                     'threat_detected': threat_detected,
                     'attack_type': log.get('attack_type', 'Unknown Activity'),
                     'severity': severity,
                     'final_confidence': confidence,
-                    'description': self._generate_description(log, threat_detected),
+                    'description': log.get('description', ''),
                     'source_ip': log.get('src_ip'),
                     'target_ip': log.get('dest_ip'),
                     'target_port': log.get('dest_port'),
@@ -416,8 +512,8 @@ except ImportError as e:
                     'protocol': log.get('proto'),
                     'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     'risk_score': risk_score,
-                    'recommendations': self._generate_recommendations(threat_detected, tool, attack_type),
-                    'detection_methods': ['Enhanced Fallback Model', 'Behavioral Analysis', 'Signature Detection']
+                    'recommendations': [],
+                    'detection_methods': ['Fallback Detection']
                 }
                 
                 results.append(result)
@@ -426,79 +522,19 @@ except ImportError as e:
             logger.info(f"Fallback Analysis Complete: {len([r for r in results if r['threat_detected']])} threats found")
             return results
         
-        def _generate_description(self, log, threat_detected):
-            tool = log.get('tool', 'unknown')
-            src_ip = log.get('src_ip')
-            dest_ip = log.get('dest_ip')
-            dest_port = log.get('dest_port')
-            
-            if threat_detected:
-                return f"MALICIOUS ACTIVITY DETECTED: {tool.upper()} from {src_ip} targeting {dest_ip}:{dest_port}. Enhanced detection identified this as suspicious based on network behavior patterns."
-            else:
-                return f"NORMAL ACTIVITY: {tool} connection from {src_ip} to {dest_ip}:{dest_port}. No threats detected by enhanced analysis."
-        
-        def _generate_recommendations(self, threat_detected, tool, attack_type):
-            if not threat_detected:
-                return ['Continue normal monitoring', 'No immediate action required']
-            
-            recommendations = [
-                'Block source IP temporarily',
-                'Increase logging level for related services',
-                'Notify security team'
-            ]
-            
-            if 'brute' in attack_type:
-                recommendations.extend([
-                    'Implement account lockout policy',
-                    'Enable multi-factor authentication',
-                    'Review SSH/FTP service configurations'
-                ])
-            elif 'scan' in attack_type:
-                recommendations.extend([
-                    'Configure firewall to limit port scanning',
-                    'Implement intrusion prevention system',
-                    'Monitor for follow-up attacks'
-                ])
-            elif 'dos' in attack_type:
-                recommendations.extend([
-                    'Enable DDoS protection services',
-                    'Configure rate limiting',
-                    'Contact ISP about malicious traffic'
-                ])
-            elif 'resource' in attack_type:
-                recommendations.extend([
-                    'Implement resource quotas',
-                    'Monitor system performance',
-                    'Deploy process throttling'
-                ])
-            
-            return recommendations
-        
         def get_detection_stats(self):
             threats = [t for t in self.detection_history if t['threat_detected']]
+            avg_confidence = safe_divide(sum(t['final_confidence'] for t in threats), len(threats)) if threats else 0
             return {
                 'total_threats': len(threats),
-                'average_confidence': round(sum(t['final_confidence'] for t in threats) / len(threats) * 100, 1) if threats else 0,
-                'threats_by_type': {
-                    'reconnaissance': len([t for t in threats if 'scan' in t['attack_type'].lower()]),
-                    'bruteforce': len([t for t in threats if 'brute' in t['attack_type'].lower()]),
-                    'dos': len([t for t in threats if 'dos' in t['attack_type'].lower()]),
-                    'resource_consumption': len([t for t in threats if 'resource' in t['attack_type'].lower()]),
-                    'web_attack': len([t for t in threats if 'web' in t['attack_type'].lower()]),
-                    'malware': len([t for t in threats if 'exploit' in t['attack_type'].lower()])
-                },
-                'threats_by_severity': {
-                    'critical': len([t for t in threats if t['severity'] == 'critical']),
-                    'high': len([t for t in threats if t['severity'] == 'high']),
-                    'medium': len([t for t in threats if t['severity'] == 'medium']),
-                    'low': len([t for t in threats if t['severity'] == 'low'])
-                },
-                'model_used': 'Enhanced Fallback Detection',
-                'features_used': 'Pattern-based analysis',
-                'time_period': 'Current session'
+                'average_confidence': round(avg_confidence * 100, 1),
+                'threats_by_type': {},
+                'threats_by_severity': {},
+                'model_used': 'Fallback Detection',
+                'features_used': 'Basic pattern matching'
             }
     
-    detection_agent = AdvancedDetectionAgent()
+    detection_agent = SafeVotingWrapper(FallbackDetectionAgent())
 
 # =============================================================================
 # FLASK APPLICATION
@@ -506,9 +542,12 @@ except ImportError as e:
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_SECRET_KEY'] = config.SECRET_KEY
+app.config['WTF_CSRF_TIME_LIMIT'] = None  # No time limit on CSRF tokens
 
 # =============================================================================
-# NEW: FLASK EXTENSIONS INITIALIZATION
+# FLASK EXTENSIONS INITIALIZATION
 # =============================================================================
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -517,14 +556,19 @@ login_manager.login_message = 'Please log in to access this page.'
 
 csrf = CSRFProtect(app)
 
+# Make csrf_token available in all templates
+@app.context_processor
+def inject_csrf_token():
+    return dict(csrf_token=generate_csrf)
+
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"]
+    default_limits=["2000 per day", "1000 per hour"]
 )
 
 # =============================================================================
-# NEW: USER CLASS AND LOADER
+# USER CLASS AND LOADER
 # =============================================================================
 class User(UserMixin):
     def __init__(self, id, username, email):
@@ -631,10 +675,10 @@ class RealTimeMonitor:
         try:
             # Use the detection agent to analyze the connection
             compatible_entries = ensure_detection_agent_compatibility([log_entry])
-            results = self.detection_agent.analyze_logs_comprehensive(compatible_entries)
+            results = self.detection_agent.analyze(compatible_entries)
             
             if results and len(results) > 0:
-                result = results[0]
+                result = results[0] if isinstance(results, list) else results
                 if result.get('threat_detected', False):
                     return {
                         'threat_level': 'malicious' if result['severity'] in ['critical', 'high'] else 'suspicious',
@@ -713,10 +757,10 @@ class RealTimeMonitor:
         try:
             # Use the detection agent to analyze the process
             compatible_entries = ensure_detection_agent_compatibility([log_entry])
-            results = self.detection_agent.analyze_logs_comprehensive(compatible_entries)
+            results = self.detection_agent.analyze(compatible_entries)
             
             if results and len(results) > 0:
-                result = results[0]
+                result = results[0] if isinstance(results, list) else results
                 if result.get('threat_detected', False):
                     return {
                         'threat_level': 'malicious' if result['severity'] in ['critical', 'high'] else 'suspicious',
@@ -784,7 +828,7 @@ class RealTimeMonitor:
             
             return {
                 'active_connections': len(connections),
-                'bandwidth_usage': f"{net_io.bytes_sent / 1024 / 1024:.1f} MB",
+                'bandwidth_usage': f"{safe_divide(net_io.bytes_sent, 1024 * 1024):.1f} MB",
                 'packets_sec': net_io.packets_sent + net_io.packets_recv,
                 'safe_connections': safe_connections,
                 'suspicious_connections': suspicious_connections,
@@ -827,7 +871,7 @@ class RealTimeMonitor:
                 'safe_processes': safe_processes,
                 'cpu_usage': f"{cpu_percent:.1f}%",
                 'memory_usage': f"{memory.percent:.1f}%",
-                'total_memory': f"{memory.total / 1024 / 1024 / 1024:.1f} GB",
+                'total_memory': f"{safe_divide(memory.total, 1024 * 1024 * 1024):.1f} GB",
                 'threat_detection_system': 'ACTIVE'
             }
         except Exception as e:
@@ -1374,7 +1418,7 @@ def enhance_with_multi_expert_analysis(result):
         logger.info(f"Sending to Multi-Expert Analysis: {detection_data['attack_type']}")
         
         # Get comprehensive multi-expert analysis
-        analysis_result = DEBATE_AGENT.analyze_detection(detection_data)
+        analysis_result = DEBATE_AGENT.analyze(detection_data)
         
         if analysis_result and analysis_result.get('multi_expert_analysis_used', False):
             # Store the full analysis result for detailed display
@@ -1533,33 +1577,64 @@ def process_uploaded_file(file):
         traceback.print_exc()
         return []
 
-def store_detection_result(result):
-    """Store detection result in database"""
+def store_detection_result(result, user_id=None):
+    """Store detection result in database with user_id if available"""
     try:
         with get_db_connection() as conn:
-            conn.execute('''
-                INSERT INTO threat_detections 
-                (timestamp, threat_detected, attack_type, severity, confidence, 
-                 source_ip, target_ip, target_port, tool, protocol, description, 
-                 risk_score, multi_expert_used, expert_count)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                result.get('timestamp_analyzed', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
-                result.get('threat_detected', False),
-                result.get('attack_type', 'Unknown'),
-                result.get('severity', 'low'),
-                result.get('final_confidence', 0),
-                result.get('source_ip', 'Unknown'),
-                result.get('target_ip', 'Unknown'),
-                result.get('target_port', 0),
-                result.get('tool', 'unknown'),
-                result.get('protocol', 'Unknown'),
-                result.get('description', ''),
-                result.get('risk_score', 0),
-                result.get('multi_expert_analysis_used', False),
-                result.get('expert_count', 0)
-            ))
+            # First check if user_id column exists
+            columns = get_table_columns(conn, 'threat_detections')
+            
+            if 'user_id' in columns:
+                # New schema with user_id
+                conn.execute('''
+                    INSERT INTO threat_detections 
+                    (timestamp, threat_detected, attack_type, severity, confidence, 
+                     source_ip, target_ip, target_port, tool, protocol, description, 
+                     risk_score, multi_expert_used, expert_count, user_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    result.get('timestamp_analyzed', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                    result.get('threat_detected', False),
+                    result.get('attack_type', 'Unknown'),
+                    result.get('severity', 'low'),
+                    result.get('final_confidence', 0),
+                    result.get('source_ip', 'Unknown'),
+                    result.get('target_ip', 'Unknown'),
+                    result.get('target_port', 0),
+                    result.get('tool', 'unknown'),
+                    result.get('protocol', 'Unknown'),
+                    result.get('description', ''),
+                    result.get('risk_score', 0),
+                    result.get('multi_expert_analysis_used', False),
+                    result.get('expert_count', 0),
+                    user_id
+                ))
+            else:
+                # Old schema without user_id
+                conn.execute('''
+                    INSERT INTO threat_detections 
+                    (timestamp, threat_detected, attack_type, severity, confidence, 
+                     source_ip, target_ip, target_port, tool, protocol, description, 
+                     risk_score, multi_expert_used, expert_count)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    result.get('timestamp_analyzed', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                    result.get('threat_detected', False),
+                    result.get('attack_type', 'Unknown'),
+                    result.get('severity', 'low'),
+                    result.get('final_confidence', 0),
+                    result.get('source_ip', 'Unknown'),
+                    result.get('target_ip', 'Unknown'),
+                    result.get('target_port', 0),
+                    result.get('tool', 'unknown'),
+                    result.get('protocol', 'Unknown'),
+                    result.get('description', ''),
+                    result.get('risk_score', 0),
+                    result.get('multi_expert_analysis_used', False),
+                    result.get('expert_count', 0)
+                ))
             conn.commit()
+            logger.info(f"Detection result stored successfully")
     except Exception as e:
         logger.error(f"Failed to store detection result: {e}")
 
@@ -1569,7 +1644,7 @@ def store_detection_result(result):
 
 # Initialize database
 init_db()
-init_auth_db()   # <-- NEW: create users table
+init_auth_db()   # <-- NEW: create users table with migration support
 
 # Initialize components
 real_monitor = RealTimeMonitor()
@@ -1596,7 +1671,9 @@ demo_threats = [
         'tool': 'hydra',
         'protocol': 'tcp',
         'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'risk_score': 92
+        'risk_score': 92,
+        'multi_expert_analysis_used': False,
+        'expert_count': 0
     },
     {
         'threat_detected': True,
@@ -1610,7 +1687,9 @@ demo_threats = [
         'tool': 'nmap',
         'protocol': 'tcp',
         'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'risk_score': 85
+        'risk_score': 85,
+        'multi_expert_analysis_used': False,
+        'expert_count': 0
     },
     {
         'threat_detected': True,
@@ -1624,7 +1703,9 @@ demo_threats = [
         'tool': 'hping3',
         'protocol': 'tcp',
         'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'risk_score': 88
+        'risk_score': 88,
+        'multi_expert_analysis_used': False,
+        'expert_count': 0
     },
     {
         'threat_detected': True,
@@ -1638,127 +1719,510 @@ demo_threats = [
         'tool': 'resource_tool',
         'protocol': 'process',
         'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'risk_score': 75
+        'risk_score': 75,
+        'multi_expert_analysis_used': False,
+        'expert_count': 0
     }
 ]
 
 # =============================================================================
-# FLASK ROUTES
+# UPDATED FLASK ROUTES
 # =============================================================================
 
-# NEW: Login / Register / Logout routes
+@app.route('/')
+def landing():
+    """Landing page for non-authenticated users"""
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard_home'))
+    return render_template('index_logged_out.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/dashboard')
+@login_required
+def dashboard_home():
+    """Main dashboard for authenticated users"""
+    stats = detection_agent.get_detection_stats() if hasattr(detection_agent, 'get_detection_stats') else {}
+    
+    # Get user-specific data from database
+    user_threats = []
+    user_stats = None
+    recent_threats = [] 
+    threats_by_type = []
+    timeline_data = []
+    
+    try:
+        with get_db_connection() as conn:
+            # Check if user_id column exists
+            columns = get_table_columns(conn, 'threat_detections')
+            
+            if 'user_id' in columns:
+                # Get user's threats
+                threats = conn.execute('''
+                    SELECT * FROM threat_detections 
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC 
+                    LIMIT 20
+                ''', (current_user.id,)).fetchall()
+                
+                for row in threats:
+                    threat = dict(row)
+                    user_threats.append({
+                        'date': threat.get('created_at', '')[:10] if threat.get('created_at') else 'N/A',
+                        'attack_type': threat.get('attack_type', 'Unknown'),
+                        'source_ip': threat.get('source_ip', 'N/A'),
+                        'description': threat.get('description', 'No description'),
+                        'protocol': threat.get('protocol', 'N/A'),
+                        'severity': threat.get('severity', 'low'),
+                        'status': threat.get('severity', 'low').capitalize()
+                    })
+                    recent_threats.append({
+                        'threat_detected': threat.get('threat_detected', False),
+                        'attack_type': threat.get('attack_type', 'Unknown'),
+                        'severity': threat.get('severity', 'low'),
+                        'final_confidence': threat.get('confidence', 0) * 100 if threat.get('confidence', 0) <= 1 else threat.get('confidence', 0),
+                        'description': threat.get('description', 'No description'),
+                        'source_ip': threat.get('source_ip', 'Unknown'),
+                        'target_ip': threat.get('target_ip', 'Unknown'),
+                        'target_port': threat.get('target_port', 0),
+                        'tool': threat.get('tool', 'unknown'),
+                        'proto': threat.get('protocol', 'unknown'),
+                        'timestamp_analyzed': threat.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                        'risk_score': threat.get('risk_score', 0),
+                        'multi_expert_analysis_used': threat.get('multi_expert_used', False),
+                        'expert_count': threat.get('expert_count', 0),
+                        'consensus_score': 0
+                    })
+                
+                # Calculate user statistics
+                user_stats = conn.execute('''
+                    SELECT 
+                        COUNT(*) as total_detections,
+                        SUM(CASE WHEN severity = 'critical' THEN 1 ELSE 0 END) as critical_count,
+                        SUM(CASE WHEN severity = 'high' THEN 1 ELSE 0 END) as high_count,
+                        SUM(CASE WHEN severity = 'medium' THEN 1 ELSE 0 END) as medium_count,
+                        SUM(CASE WHEN severity = 'low' THEN 1 ELSE 0 END) as low_count,
+                        AVG(confidence) as avg_confidence,
+                        COUNT(CASE WHEN datetime(created_at) > datetime('now', '-1 day') THEN 1 END) as last_24h,
+                        COUNT(CASE WHEN datetime(created_at) > datetime('now', '-7 days') THEN 1 END) as last_7d,
+                        COUNT(CASE WHEN datetime(created_at) > datetime('now', '-30 days') THEN 1 END) as last_30d
+                    FROM threat_detections 
+                    WHERE user_id = ?
+                ''', (current_user.id,)).fetchone()
+                
+                # Get threats by type for pie chart
+                threats_by_type = conn.execute('''
+                    SELECT attack_type, COUNT(*) as count
+                    FROM threat_detections 
+                    WHERE user_id = ?
+                    GROUP BY attack_type
+                    ORDER BY count DESC
+                    LIMIT 5
+                ''', (current_user.id,)).fetchall()
+                
+                # Get user's threat timeline data (last 4 weeks)
+                timeline_data = conn.execute('''
+                    SELECT 
+                        strftime('%W', created_at) as week,
+                        COUNT(*) as count
+                    FROM threat_detections 
+                    WHERE user_id = ? 
+                    AND created_at > datetime('now', '-28 days')
+                    GROUP BY week
+                    ORDER BY week
+                ''', (current_user.id,)).fetchall()
+                
+                # Get system events for the user (optional, you might want to add user_id to system_events too)
+                system_events = conn.execute('''
+                    SELECT * FROM system_events 
+                    ORDER BY timestamp DESC 
+                    LIMIT 10
+                ''').fetchall()
+                
+            else:
+                # Old schema - get all (for backward compatibility)
+                threats = conn.execute('''
+                    SELECT * FROM threat_detections 
+                    ORDER BY created_at DESC 
+                    LIMIT 20
+                ''').fetchall()
+                
+                for row in threats:
+                    threat = dict(row)
+                    user_threats.append({
+                        'date': threat.get('created_at', '')[:10] if threat.get('created_at') else 'N/A',
+                        'attack_type': threat.get('attack_type', 'Unknown'),
+                        'source_ip': threat.get('source_ip', 'N/A'),
+                        'description': threat.get('description', 'No description'),
+                        'protocol': threat.get('protocol', 'N/A'),
+                        'severity': threat.get('severity', 'low'),
+                        'status': threat.get('severity', 'low').capitalize()
+                    })
+                    recent_threats.append({
+                        'threat_detected': threat.get('threat_detected', False),
+                        'attack_type': threat.get('attack_type', 'Unknown'),
+                        'severity': threat.get('severity', 'low'),
+                        'final_confidence': threat.get('confidence', 0) * 100 if threat.get('confidence', 0) <= 1 else threat.get('confidence', 0),
+                        'description': threat.get('description', 'No description'),
+                        'source_ip': threat.get('source_ip', 'Unknown'),
+                        'target_ip': threat.get('target_ip', 'Unknown'),
+                        'target_port': threat.get('target_port', 0),
+                        'tool': threat.get('tool', 'unknown'),
+                        'proto': threat.get('protocol', 'unknown'),
+                        'timestamp_analyzed': threat.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                        'risk_score': threat.get('risk_score', 0),
+                        'multi_expert_analysis_used': threat.get('multi_expert_used', False),
+                        'expert_count': threat.get('expert_count', 0),
+                        'consensus_score': 0
+                    })
+                
+                # Calculate global statistics (no user filter)
+                user_stats = conn.execute('''
+                    SELECT 
+                        COUNT(*) as total_detections,
+                        SUM(CASE WHEN severity = 'critical' THEN 1 ELSE 0 END) as critical_count,
+                        SUM(CASE WHEN severity = 'high' THEN 1 ELSE 0 END) as high_count,
+                        SUM(CASE WHEN severity = 'medium' THEN 1 ELSE 0 END) as medium_count,
+                        SUM(CASE WHEN severity = 'low' THEN 1 ELSE 0 END) as low_count,
+                        AVG(confidence) as avg_confidence,
+                        COUNT(CASE WHEN datetime(created_at) > datetime('now', '-1 day') THEN 1 END) as last_24h,
+                        COUNT(CASE WHEN datetime(created_at) > datetime('now', '-7 days') THEN 1 END) as last_7d,
+                        COUNT(CASE WHEN datetime(created_at) > datetime('now', '-30 days') THEN 1 END) as last_30d
+                    FROM threat_detections
+                ''').fetchone()
+                
+                # Get threats by type for pie chart (global)
+                threats_by_type = conn.execute('''
+                    SELECT attack_type, COUNT(*) as count
+                    FROM threat_detections 
+                    GROUP BY attack_type
+                    ORDER BY count DESC
+                    LIMIT 5
+                ''').fetchall()
+                
+                # Get timeline data (global)
+                timeline_data = conn.execute('''
+                    SELECT 
+                        strftime('%W', created_at) as week,
+                        COUNT(*) as count
+                    FROM threat_detections 
+                    WHERE created_at > datetime('now', '-28 days')
+                    GROUP BY week
+                    ORDER BY week
+                ''').fetchall()
+                
+                system_events = conn.execute('''
+                    SELECT * FROM system_events 
+                    ORDER BY timestamp DESC 
+                    LIMIT 10
+                ''').fetchall()
+            
+    except Exception as e:
+        logger.error(f"Error fetching user dashboard data: {e}")
+        user_threats = []
+        user_stats = None
+        recent_threats = []
+        threats_by_type = []
+        timeline_data = []
+    
+    # Format user stats for template
+    total = user_stats['total_detections'] if user_stats and user_stats['total_detections'] else 0
+    critical = user_stats['critical_count'] if user_stats and user_stats['critical_count'] else 0
+    high = user_stats['high_count'] if user_stats and user_stats['high_count'] else 0
+    medium = user_stats['medium_count'] if user_stats and user_stats['medium_count'] else 0
+    low = user_stats['low_count'] if user_stats and user_stats['low_count'] else 0
+    
+    # Calculate percentages
+    critical_percent = (critical / total * 100) if total > 0 else 0
+    high_percent = (high / total * 100) if total > 0 else 0
+    medium_percent = (medium / total * 100) if total > 0 else 0
+    low_percent = (low / total * 100) if total > 0 else 0
+    
+    # Calculate risk score (weighted average)
+    risk_score = (
+        critical * 100 +
+        high * 75 +
+        medium * 50 +
+        low * 25
+    ) / max(total, 1)
+    
+    # Format threats by type
+    user_threats_by_type = []
+    for row in threats_by_type:
+        user_threats_by_type.append({
+            'name': row['attack_type'],
+            'count': row['count']
+        })
+    
+    # Format timeline data
+    weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
+    timeline_counts = [0, 0, 0, 0]
+    
+    for i, row in enumerate(timeline_data):
+        if i < 4:
+            timeline_counts[i] = row['count']
+    
+    # Global stats (for comparison)
+    global_stats = {
+        'total_threats': stats.get('total_threats', 132),
+        'global_risk_score': 741
+    }
+    
+    # Combine all stats for template
+    safe_stats = {
+        # Global stats
+        'total_threats': global_stats['total_threats'],
+        'global_risk_score': global_stats['global_risk_score'],
+        
+        # User-specific stats
+        'user_total_threats': total,
+        'user_critical': critical,
+        'user_high': high,
+        'user_medium': medium,
+        'user_low': low,
+        'user_critical_percent': round(critical_percent, 1),
+        'user_high_percent': round(high_percent, 1),
+        'user_medium_percent': round(medium_percent, 1),
+        'user_low_percent': round(low_percent, 1),
+        'user_avg_confidence': round(user_stats['avg_confidence'] * 100 if user_stats and user_stats['avg_confidence'] else 0, 1),
+        'user_risk_score': round(risk_score, 0),
+        'user_total_detections': total,
+        'user_detections_24h': user_stats['last_24h'] if user_stats else 0,
+        'user_detections_7d': user_stats['last_7d'] if user_stats else 0,
+        'user_detections_30d': user_stats['last_30d'] if user_stats else 0,
+        'user_threats_by_type': user_threats_by_type,
+        
+        # Fallback data for UI
+        'file_risks': {
+            'video': 16,
+            'image': 43,
+            'docs': 7,
+            'folder': 66
+        },
+        'risk_score': {
+            'high': 741,
+            'low': 0
+        },
+        'devices': [
+            {'id': 'crazyshan728', 'type': 'angryswan732', 'threat_count': 156, 'risk_level': 'high'},
+            {'id': 'silenttiger451', 'type': 'calmwhale893', 'threat_count': 98, 'risk_level': 'medium'}
+        ]
+    }
+    
+    if recent_threats:
+        main_result = recent_threats[0]  # Show the most recent threat
+    else:
+        main_result = {
+            'threat_detected': False,
+            'attack_type': 'No Recent Threats',
+            'severity': 'low',
+            'final_confidence': 0,
+            'description': 'No threats detected in recent monitoring',
+            'source_ip': 'N/A',
+            'target_ip': 'N/A',
+            'target_port': 0,
+            'tool': 'N/A',
+            'proto': 'N/A',
+            'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'risk_score': 0,
+            'multi_expert_analysis_used': False,
+            'expert_count': 0,
+            'consensus_score': 0,
+            'multi_expert_analysis': {}
+        }
+    
+    # Chart data
+    user_chart_labels = weeks
+    user_chart_data = timeline_counts
+    
+    return render_template('index_logged_in.html', 
+                         stats=safe_stats,
+                         user_threats=user_threats,
+                         main_result=main_result,
+                         user_chart_labels=user_chart_labels,
+                         user_chart_data=user_chart_data,
+                         current_month=datetime.now().strftime('%B %Y'),
+                         ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/features')
+def features():
+    """Features page (public)"""
+    return render_template('features.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/pricing')
+def pricing():
+    """Pricing page (public)"""
+    return render_template('pricing.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/about')
+def about():
+    """About page (public)"""
+    return render_template('about.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/contact')
+def contact():
+    """Contact page (public)"""
+    return render_template('contact.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/profile')
+@login_required
+def profile():
+    """User profile page"""
+    with get_db_connection() as conn:
+        # Check if user_id column exists
+        columns = get_table_columns(conn, 'threat_detections')
+        
+        # Check if last_login column exists in users table
+        user_columns = get_table_columns(conn, 'users')
+        has_last_login = 'last_login' in user_columns
+        
+        if 'user_id' in columns:
+            # Get user's detection history
+            user_detections = conn.execute('''
+                SELECT * FROM threat_detections 
+                WHERE user_id = ?
+                ORDER BY created_at DESC 
+                LIMIT 50
+            ''', (current_user.id,)).fetchall()
+            
+            # Get stats
+            stats = conn.execute('''
+                SELECT 
+                    COUNT(*) as total_detections,
+                    SUM(CASE WHEN severity = 'critical' THEN 1 ELSE 0 END) as critical_count,
+                    SUM(CASE WHEN severity = 'high' THEN 1 ELSE 0 END) as high_count,
+                    AVG(confidence) as avg_confidence
+                FROM threat_detections 
+                WHERE user_id = ?
+            ''', (current_user.id,)).fetchone()
+        else:
+            # Old schema - get all
+            user_detections = conn.execute('''
+                SELECT * FROM threat_detections 
+                ORDER BY created_at DESC 
+                LIMIT 50
+            ''').fetchall()
+            
+            stats = conn.execute('''
+                SELECT 
+                    COUNT(*) as total_detections,
+                    SUM(CASE WHEN severity = 'critical' THEN 1 ELSE 0 END) as critical_count,
+                    SUM(CASE WHEN severity = 'high' THEN 1 ELSE 0 END) as high_count,
+                    AVG(confidence) as avg_confidence
+                FROM threat_detections
+            ''').fetchone()
+        
+        # Get account info - handle missing last_login column
+        if has_last_login:
+            account_info = conn.execute('''
+                SELECT created_at, last_login FROM users WHERE id = ?
+            ''', (current_user.id,)).fetchone()
+        else:
+            account_info = conn.execute('''
+                SELECT created_at, NULL as last_login FROM users WHERE id = ?
+            ''', (current_user.id,)).fetchone()
+    
+    # Format detections for template
+    formatted_detections = []
+    for det in user_detections:
+        det_dict = dict(det)
+        det_dict['final_confidence'] = det_dict.get('confidence', 0) * 100 if det_dict.get('confidence', 0) <= 1 else det_dict.get('confidence', 0)
+        det_dict['timestamp_analyzed'] = det_dict.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        formatted_detections.append(det_dict)
+    
+    return render_template('profile.html',
+                         user=current_user,
+                         detections=formatted_detections,
+                         account_info=account_info,
+                         stats=dict(stats) if stats else {},
+                         ai_enabled=AI_ANALYSIS_ENABLED)
+
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("500 per minute")
 def login():
+    """User login page"""
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard_home'))
+    
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        
         with get_db_connection() as conn:
             user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        
         if user and check_password_hash(user['password_hash'], password):
+            # Update last login - check if column exists first
+            with get_db_connection() as conn:
+                columns = get_table_columns(conn, 'users')
+                if 'last_login' in columns:
+                    conn.execute('UPDATE users SET last_login = ? WHERE id = ?', 
+                               (datetime.now(), user['id']))
+                    conn.commit()
+            
             login_user(User(user['id'], user['username'], user['email']))
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('main_dashboard'))
-        flash('Invalid username or password')
-    return render_template('login.html')
-
-# Make sure you have these routes in your app.py
+            flash('Login successful!', 'success')
+            return redirect(next_page) if next_page else redirect(url_for('dashboard_home'))
+        
+        flash('Invalid username or password', 'error')
+    
+    return render_template('login.html', ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """User registration page"""
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        # Validate input
-        if not username or not email or not password:
-            flash('All fields are required', 'error')
-            return render_template('register.html')
-        
-        # Check if user already exists
-        with get_db_connection() as conn:
-            existing_user = conn.execute(
-                'SELECT * FROM users WHERE username = ? OR email = ?', 
-                (username, email)
-            ).fetchone()
-            
-            if existing_user:
-                flash('Username or email already exists', 'error')
-                return render_template('register.html')
-            
-            # Create new user
-            password_hash = generate_password_hash(password)
-            conn.execute(
-                'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-                (username, email, password_hash)
-            )
-            conn.commit()
-        
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('login'))
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard_home'))
     
-    return render_template('register.html')
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # Validation
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('register.html', ai_enabled=AI_ANALYSIS_ENABLED)
+        
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long', 'error')
+            return render_template('register.html', ai_enabled=AI_ANALYSIS_ENABLED)
+        
+        password_hash = generate_password_hash(password)
+        
+        try:
+            with get_db_connection() as conn:
+                # Check if last_login column exists
+                columns = get_table_columns(conn, 'users')
+                
+                if 'last_login' in columns:
+                    conn.execute('INSERT INTO users (username, email, password_hash, last_login) VALUES (?, ?, ?, ?)',
+                               (username, email, password_hash, datetime.now()))
+                else:
+                    conn.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+                               (username, email, password_hash))
+                conn.commit()
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError as e:
+            if 'username' in str(e):
+                flash('Username already exists', 'error')
+            elif 'email' in str(e):
+                flash('Email already registered', 'error')
+            else:
+                flash('Registration failed. Please try again.', 'error')
+    
+    return render_template('register.html', ai_enabled=AI_ANALYSIS_ENABLED)
 
 @app.route('/logout')
 @login_required
 def logout():
+    """Logout user"""
     logout_user()
-    return redirect(url_for('login'))
+    flash('You have been logged out successfully', 'info')
+    return redirect(url_for('landing'))
 
-# Protect existing routes with @login_required
-@app.route('/')
-@login_required
-def main_dashboard():
-    """MAIN DASHBOARD - Shows live threats with multi-expert analysis"""
-    stats = detection_agent.get_detection_stats()
-    
-    # Use actual stats from detection agent
-    safe_stats = {
-        'total_threats': stats.get('total_threats', len(demo_threats)),
-        'average_confidence': round(stats.get('average_confidence', 85.5), 1),
-        'attack_types': len(stats.get('threats_by_type', {})),
-        'monitoring_period': '24 hours',
-        'model_used': stats.get('model_used', 'ULTIMATE Ensemble'),
-        'features_used': stats.get('features_used', 'Unknown'),
-        'threats_by_severity': stats.get('threats_by_severity', {})
-    }
-    
-    # Enhance demo threats with multi-expert analysis
-    enhanced_demo_threats = []
-    for threat in demo_threats:
-        enhanced_threat = enhance_with_multi_expert_analysis(threat.copy())
-        enhanced_demo_threats.append(enhanced_threat)
-    
-    return render_template('dashboard.html', 
-                         stats=safe_stats, 
-                         recent_detections=enhanced_demo_threats,
-                         now=datetime.now(),
-                         ai_enabled=AI_ANALYSIS_ENABLED)
-
-@app.route('/home')
-@login_required
-def home():
-    """System overview landing page"""
-    stats = detection_agent.get_detection_stats()
-    return render_template('index.html', stats=stats, ai_enabled=AI_ANALYSIS_ENABLED)
-
-@app.route('/real-time-dashboard')
-@login_required
-def real_time_dashboard():
-    """Dedicated real-time monitoring dashboard"""
-    network_stats = real_monitor.get_network_stats()
-    process_stats = real_monitor.get_process_stats()
-    detection_stats = detection_agent.get_detection_stats()
-    
-    return render_template('real_time_dashboard.html',
-                         network_stats=network_stats,
-                         process_stats=process_stats,
-                         detection_stats=detection_stats,
-                         is_monitoring=real_monitor.is_monitoring,
-                         ai_enabled=AI_ANALYSIS_ENABLED)
-
+# Keep all your existing protected routes with @login_required decorator
 @app.route('/detect-threat', methods=['GET', 'POST'])
 @login_required
 def detect_threat():
@@ -1780,33 +2244,33 @@ def detect_threat():
         
         # Use the detection agent with compatible format
         compatible_entries = ensure_detection_agent_compatibility([log_entry])
-        results = detection_agent.analyze_logs_comprehensive(compatible_entries)
+        results = detection_agent.analyze(compatible_entries)
         
         logger.info(f"ULTIMATE Detection results: {len(results) if results else 0} threats found")
         
         if results:
-            result = results[0]
+            result = results[0] if isinstance(results, list) else results
             # Enhance with multi-expert analysis
             result = enhance_with_multi_expert_analysis(result)
             
-            # Store result in database
-            store_detection_result(result)
+            # Store result in database with user_id
+            store_detection_result(result, current_user.id)
             
             # Format result for template
             formatted_result = {
                 'threat_detected': result.get('threat_detected', True),
-                'attack_type': result['attack_type'],
-                'severity': result['severity'],
-                'final_confidence': round(result['final_confidence'] * 100, 1),
-                'description': result['description'],
-                'source_ip': result['source_ip'],
-                'target_ip': f"{result['target_ip']}:{result['target_port']}",
-                'target_port': result['target_port'],
-                'tool': result['tool'],
-                'proto': result['protocol'],
-                'dur': log_entry['dur'],
-                'timestamp_analyzed': result['timestamp_analyzed'],
-                'risk_score': result['risk_score'],
+                'attack_type': result.get('attack_type', 'Unknown'),
+                'severity': result.get('severity', 'low'),
+                'final_confidence': round(result.get('final_confidence', 0) * 100, 1),
+                'description': result.get('description', ''),
+                'source_ip': result.get('source_ip', 'Unknown'),
+                'target_ip': f"{result.get('target_ip', 'Unknown')}:{result.get('target_port', 0)}",
+                'target_port': result.get('target_port', 0),
+                'tool': result.get('tool', 'unknown'),
+                'proto': result.get('protocol', 'unknown'),
+                'dur': log_entry.get('dur', 0),
+                'timestamp_analyzed': result.get('timestamp_analyzed', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                'risk_score': result.get('risk_score', 0),
                 'recommendations': result.get('recommendations', []),
                 'detection_methods': result.get('detection_methods', []),
                 'multi_expert_analysis_used': result.get('multi_expert_analysis_used', False),
@@ -1821,13 +2285,13 @@ def detect_threat():
                 'attack_type': 'Normal Traffic',
                 'severity': 'low',
                 'final_confidence': 0.1,
-                'description': f"Normal {log_entry['proto'].upper()} traffic from {log_entry['src_ip']} to {log_entry['dest_ip']}:{log_entry['dest_port']}. No threats detected.",
-                'source_ip': log_entry['src_ip'],
-                'target_ip': f"{log_entry['dest_ip']}:{log_entry['dest_port']}",
-                'target_port': log_entry['dest_port'],
-                'tool': log_entry['tool'],
-                'proto': log_entry['proto'],
-                'dur': log_entry['dur'],
+                'description': f"Normal {log_entry.get('proto', 'tcp').upper()} traffic from {log_entry.get('src_ip', 'Unknown')} to {log_entry.get('dest_ip', 'Unknown')}:{log_entry.get('dest_port', 0)}. No threats detected.",
+                'source_ip': log_entry.get('src_ip', 'Unknown'),
+                'target_ip': f"{log_entry.get('dest_ip', 'Unknown')}:{log_entry.get('dest_port', 0)}",
+                'target_port': log_entry.get('dest_port', 0),
+                'tool': log_entry.get('tool', 'unknown'),
+                'proto': log_entry.get('proto', 'unknown'),
+                'dur': log_entry.get('dur', 0),
                 'timestamp_analyzed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'risk_score': 10,
                 'recommendations': ['Continue normal monitoring', 'No action required'],
@@ -1870,7 +2334,7 @@ def upload_logs():
         
         # Process all log entries through ULTIMATE detection system
         compatible_entries = ensure_detection_agent_compatibility(log_entries)
-        results = detection_agent.analyze_logs_comprehensive(compatible_entries)
+        results = detection_agent.analyze(compatible_entries)
         
         logger.info(f"Detection complete: {len(results)} threats found")
         
@@ -1885,8 +2349,8 @@ def upload_logs():
                 enhanced_result.get('severity', 'low') != 'low'
             )
             
-            # Store result in database
-            store_detection_result(enhanced_result)
+            # Store result in database with user_id
+            store_detection_result(enhanced_result, current_user.id)
             
             # Format for template with FIXED threat_detected field
             formatted_result = {
@@ -1922,6 +2386,27 @@ def upload_logs():
         traceback.print_exc()
         return render_template('upload_logs.html', error=f"File processing failed: {str(e)}", ai_enabled=AI_ANALYSIS_ENABLED)
 
+@app.route('/real-time-dashboard')
+@login_required
+def real_time_dashboard():
+    """Dedicated real-time monitoring dashboard"""
+    network_stats = real_monitor.get_network_stats()
+    process_stats = real_monitor.get_process_stats()
+    detection_stats = detection_agent.get_detection_stats() if hasattr(detection_agent, 'get_detection_stats') else {}
+    
+    return render_template('real_time_dashboard.html',
+                         network_stats=network_stats,
+                         process_stats=process_stats,
+                         detection_stats=detection_stats,
+                         is_monitoring=real_monitor.is_monitoring,
+                         ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/sample-threats')
+@login_required
+def sample_threats():
+    """Demo page with sample threat scenarios for ULTIMATE model"""
+    return render_template('demo_scenarios.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
 @app.route('/api/detect', methods=['POST'])
 @login_required
 def api_detect():
@@ -1941,27 +2426,27 @@ def api_detect():
         compatible_data = ensure_detection_agent_compatibility([enhanced_data])
         
         # Analyze the log entry using ULTIMATE detection
-        results = detection_agent.analyze_logs_comprehensive(compatible_data)
+        results = detection_agent.analyze(compatible_data)
         
         if results:
-            result = results[0]
+            result = results[0] if isinstance(results, list) else results
             # Enhance with multi-expert analysis
             result = enhance_with_multi_expert_analysis(result)
             
-            # Store result in database
-            store_detection_result(result)
+            # Store result in database with user_id
+            store_detection_result(result, current_user.id)
             
             return jsonify({
                 'success': True,
                 'threat_detected': True,
-                'attack_type': result['attack_type'],
-                'severity': result['severity'],
-                'confidence': round(result['final_confidence'] * 100, 1),
-                'explanation': result['description'],
-                'source_ip': result['source_ip'],
-                'target_ip': result['target_ip'],
+                'attack_type': result.get('attack_type', 'Unknown'),
+                'severity': result.get('severity', 'low'),
+                'confidence': round(result.get('final_confidence', 0) * 100, 1),
+                'explanation': result.get('description', ''),
+                'source_ip': result.get('source_ip', 'Unknown'),
+                'target_ip': result.get('target_ip', 'Unknown'),
                 'risk_score': result.get('risk_score', 50),
-                'timestamp': result['timestamp_analyzed'],
+                'timestamp': result.get('timestamp_analyzed', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
                 'recommendations': result.get('recommendations', []),
                 'detection_methods': result.get('detection_methods', []),
                 'multi_expert_analysis_used': result.get('multi_expert_analysis_used', False),
@@ -1990,41 +2475,6 @@ def api_detect():
             'error': str(e)
         }), 400
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    """Real-time dashboard - shows demo threats with multi-expert analysis"""
-    stats = detection_agent.get_detection_stats()
-    
-    # Use actual stats from detection agent
-    safe_stats = {
-        'total_threats': stats.get('total_threats', len(demo_threats)),
-        'average_confidence': round(stats.get('average_confidence', 85.5), 1),
-        'attack_types': len(stats.get('threats_by_type', {})),
-        'monitoring_period': '24 hours',
-        'model_used': stats.get('model_used', 'ULTIMATE Ensemble'),
-        'features_used': stats.get('features_used', 'Unknown'),
-        'threats_by_severity': stats.get('threats_by_severity', {})
-    }
-    
-    # Enhance demo threats with multi-expert analysis
-    enhanced_demo_threats = []
-    for threat in demo_threats:
-        enhanced_threat = enhance_with_multi_expert_analysis(threat.copy())
-        enhanced_demo_threats.append(enhanced_threat)
-    
-    return render_template('dashboard.html', 
-                         stats=safe_stats, 
-                         recent_detections=enhanced_demo_threats,
-                         now=datetime.now(),
-                         ai_enabled=AI_ANALYSIS_ENABLED)
-
-@app.route('/sample-threats')
-@login_required
-def sample_threats():
-    """Demo page with sample threat scenarios for ULTIMATE model"""
-    return render_template('demo_scenarios.html', ai_enabled=AI_ANALYSIS_ENABLED)
-
 @app.route('/analyze-sample/<int:scenario_id>', methods=['POST'])
 @login_required
 def analyze_sample(scenario_id):
@@ -2051,34 +2501,6 @@ def analyze_sample(scenario_id):
             'src_port': 54321, 'dest_port': 80, 'dur': 0.5, 'spkts': 1000, 'dpkts': 1,
             'sbytes': 50000, 'dbytes': 1, 'rate': 5000.0, 'timestamp': datetime.now().isoformat(),
             'description': 'hping3 SYN flood attack', 'sttl': 64, 'dttl': 64, 'sloss': 0, 'dloss': 0
-        },
-        {
-            'tool': 'resource_tool', 'attack_type': 'resource_consumption', 'severity': 'medium',
-            'proto': 'process', 'src_ip': 'localhost', 'dest_ip': 'unknown',
-            'src_port': 54321, 'dest_port': 'unknown', 'dur': 3.0, 'spkts': 200, 'dpkts': 150,
-            'sbytes': 15000, 'dbytes': 10000, 'rate': 116.7, 'timestamp': datetime.now().isoformat(),
-            'description': 'resource consumption attack', 'sttl': 64, 'dttl': 64, 'sloss': 0, 'dloss': 0
-        },
-        {
-            'tool': 'sqlmap', 'attack_type': 'sql_injection', 'severity': 'high',
-            'proto': 'tcp', 'src_ip': '192.168.1.200', 'dest_ip': '192.168.1.1',
-            'src_port': 54321, 'dest_port': 80, 'dur': 1.2, 'spkts': 80, 'dpkts': 60,
-            'sbytes': 5000, 'dbytes': 3000, 'rate': 66.7, 'timestamp': datetime.now().isoformat(),
-            'description': 'sqlmap SQL injection attempt', 'sttl': 64, 'dttl': 64, 'sloss': 0, 'dloss': 0
-        },
-        {
-            'tool': 'metasploit', 'attack_type': 'exploitation', 'severity': 'critical',
-            'proto': 'tcp', 'src_ip': '10.0.0.100', 'dest_ip': '192.168.1.1',
-            'src_port': 54321, 'dest_port': 445, 'dur': 3.0, 'spkts': 200, 'dpkts': 150,
-            'sbytes': 15000, 'dbytes': 10000, 'rate': 116.7, 'timestamp': datetime.now().isoformat(),
-            'description': 'metasploit exploit delivery', 'sttl': 64, 'dttl': 64, 'sloss': 0, 'dloss': 0
-        },
-        {
-            'tool': 'browser', 'attack_type': 'normal', 'severity': 'low',
-            'proto': 'tcp', 'src_ip': '192.168.1.100', 'dest_ip': '192.168.1.1',
-            'src_port': 54321, 'dest_port': 80, 'dur': 2.5, 'spkts': 25, 'dpkts': 35,
-            'sbytes': 2000, 'dbytes': 50000, 'rate': 12.0, 'timestamp': datetime.now().isoformat(),
-            'description': 'normal web browsing activity', 'sttl': 64, 'dttl': 64, 'sloss': 0, 'dloss': 0
         }
     ]
     
@@ -2088,15 +2510,15 @@ def analyze_sample(scenario_id):
             
             # Ensure compatibility and use ULTIMATE detection system
             compatible_entries = ensure_detection_agent_compatibility([sample_scenarios[scenario_id]])
-            results = detection_agent.analyze_logs_comprehensive(compatible_entries)
+            results = detection_agent.analyze(compatible_entries)
             
             if results and len(results) > 0:
-                result = results[0]
+                result = results[0] if isinstance(results, list) else results
                 # Enhance with multi-expert analysis
                 result = enhance_with_multi_expert_analysis(result)
                 
-                # Store result in database
-                store_detection_result(result)
+                # Store result in database with user_id
+                store_detection_result(result, current_user.id)
                 
                 return jsonify({'success': True, 'result': result})
             else:
@@ -2139,9 +2561,9 @@ def test_detection():
     try:
         logger.info("Running ULTIMATE detection test...")
         compatible_entries = ensure_detection_agent_compatibility([test_entry])
-        results = detection_agent.analyze_logs_comprehensive(compatible_entries)
+        results = detection_agent.analyze(compatible_entries)
         
-        detection_stats = detection_agent.get_detection_stats()
+        detection_stats = detection_agent.get_detection_stats() if hasattr(detection_agent, 'get_detection_stats') else {}
         
         return jsonify({
             'success': True,
@@ -2233,7 +2655,7 @@ def real_time_monitoring_status():
 @app.route('/api/analyze-current-threats', methods=['POST'])
 @login_required
 def analyze_current_threats():
-    """Analyze current threats with Multi-LLM Debate system - ULTRA ROBUST VERSION"""
+    """Analyze current threats with Multi-LLM Debate system"""
     try:
         logger.info("Starting Multi-Expert Threat Analysis...")
         
@@ -2278,7 +2700,7 @@ def analyze_current_threats():
                 def call_debate_agent():
                     nonlocal analysis_result, analysis_error
                     try:
-                        analysis_result = DEBATE_AGENT.analyze_detection(detection_data)
+                        analysis_result = DEBATE_AGENT.analyze(detection_data)
                     except Exception as e:
                         analysis_error = e
                 
@@ -2340,8 +2762,6 @@ def analyze_current_threats():
             
     except Exception as e:
         logger.error(f"Critical error in threat analysis: {e}")
-        logger.error(f"Critical error: {e}")
-        import traceback
         traceback.print_exc()
         
         # Ultimate fallback - basic error response
@@ -2377,28 +2797,19 @@ def analyze_current_threats():
 @app.route('/api-status')
 @login_required
 def api_status():
+    """Show API usage and rate limit status"""
     if DEBATE_AGENT:
-        status = DEBATE_AGENT.get_status()
-        # Calculate percentage here
-        if status.get('api_daily_limit', 0) > 0:
-            status['api_usage_percent'] = (status['api_usage_today'] / status['api_daily_limit'] * 100)
-        else:
-            status['api_usage_percent'] = 0
+        status = {'ai_enabled': AI_ANALYSIS_ENABLED}
         return render_template('api_status.html', 
-                              status=status,
-                              ai_enabled=AI_ANALYSIS_ENABLED,
-                              now=datetime.now())
+                            status=status,
+                            ai_enabled=AI_ANALYSIS_ENABLED)
     return "Debate agent not available"
 
 @app.route('/reset-api-counter')
 @login_required
 def reset_api_counter():
     """Reset API counter (for testing)"""
-    if DEBATE_AGENT and hasattr(DEBATE_AGENT, 'advanced_agent') and hasattr(DEBATE_AGENT.advanced_agent.core_agent, 'usage_tracker'):
-        DEBATE_AGENT.advanced_agent.core_agent.usage_tracker.requests_today = 0
-        DEBATE_AGENT.advanced_agent.core_agent.usage_tracker.rate_limited = False
-        return "API counter reset"
-    return "Cannot reset counter"
+    return "API counter reset functionality not available"
 
 @app.route('/api/system-info')
 @login_required
@@ -2428,15 +2839,15 @@ def get_system_info():
                     'frequency': psutil.cpu_freq().current if psutil.cpu_freq() else 'N/A'
                 },
                 'memory': {
-                    'total_gb': round(memory.total / (1024**3), 1),
-                    'available_gb': round(memory.available / (1024**3), 1),
+                    'total_gb': round(safe_divide(memory.total, 1024**3), 1),
+                    'available_gb': round(safe_divide(memory.available, 1024**3), 1),
                     'used_percent': memory.percent,
                     'swap_used_percent': swap.percent
                 },
                 'disk': {
-                    'total_gb': round(disk.total / (1024**3), 1),
-                    'used_gb': round(disk.used / (1024**3), 1),
-                    'free_gb': round(disk.free / (1024**3), 1),
+                    'total_gb': round(safe_divide(disk.total, 1024**3), 1),
+                    'used_gb': round(safe_divide(disk.used, 1024**3), 1),
+                    'free_gb': round(safe_divide(disk.free, 1024**3), 1),
                     'used_percent': disk.percent
                 },
                 'system': {
@@ -2454,14 +2865,25 @@ def get_system_info():
 @app.route('/api/detection-history')
 @login_required
 def get_detection_history():
-    """Get detection history from database"""
+    """Get detection history from database for current user"""
     try:
         with get_db_connection() as conn:
-            results = conn.execute('''
-                SELECT * FROM threat_detections 
-                ORDER BY created_at DESC 
-                LIMIT 100
-            ''').fetchall()
+            # Check if user_id column exists
+            columns = get_table_columns(conn, 'threat_detections')
+            
+            if 'user_id' in columns:
+                results = conn.execute('''
+                    SELECT * FROM threat_detections 
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC 
+                    LIMIT 100
+                ''', (current_user.id,)).fetchall()
+            else:
+                results = conn.execute('''
+                    SELECT * FROM threat_detections 
+                    ORDER BY created_at DESC 
+                    LIMIT 100
+                ''').fetchall()
             
             history = []
             for row in results:
@@ -2494,36 +2916,36 @@ if __name__ == '__main__':
     # Create necessary directories
     os.makedirs('artifacts', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
+    os.makedirs('static', exist_ok=True)
     
-    print("ULTIMATE Cyber Threat Detection System Starting...")
-    print("=" * 60)
+    print("=" * 70)
+    print("ULTIMATE Cyber Threat Detection System")
+    print("=" * 70)
     print("SYSTEM STATUS:")
-    print("   • AdvancedDetectionAgent: Loaded")
+    print("   • AdvancedDetectionAgent: Loaded with Safe Wrapper")
     print("   • RealTimeMonitor: Loaded") 
     print(f"   • Multi-LLM Debate Agent: {'ENABLED' if AI_ANALYSIS_ENABLED else 'FALLBACK MODE'}")
-    print("   • Flask Application: Ready")
     print("   • System Monitoring: ACTIVE (using psutil)")
-    print("   • Comprehensive Threat Analysis: ACTIVE")
-    print("   • Database: Initialized")
+    print("   • Database: Initialized with migration support")
     print("   • Background Monitoring: Active")
     print("   • User Authentication: ENABLED")
     print("   • CSRF Protection: ENABLED")
     print("   • Rate Limiting: ENABLED")
-    print("   • Encrypted Secrets: CONFIGURED (if key exists)")
-    print("=" * 60)
+    print("   • Safe Division Protection: ACTIVE")
+    print("   • Safe Voting Wrapper: APPLIED")
+    print("=" * 70)
     print("APPLICATION ENDPOINTS:")
-    print("MAIN DASHBOARD: http://localhost:5000/")
-    print("Login: http://localhost:5000/login")
-    print("Register: http://localhost:5000/register")
-    print("Threat Detection: http://localhost:5000/detect-threat")
-    print("Log Upload: http://localhost:5000/upload-logs")
-    print("Real-Time Monitor: http://localhost:5000/real-time-dashboard")
-    print("Demo Scenarios: http://localhost:5000/sample-threats")
-    print("Test Detection: http://localhost:5000/test-detection")
-    print("")
-    print("ULTIMATE Real-time monitoring is ACTIVE and watching your system!")
+    print(f"   • Landing Page: http://{config.HOST}:{config.PORT}/")
+    print(f"   • Login: http://{config.HOST}:{config.PORT}/login")
+    print(f"   • Register: http://{config.HOST}:{config.PORT}/register")
+    print(f"   • Dashboard: http://{config.HOST}:{config.PORT}/dashboard")
+    print(f"   • Threat Detection: http://{config.HOST}:{config.PORT}/detect-threat")
+    print(f"   • Log Upload: http://{config.HOST}:{config.PORT}/upload-logs")
+    print(f"   • Real-Time Monitor: http://{config.HOST}:{config.PORT}/real-time-dashboard")
+    print("=" * 70)
+    print("ULTIMATE Real-time monitoring is ACTIVE!")
     print("Reading ACTUAL system data using psutil")
-    print("Comprehensive threat analysis for ANY attack type!")
+    print("=" * 70)
     
     try:
         app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)

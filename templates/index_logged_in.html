@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield AI – Threat Detection</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #636e72;
+            --dark: #0a0e27;
+            --darker: #0f1419;
+            --light: #ffffff;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
+            --critical: #c0392b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ========== PERSISTENT MINI HEADER ========== */
+        .persistent-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mini-logo {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .mini-logo i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .mini-logo span {
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mini-logo:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,212,255,0.3);
+        }
+
+        .hamburger-btn {
+            width: 52px;
+            height: 52px;
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            color: var(--primary);
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .hamburger-btn:hover {
+            border-color: var(--primary);
+            background: rgba(0,212,255,0.15);
+            transform: scale(1.05);
+        }
+
+        .hamburger-btn::after {
+            content: "Ctrl + B";
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            border: 1px solid var(--card-border);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 2200;
+        }
+
+        .hamburger-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+            top: 70px;
+        }
+
+        /* ========== SLIDE-OUT NAVIGATION ========== */
+        .menu-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--card-border);
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+        }
+
+        .menu-wrapper.open {
+            transform: translateX(0);
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .menu-logo {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-logo i {
+            color: var(--primary);
+            -webkit-text-fill-color: initial;
+        }
+
+        .close-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--light);
+            font-size: 1.6rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .close-btn:hover {
+            background: rgba(0,212,255,0.2);
+            border-color: var(--primary);
+        }
+
+        .menu-nav {
+            flex: 1;
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-nav .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .menu-nav .nav-btn i {
+            width: 24px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .menu-nav .nav-btn:hover {
+            background: rgba(0,212,255,0.15);
+            transform: translateX(6px);
+            border-color: var(--primary);
+        }
+
+        .menu-nav .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+        }
+
+        .menu-nav .nav-btn.active i {
+            color: white;
+        }
+
+        .menu-footer {
+            padding: 20px;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.85rem;
+            opacity: 0.6;
+            text-align: center;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Main content adjustment */
+        .main-content {
+            max-width: 1400px;
+            margin: 30px auto 40px;
+            padding: 20px 25px;
+        }
+
+        @media (min-width: 769px) {
+            .main-content {
+                margin-left: 100px;
+            }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.85;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .model-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.8em;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+            gap: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 968px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: 0.5s;
+        }
+        
+        .card:hover::before {
+            left: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.3);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .section-header h2 {
+            font-size: 1.8em;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Quick Presets */
+        .quick-presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .preset-btn {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.2);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .tab {
+            padding: 14px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .tab:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: rgba(0, 0, 0, 0.5) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300d4ff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") no-repeat right 14px center;
+            background-size: 16px;
+        }
+        
+        select option {
+            background: var(--darker);
+            color: white;
+            padding: 12px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 5px;
+            color: var(--primary);
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: var(--darker);
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--primary);
+            font-size: 0.9em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 16px 30px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+            border: 1px solid var(--card-border);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--primary);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-buttons .btn {
+            width: auto;
+            min-width: 180px;
+        }
+
+        /* Results Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+            text-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .risk-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .risk-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .risk-critical { background: var(--critical); width: 95%; }
+        .risk-high { background: var(--error); width: 75%; }
+        .risk-medium { background: var(--warning); width: 50%; }
+        .risk-low { background: var(--success); width: 25%; }
+        .risk-normal { background: var(--primary); width: 10%; }
+
+        /* Result Card */
+        .result-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border-left: 5px solid;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .threat-critical { border-left-color: var(--critical); background: rgba(192, 57, 43, 0.1); }
+        .threat-high { border-left-color: var(--error); background: rgba(255, 71, 87, 0.1); }
+        .threat-medium { border-left-color: var(--warning); background: rgba(255, 165, 2, 0.1); }
+        .threat-low { border-left-color: var(--success); background: rgba(0, 255, 136, 0.1); }
+        .threat-normal { border-left-color: var(--primary); background: rgba(0, 212, 255, 0.1); }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .threat-badge {
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85em;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .badge-critical { background: var(--critical); color: white; }
+        .badge-high { background: var(--error); color: white; }
+        .badge-medium { background: var(--warning); color: #000; }
+        .badge-low { background: var(--success); color: white; }
+        .badge-normal { background: var(--primary); color: white; }
+        
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .result-details {
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .result-details p {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .explanation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            line-height: 1.6;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .recommendations {
+            margin-top: 20px;
+        }
+        
+        .recommendations ul {
+            padding-left: 20px;
+        }
+        
+        .recommendations li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 10px;
+            list-style-type: none;
+        }
+        
+        .recommendations li::before {
+            content: "•";
+            color: var(--primary);
+            font-weight: bold;
+            position: absolute;
+            left: -15px;
+        }
+
+        /* Multi-Expert Analysis */
+        .multi-expert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, var(--ai-purple), var(--primary));
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .expert-analysis-section {
+            margin: 25px 0;
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .expert-analysis-header {
+            background: linear-gradient(135deg, var(--ai-purple), var(--primary-dark));
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .expert-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .expert-analyses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .expert-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid;
+            transition: transform 0.3s ease;
+        }
+        
+        .expert-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .expert-card.network { border-left-color: #3498db; }
+        .expert-card.threat { border-left-color: #e74c3c; }
+        .expert-card.incident { border-left-color: #f39c12; }
+        
+        .expert-role {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .expert-specialty {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .expert-confidence {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+        
+        .consensus-section {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px;
+        }
+        
+        .consensus-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--success);
+        }
+        
+        .solution-roadmap {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px;
+        }
+        
+        .roadmap-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+
+        /* Error and Success Messages */
+        .error, .success {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+        }
+        
+        .error {
+            background: rgba(255, 71, 87, 0.1);
+            border-left-color: var(--error);
+        }
+        
+        .success {
+            background: rgba(0, 255, 136, 0.1);
+            border-left-color: var(--success);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .persistent-header {
+                top: 15px;
+                left: 15px;
+            }
+            
+            .mini-logo {
+                padding: 8px 15px;
+            }
+            
+            .mini-logo span {
+                font-size: 1rem;
+            }
+            
+            .hamburger-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+            
+            .main-content {
+                margin-left: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-presets {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+            }
+            
+            .nav-buttons .btn {
+                width: 100%;
+            }
+            
+            .expert-analyses-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PERSISTENT MINI HEADER -->
+    <div class="persistent-header">
+        <a href="{{ url_for('landing') }}" class="mini-logo" style="text-decoration: none;">
+            <i class="fas fa-shield-alt"></i>
+            <span>CyberShield AI</span>
+        </a>
+        <button class="hamburger-btn" id="menuToggle" aria-label="Open menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- SLIDE-OUT MENU -->
+    <div class="menu-wrapper" id="slideMenu">
+        <div class="menu-header">
+            <span class="menu-logo"><i class="fas fa-shield-alt"></i> CyberShield AI</span>
+            <button class="close-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="menu-nav">
+            <a href="{{ url_for('landing') }}" class="nav-btn"><i class="fas fa-home"></i> Home</a>
+            <a href="{{ url_for('features') }}" class="nav-btn"><i class="fas fa-star"></i> Features</a>
+            <a href="{{ url_for('about') }}" class="nav-btn"><i class="fas fa-info-circle"></i> About</a>
+            <a href="{{ url_for('architecture') }}" class="nav-btn"><i class="fas fa-sitemap"></i> Architecture</a>
+            <a href="{{ url_for('research') }}" class="nav-btn"><i class="fas fa-flask"></i> Research</a>
+            <a href="{{ url_for('documentation') }}" class="nav-btn"><i class="fas fa-book"></i> Docs</a>
+            <a href="{{ url_for('contact') }}" class="nav-btn"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="{{ url_for('dashboard_home') }}" class="nav-btn"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a href="{{ url_for('detect_threat') }}" class="nav-btn active"><i class="fas fa-search"></i> Threat Detection</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+        <div class="menu-footer"><i class="fas fa-arrow-circle-left"></i> slide or Ctrl+B</div>
+    </div>
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <h1>
+                <i class="fas fa-search"></i> Advanced Threat Detection 
+                <span class="model-badge">
+                    <i class="fas fa-brain"></i> MULTI-EXPERT AI
+                </span>
+            </h1>
+            <p>Comprehensive network activity analysis with Multi-LLM Debate AI-powered threat intelligence</p>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left: Input Form -->
+            <div class="card">
+                <div class="section-header">
+                    <h2><i class="fas fa-cogs"></i> Threat Analysis</h2>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="quick-presets">
+                    <button type="button" class="preset-btn" onclick="loadPreset('normal')">
+                        <i class="fas fa-check-circle"></i> Normal Traffic
+                    </button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('portscan')">
+                        <i class="fas fa-search"></i> Port Scan
+                    </button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('bruteforce')">
+                        <i class="fas fa-bomb"></i> Brute Force
+                    </button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('dos')">
+                        <i class="fas fa-wave-square"></i> DDoS Attack
+                    </button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('webscan')">
+                        <i class="fas fa-spider"></i> Web Scan
+                    </button>
+                    <button type="button" class="preset-btn" onclick="loadPreset('malware')">
+                        <i class="fas fa-skull"></i> Malware
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('basic')">
+                        <i class="fas fa-sliders-h"></i> Basic Analysis
+                    </button>
+                    <button class="tab" onclick="switchTab('advanced')">
+                        <i class="fas fa-chart-line"></i> Advanced Analysis
+                    </button>
+                    <button class="tab" onclick="switchTab('custom')">
+                        <i class="fas fa-code"></i> Custom Log
+                    </button>
+                </div>
+
+                <!-- Basic Analysis Tab -->
+                <div id="basic" class="tab-content active">
+                    <form method="POST" id="threatForm" action="{{ url_for('detect_threat') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tool">
+                                    <i class="fas fa-tools"></i> Tool/Application:
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">The application or tool generating this network activity</span>
+                                    </span>
+                                </label>
+                                <select id="tool" name="tool" required>
+                                    <option value="unknown">Unknown</option>
+                                    <option value="nmap">Nmap (Port Scanner)</option>
+                                    <option value="hydra">Hydra (Brute Force)</option>
+                                    <option value="gobuster">Gobuster (Web Scanner)</option>
+                                    <option value="hping3">Hping3 (DoS Tool)</option>
+                                    <option value="nikto">Nikto (Web Scanner)</option>
+                                    <option value="metasploit">Metasploit (Exploitation)</option>
+                                    <option value="wireshark">Wireshark (Sniffer)</option>
+                                    <option value="nessus">Nessus (Vulnerability Scanner)</option>
+                                    <option value="burpsuite">Burp Suite (Web Proxy)</option>
+                                    <option value="sqlmap">SQLmap (SQL Injection)</option>
+                                    <option value="john">John the Ripper (Password Crack)</option>
+                                    <option value="aircrack">Aircrack-ng (Wireless)</option>
+                                    <option value="browser">Web Browser</option>
+                                    <option value="email_client">Email Client</option>
+                                    <option value="normal_activity">Normal Activity</option>
+                                    <option value="custom">Custom Tool</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="attack_category">
+                                    <i class="fas fa-bug"></i> Attack Category:
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Type of attack or network activity</span>
+                                    </span>
+                                </label>
+                                <select id="attack_category" name="attack_category" required>
+                                    <option value="unknown">Unknown</option>
+                                    <option value="reconnaissance">Reconnaissance</option>
+                                    <option value="bruteforce">Brute Force</option>
+                                    <option value="dos">Denial of Service</option>
+                                    <option value="web_scanning">Web Scanning</option>
+                                    <option value="malware">Malware Activity</option>
+                                    <option value="data_exfiltration">Data Exfiltration</option>
+                                    <option value="lateral_movement">Lateral Movement</option>
+                                    <option value="privilege_escalation">Privilege Escalation</option>
+                                    <option value="phishing">Phishing</option>
+                                    <option value="ransomware">Ransomware</option>
+                                    <option value="botnet">Botnet Activity</option>
+                                    <option value="crypto_mining">Cryptocurrency Mining</option>
+                                    <option value="normal">Normal Traffic</option>
+                                    <option value="suspicious">Suspicious Activity</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="severity">
+                                    <i class="fas fa-exclamation-triangle"></i> Severity Level:
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Initial assessment of threat severity</span>
+                                    </span>
+                                </label>
+                                <select id="severity" name="severity" required>
+                                    <option value="info">Info</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="protocol">
+                                    <i class="fas fa-network-wired"></i> Protocol:
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Network protocol used</span>
+                                    </span>
+                                </label>
+                                <select id="protocol" name="protocol" required>
+                                    <option value="tcp" selected>TCP</option>
+                                    <option value="udp">UDP</option>
+                                    <option value="icmp">ICMP</option>
+                                    <option value="http">HTTP</option>
+                                    <option value="https">HTTPS</option>
+                                    <option value="ssh">SSH</option>
+                                    <option value="ftp">FTP</option>
+                                    <option value="dns">DNS</option>
+                                    <option value="dhcp">DHCP</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="source_ip">
+                                    <i class="fas fa-laptop"></i> Source IP:
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Originating IP address</span>
+                                    </span>
+                                </label>
+                                <input type="text" id="source_ip" name="source_ip" value="192.168.1.100" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="target_ip">
+                                    <i class="fas fa-server"></i> Target IP:
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Destination IP address</span>
+                                    </span>
+                                </label>
+                                <input type="text" id="target_ip" name="target_ip" value="192.168.1.1" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target_port">
+                                    <i class="fas fa-plug"></i> Target Port:
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Destination port number</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="target_port" name="target_port" value="80" min="1" max="65535" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dur">
+                                    <i class="fas fa-clock"></i> Duration (seconds):
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Connection duration</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="dur" name="dur" value="0.5" step="0.1" min="0" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">
+                            <i class="fas fa-rocket"></i> Analyze with Multi-Expert AI
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Advanced Analysis Tab -->
+                <div id="advanced" class="tab-content">
+                    <form method="POST" id="advancedForm" action="{{ url_for('detect_threat') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="spkts"><i class="fas fa-box"></i> Source Packets:</label>
+                                <input type="number" id="spkts" name="spkts" value="100" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dpkts"><i class="fas fa-box"></i> Destination Packets:</label>
+                                <input type="number" id="dpkts" name="dpkts" value="0" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sbytes"><i class="fas fa-database"></i> Source Bytes:</label>
+                                <input type="number" id="sbytes" name="sbytes" value="5000" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dbytes"><i class="fas fa-database"></i> Destination Bytes:</label>
+                                <input type="number" id="dbytes" name="dbytes" value="0" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rate"><i class="fas fa-tachometer-alt"></i> Packet Rate (pps):</label>
+                                <input type="number" id="rate" name="rate" value="500.5" step="0.1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sttl"><i class="fas fa-hourglass-half"></i> Source TTL:</label>
+                                <input type="number" id="sttl" name="sttl" value="64" min="1" max="255" required>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="source_ip" value="192.168.1.100">
+                        <input type="hidden" name="target_ip" value="192.168.1.1">
+                        <input type="hidden" name="target_port" value="80">
+                        <input type="hidden" name="protocol" value="tcp">
+                        <input type="hidden" name="dur" value="0.1">
+                        <input type="hidden" name="tool" value="custom_tool">
+                        <input type="hidden" name="attack_category" value="suspicious">
+                        <input type="hidden" name="severity" value="medium">
+
+                        <button type="submit" class="btn">
+                            <i class="fas fa-microscope"></i> Advanced Multi-Expert Analysis
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Custom Log Tab -->
+                <div id="custom" class="tab-content">
+                    <form method="POST" id="customForm" action="{{ url_for('detect_threat') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group">
+                            <label for="custom_log">
+                                <i class="fas fa-file-code"></i> Paste Log Data (JSON format):
+                            </label>
+                            <textarea id="custom_log" name="custom_log" placeholder='{"tool": "nmap", "attack_type": "reconnaissance", "severity": "high", "proto": "tcp", "src_ip": "192.168.1.100", "dest_ip": "192.168.1.1", "dest_port": 22, "dur": 0.1, "spkts": 150, "dpkts": 0, "sbytes": 600, "dbytes": 0}'></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="log_format"><i class="fas fa-file-alt"></i> Log Format:</label>
+                            <select id="log_format" name="log_format">
+                                <option value="json">JSON</option>
+                                <option value="csv">CSV</option>
+                                <option value="syslog">Syslog</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn">
+                            <i class="fas fa-chart-bar"></i> Analyze with Multi-Expert AI
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Results Section -->
+            <div class="card">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-bar"></i> Multi-Expert Analysis Results</h2>
+                    {% if ai_enabled %}
+                    <span class="multi-expert-badge">
+                        <i class="fas fa-robot"></i> 
+                        {% if result and result.multi_expert_analysis_used %}
+                            {{ result.expert_count }}
+                        {% else %}
+                            3
+                        {% endif %} Experts Active
+                    </span>
+                    {% endif %}
+                </div>
+                
+                {% if error %}
+                <div class="error">
+                    <h3><i class="fas fa-times-circle"></i> Analysis Error</h3>
+                    <p>{{ error }}</p>
+                </div>
+                {% endif %}
+
+                {% if result %}
+                <!-- Risk Assessment -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ "%.1f"|format(result.final_confidence) }}%</div>
+                        <div class="stat-label">Confidence</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ result.risk_score }}</div>
+                        <div class="stat-label">Risk Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ result.attack_type }}</div>
+                        <div class="stat-label">Attack Type</div>
+                    </div>
+                    {% if result.multi_expert_analysis_used %}
+                    <div class="stat-card">
+                        <div class="stat-number">{{ result.expert_count }}</div>
+                        <div class="stat-label">Experts</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Risk Meter -->
+                <div class="risk-meter">
+                    <div class="risk-fill risk-{{ result.severity }}"></div>
+                </div>
+
+                <!-- Multi-Expert Analysis Section -->
+                {% if result.multi_expert_analysis_used and result.multi_expert_analysis %}
+                <div class="expert-analysis-section">
+                    <div class="expert-analysis-header">
+                        <h3 style="margin: 0; color: white;">
+                            <i class="fas fa-users"></i> Multi-Expert Consensus Analysis
+                        </h3>
+                        <div class="expert-count">
+                            <i class="fas fa-user-shield"></i> {{ result.expert_count }} Security Experts
+                            <span class="confidence-badge" style="margin-left: 10px;">
+                                <i class="fas fa-chart-line"></i> Consensus: {{ "%.1f"|format(result.consensus_score * 100) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Individual Expert Analyses -->
+                    {% if result.multi_expert_analysis.expert_analyses %}
+                    <div class="expert-analyses-grid">
+                        {% for expert in result.multi_expert_analysis.expert_analyses %}
+                        <div class="expert-card {% if 'network' in expert.specialty.lower() %}network{% elif 'threat' in expert.specialty.lower() %}threat{% else %}incident{% endif %}">
+                            <div class="expert-role">
+                                <i class="fas fa-user-tie"></i> {{ expert.model_name }}
+                            </div>
+                            <div class="expert-specialty">
+                                <i class="fas fa-star"></i> {{ expert.specialty }}
+                            </div>
+                            <div style="font-size: 0.9em; margin-bottom: 10px;">
+                                {{ expert.analysis }}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="expert-confidence">
+                                    <i class="fas fa-bullseye"></i> {{ "%.0f"|format(expert.confidence * 100) }}%
+                                </span>
+                                <span style="font-size: 0.8em; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 10px;">
+                                    {{ expert.risk_level }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Consensus Analysis -->
+                    {% if result.multi_expert_analysis.consensus_analysis %}
+                    <div class="consensus-section">
+                        <div class="consensus-header">
+                            <i class="fas fa-handshake"></i>
+                            <h4 style="margin: 0;">Unified Expert Consensus</h4>
+                        </div>
+                        <p>{{ result.multi_expert_analysis.consensus_analysis }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Solution Roadmap -->
+                    {% if result.multi_expert_analysis.implementation_steps %}
+                    <div class="solution-roadmap">
+                        <div class="roadmap-header">
+                            <i class="fas fa-road"></i>
+                            <h4 style="margin: 0;">Implementation Roadmap</h4>
+                        </div>
+                        <ul style="padding-left: 20px;">
+                            {% for step in result.multi_expert_analysis.implementation_steps %}
+                            <li>{{ step }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Main Result Card -->
+                <div class="result-card threat-{{ result.severity }}">
+                    <div class="result-header">
+                        <h3>
+                            {% if result.threat_detected %}
+                                <i class="fas fa-exclamation-triangle"></i> {{ result.attack_type }}
+                            {% else %}
+                                <i class="fas fa-check-circle"></i> Normal Activity
+                            {% endif %}
+                        </h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="threat-badge badge-{{ result.severity }}">
+                                <i class="fas fa-{% if result.severity == 'critical' %}skull{% elif result.severity == 'high' %}exclamation-triangle{% elif result.severity == 'medium' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                {{ result.severity|upper }}
+                            </span>
+                            <span class="confidence-badge">
+                                <i class="fas fa-chart-line"></i>
+                                {{ "%.1f"|format(result.final_confidence) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="result-details">
+                        <p><strong><i class="fas fa-tools"></i> Tool:</strong> {{ result.tool }}</p>
+                        <p><strong><i class="fas fa-laptop"></i> Source:</strong> {{ result.source_ip }}</p>
+                        <p><strong><i class="fas fa-server"></i> Target:</strong> {{ result.target_ip }}</p>
+                        <p><strong><i class="fas fa-plug"></i> Port:</strong> {{ result.target_port }}</p>
+                        <p><strong><i class="fas fa-network-wired"></i> Protocol:</strong> {{ result.proto }}</p>
+                        <p><strong><i class="fas fa-clock"></i> Duration:</strong> {{ result.dur }} seconds</p>
+                    </div>
+
+                    <div class="explanation">
+                        <h4><i class="fas fa-robot"></i> Threat Intelligence:</h4>
+                        <p>{{ result.description }}</p>
+                        {% if result.get('multi_expert_analysis_used') %}
+                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                            <i class="fas fa-users"></i> Multi-Expert Consensus Analysis Applied
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if result.recommendations %}
+                    <div class="recommendations">
+                        <h4><i class="fas fa-shield-alt"></i> Security Recommendations:</h4>
+                        <ul>
+                            {% for recommendation in result.recommendations %}
+                            <li>{{ recommendation }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div style="margin-top: 20px; opacity: 0.7; font-size: 0.9em;">
+                        <i class="fas fa-clock"></i> Detected at: {{ result.timestamp_analyzed }}
+                    </div>
+                </div>
+                {% else %}
+                <div class="result-card threat-normal">
+                    <div style="text-align: center; padding: 40px;">
+                        <i class="fas fa-clipboard-list" style="font-size: 4em; color: var(--primary); margin-bottom: 15px; opacity: 0.8;"></i>
+                        <h3 style="color: var(--primary); margin-bottom: 10px;">Ready for Multi-Expert Analysis</h3>
+                        <p style="font-size: 1.1em; opacity: 0.9; margin-bottom: 20px;">Fill out the form and click "Analyze" to get comprehensive threat intelligence.</p>
+                        <p style="font-size: 0.9em; opacity: 0.7;">The system uses advanced Multi-LLM Debate algorithms to provide detailed threat analysis.</p>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">3</div>
+                            <div class="stat-label">Expert Models</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">&lt;15s</div>
+                            <div class="stat-label">Response Time</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">95%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="nav-buttons">
+                    <a href="{{ url_for('dashboard_home') }}" class="btn btn-secondary"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="{{ url_for('real_time_dashboard') }}" class="btn btn-secondary"><i class="fas fa-chart-line"></i> Live Monitor</a>
+                    <a href="{{ url_for('upload_logs') }}" class="btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const menu = document.getElementById('slideMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const openBtn = document.getElementById('menuToggle');
+        const closeBtn = document.getElementById('closeMenuBtn');
+
+        function openMenu() { menu.classList.add('open'); overlay.classList.add('active'); }
+        function closeMenu() { menu.classList.remove('open'); overlay.classList.remove('active'); }
+
+        openBtn.addEventListener('click', openMenu);
+        closeBtn.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                menu.classList.contains('open') ? closeMenu() : openMenu();
+            }
+            if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+        });
+
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function loadPreset(preset) {
+            const presets = {
+                normal: {
+                    tool: 'normal_activity',
+                    attack_category: 'normal',
+                    severity: 'low',
+                    protocol: 'tcp',
+                    source_ip: '192.168.1.100',
+                    target_ip: '192.168.1.1',
+                    target_port: '443',
+                    dur: '2.5',
+                    spkts: '25',
+                    dpkts: '35',
+                    sbytes: '2000',
+                    dbytes: '50000'
+                },
+                portscan: {
+                    tool: 'nmap',
+                    attack_category: 'reconnaissance',
+                    severity: 'high',
+                    protocol: 'tcp',
+                    source_ip: '10.0.2.15',
+                    target_ip: '192.168.1.1',
+                    target_port: '22',
+                    dur: '0.1',
+                    spkts: '150',
+                    dpkts: '0',
+                    sbytes: '600',
+                    dbytes: '0'
+                },
+                bruteforce: {
+                    tool: 'hydra',
+                    attack_category: 'bruteforce',
+                    severity: 'critical',
+                    protocol: 'tcp',
+                    source_ip: '10.0.0.50',
+                    target_ip: '192.168.1.1',
+                    target_port: '22',
+                    dur: '2.5',
+                    spkts: '500',
+                    dpkts: '500',
+                    sbytes: '25000',
+                    dbytes: '25000'
+                },
+                dos: {
+                    tool: 'hping3',
+                    attack_category: 'dos',
+                    severity: 'critical',
+                    protocol: 'tcp',
+                    source_ip: '172.16.0.25',
+                    target_ip: '192.168.1.1',
+                    target_port: '80',
+                    dur: '0.05',
+                    spkts: '1000',
+                    dpkts: '0',
+                    sbytes: '50000',
+                    dbytes: '0'
+                },
+                webscan: {
+                    tool: 'gobuster',
+                    attack_category: 'web_scanning',
+                    severity: 'medium',
+                    protocol: 'http',
+                    source_ip: '192.168.1.150',
+                    target_ip: '192.168.1.1',
+                    target_port: '80',
+                    dur: '1.2',
+                    spkts: '200',
+                    dpkts: '180',
+                    sbytes: '8000',
+                    dbytes: '12000'
+                },
+                malware: {
+                    tool: 'unknown',
+                    attack_category: 'malware',
+                    severity: 'high',
+                    protocol: 'tcp',
+                    source_ip: '192.168.1.77',
+                    target_ip: '45.33.32.156',
+                    target_port: '443',
+                    dur: '5.0',
+                    spkts: '50',
+                    dpkts: '45',
+                    sbytes: '15000',
+                    dbytes: '8000'
+                }
+            };
+
+            const presetData = presets[preset];
+            if (presetData) {
+                for (const [key, value] of Object.entries(presetData)) {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = value;
+                    }
+                }
+                switchTab('basic');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTab('basic');
+            
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Multi-Expert Analysis...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

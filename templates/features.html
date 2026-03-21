@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield AI - Features</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #636e72;
+            --dark: #0a0e27;
+            --darker: #0f1419;
+            --light: #ffffff;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .main-header {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 50px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0,212,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(168,85,247,0.1));
+            border-radius: 30px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .page-header h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-header p {
+            font-size: 1.2em;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        /* AI Status Badge */
+        .ai-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+        
+        .ai-enabled {
+            background: rgba(0,255,136,0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .ai-disabled {
+            background: rgba(255,71,87,0.2);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        
+        /* Feature Categories */
+        .feature-category {
+            margin: 60px 0;
+        }
+        
+        .category-title {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--card-border);
+            padding-bottom: 15px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2.5em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .feature-card p {
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        
+        .feature-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .feature-tag {
+            padding: 5px 12px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: var(--primary);
+            border: 1px solid var(--card-border);
+        }
+        
+        /* ML Models Section */
+        .ml-models {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 60px 0;
+            border: 1px solid var(--card-border);
+        }
+        
+        .models-title {
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .model-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .model-card {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+        }
+        
+        .model-card h4 {
+            font-size: 1.5em;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .model-metric {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .model-desc {
+            opacity: 0.8;
+            font-size: 0.95em;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            padding: 60px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(168,85,247,0.1));
+            border-radius: 30px;
+            margin: 60px 0;
+        }
+        
+        .cta-section h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .cta-section p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 1px solid var(--card-border);
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2.5em; }
+            .nav-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    CyberShield AI
+                </div>
+                <div class="nav-links">
+                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
+                    <a href="{{ url_for('features') }}" class="nav-btn active">Features</a>
+                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
+                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
+                        <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                        <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <section class="page-header">
+            <h1>Powerful Features for Modern Security</h1>
+            <p>Discover how CyberShield AI's advanced machine learning protects your infrastructure</p>
+            <span class="ai-status {% if ai_enabled %}ai-enabled{% else %}ai-disabled{% endif %}" style="margin-top: 20px;">
+                {% if ai_enabled %}🤖 Multi-Expert AI: ACTIVE{% else %}⚠️ Multi-Expert AI: FALLBACK MODE{% endif %}
+            </span>
+        </section>
+
+        <!-- ML Models Section -->
+        <div class="ml-models">
+            <h2 class="models-title">Machine Learning Ensemble</h2>
+            <div class="model-comparison">
+                <div class="model-card">
+                    <h4>XGBoost</h4>
+                    <div class="model-metric">82.4%</div>
+                    <div class="model-desc">Gradient boosting framework optimized for speed and performance</div>
+                </div>
+                <div class="model-card">
+                    <h4>LightGBM</h4>
+                    <div class="model-metric">81.7%</div>
+                    <div class="model-desc">Lightweight gradient boosting with leaf-wise tree growth</div>
+                </div>
+                <div class="model-card">
+                    <h4>Ensemble</h4>
+                    <div class="model-metric">87.0%</div>
+                    <div class="model-desc">Weighted voting combining both models for superior accuracy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detection Features -->
+        <div class="feature-category">
+            <h2 class="category-title">🛡️ Threat Detection</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-search"></i></div>
+                    <h3>Real-Time Monitoring</h3>
+                    <p>Live network connection and process monitoring with instant threat detection using psutil integration.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">Live Data</span>
+                        <span class="feature-tag">psutil</span>
+                        <span class="feature-tag">Real-time</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                    <h3>Multi-Expert AI Analysis</h3>
+                    <p>Three specialized AI experts analyze threats from network, intelligence, and incident response perspectives.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">LLM</span>
+                        <span class="feature-tag">Debate System</span>
+                        <span class="feature-tag">Consensus</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-microchip"></i></div>
+                    <h3>XGBoost + LightGBM Ensemble</h3>
+                    <p>State-of-the-art machine learning ensemble with 82.4% accuracy and 87% detection rate.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">ML</span>
+                        <span class="feature-tag">Ensemble</span>
+                        <span class="feature-tag">High Accuracy</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Automated Response</h3>
+                    <p>Intelligent alerting and automated countermeasures with IP blocking and process killing capabilities.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">Auto-block</span>
+                        <span class="feature-tag">Alerts</span>
+                        <span class="feature-tag">Remediation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Analysis Features -->
+        <div class="feature-category">
+            <h2 class="category-title">📊 Data Analysis</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-database"></i></div>
+                    <h3>Multi-Source Analysis</h3>
+                    <p>Analyze data from UNSW-NB15, CIC-IDS2017, and real attack logs simultaneously.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">UNSW-NB15</span>
+                        <span class="feature-tag">CIC-IDS2017</span>
+                        <span class="feature-tag">Custom Logs</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Advanced Analytics</h3>
+                    <p>Comprehensive dashboards with real-time threat visualization and historical analysis.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">Charts</span>
+                        <span class="feature-tag">Trends</span>
+                        <span class="feature-tag">Statistics</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-file-upload"></i></div>
+                    <h3>Batch Processing</h3>
+                    <p>Upload and analyze multiple log files in JSON, CSV, or plain text formats.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">JSON</span>
+                        <span class="feature-tag">CSV</span>
+                        <span class="feature-tag">Batch</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-network-wired"></i></div>
+                    <h3>Feature Engineering</h3>
+                    <p>Extract 40+ network flow features including duration, protocol type, service, and host-based metrics.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">40+ Features</span>
+                        <span class="feature-tag">Auto-extract</span>
+                        <span class="feature-tag">Normalized</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Features -->
+        <div class="feature-category">
+            <h2 class="category-title">⚙️ System Integration</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-user-lock"></i></div>
+                    <h3>User Authentication</h3>
+                    <p>Secure login system with password hashing, CSRF protection, and rate limiting.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">Flask-Login</span>
+                        <span class="feature-tag">CSRF</span>
+                        <span class="feature-tag">Rate Limited</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-database"></i></div>
+                    <h3>SQLite Database</h3>
+                    <p>Store threat detections, user data, and system events with automatic migration support.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">Persistent</span>
+                        <span class="feature-tag">Auto-migrate</span>
+                        <span class="feature-tag">Queryable</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-code"></i></div>
+                    <h3>RESTful API</h3>
+                    <p>Programmatic access to threat detection with JSON endpoints and API key support.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">REST API</span>
+                        <span class="feature-tag">JSON</span>
+                        <span class="feature-tag">Integration</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-virus"></i></div>
+                    <h3>Safe Division Protection</h3>
+                    <p>Enhanced error handling with safe division wrapper preventing ZeroDivisionError crashes.</p>
+                    <div class="feature-tags">
+                        <span class="feature-tag">Error Handling</span>
+                        <span class="feature-tag">Robust</span>
+                        <span class="feature-tag">Fallback</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <section class="cta-section">
+            <h2>Ready to secure your infrastructure?</h2>
+            <p>Get started with CyberShield AI today and experience next-generation threat detection.</p>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard_home') }}" class="cta-btn cta-primary">Go to Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="cta-btn cta-primary">Create Free Account</a>
+                <a href="{{ url_for('login') }}" class="cta-btn cta-secondary" style="margin-left: 15px;">Sign In</a>
+            {% endif %}
+        </section>
+
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="{{ url_for('about') }}" class="footer-link">About</a>
+                <a href="{{ url_for('features') }}" class="footer-link">Features</a>
+                <a href="{{ url_for('architecture') }}" class="footer-link">Architecture</a>
+                <a href="{{ url_for('research') }}" class="footer-link">Research</a>
+                <a href="{{ url_for('documentation') }}" class="footer-link">Documentation</a>
+                <a href="{{ url_for('contact') }}" class="footer-link">Contact</a>
+            </div>
+            <div class="copyright">
+                <i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
