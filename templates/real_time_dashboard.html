@@ -66,7 +66,9 @@
             font-size: 1.6em;
             font-weight: bold;
             background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background-clip: text;
             -webkit-background-clip: text;
+            color: transparent;
             -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
@@ -115,7 +117,9 @@
             font-size: 2.8em;
             margin-bottom: 15px;
             background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background-clip: text;
             -webkit-background-clip: text;
+            color: transparent;
             -webkit-text-fill-color: transparent;
             font-weight: 700;
             letter-spacing: -0.5px;
@@ -407,7 +411,9 @@
         .section-header h2 {
             font-size: 1.8em;
             background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background-clip: text;
             -webkit-background-clip: text;
+            color: transparent;
             -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
@@ -912,13 +918,37 @@
         </div>
     </div>
 
-    <script>
-        // Server-side rendered configuration - FIXED SYNTAX
-        window.serverConfig = {
-            isMonitoring: {{ is_monitoring|tojson }},
-            aiEnabled: {{ ai_enabled|tojson }}
+    <!-- Replace the problematic script section with this -->
+<script id="server-config" type="application/json">
+{
+    "isMonitoring": {{ is_monitoring|default(false)|tojson }},
+    "aiEnabled": {{ ai_enabled|default(false)|tojson }}
+}
+</script>
+
+<script>
+    // Parse configuration from JSON script tag
+    let serverConfig;
+    try {
+        const configElement = document.getElementById('server-config');
+        if (configElement && configElement.textContent) {
+            serverConfig = JSON.parse(configElement.textContent);
+            console.log('✅ Server config loaded:', serverConfig);
+        } else {
+            throw new Error('Config element not found');
+        }
+    } catch (error) {
+        console.error('Failed to load server config:', error);
+        // Fallback values
+        serverConfig = {
+            isMonitoring: false,
+            aiEnabled: false
         };
-    </script>
+    }
+    
+    // Make config globally available
+    window.serverConfig = serverConfig;
+</script>
 
     <script>
         let updateInterval;
