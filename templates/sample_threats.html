@@ -868,25 +868,11 @@
         <div class="menu-nav">
             <div class="menu-nav-section">
                 <div class="menu-nav-title">General</div>
-                <a href="/" class="menu-nav-item">
-                    <i class="fas fa-home"></i><span>Home</span>
-                </a>
-                <a href="/about" class="menu-nav-item">
-                    <i class="fas fa-info-circle"></i><span>About</span>
-                </a>
-                <a href="/features" class="menu-nav-item">
-                    <i class="fas fa-star"></i><span>Features</span>
-                </a>
-            </div>
-            
-            {% if current_user.is_authenticated %}
-            <div class="menu-nav-section">
-                <div class="menu-nav-title">Security</div>
                 <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
-                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                    <i class="fas fa-chart-pie"></i><span>Home</span>
                 </a>
-                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
-                    <i class="fas fa-bug"></i><span>Detect Threat</span>
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item active">
+                    <i class="fas fa-search"></i><span>Detect Threat</span>
                 </a>
                 <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
                     <i class="fas fa-chart-line"></i><span>Live Monitor</span>
@@ -894,11 +880,42 @@
                 <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
                     <i class="fas fa-upload"></i><span>Upload Logs</span>
                 </a>
-                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item active">
+                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item">
                     <i class="fas fa-bullseye"></i><span>Demo Scenarios</span>
                 </a>
             </div>
-            {% endif %}
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Resources</div>
+                <a href="{{ url_for('landing') }}" class="menu-nav-item">
+                    <i class="fas fa-home"></i><span>Home</span>
+                </a>
+                <a href="{{ url_for('features') }}" class="menu-nav-item">
+                    <i class="fas fa-star"></i><span>Features</span>
+                </a>
+                <a href="{{ url_for('about') }}" class="menu-nav-item">
+                    <i class="fas fa-info-circle"></i><span>About</span>
+                </a>
+                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
+                    <i class="fas fa-sitemap"></i><span>Architecture</span>
+                </a>
+                <a href="{{ url_for('documentation') }}" class="menu-nav-item">
+                    <i class="fas fa-book"></i><span>Documentation</span>
+                </a>
+                <a href="{{ url_for('contact') }}" class="menu-nav-item">
+                    <i class="fas fa-envelope"></i><span>Contact</span>
+                </a>
+            </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Settings</div>
+                <a href="{{ url_for('profile') }}" class="menu-nav-item">
+                    <i class="fas fa-user"></i><span>Profile</span>
+                </a>
+                <a href="#" class="menu-nav-item">
+                    <i class="fas fa-question-circle"></i><span>Help & Support</span>
+                </a>
+            </div>
         </div>
         
         <div class="menu-footer">

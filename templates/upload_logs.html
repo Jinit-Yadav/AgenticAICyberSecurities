@@ -764,15 +764,53 @@
         <div class="menu-nav">
             <div class="menu-nav-section">
                 <div class="menu-nav-title">General</div>
-                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
-                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item"><i class="fas fa-bug"></i><span>Detect Threat</span></a>
-                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
-                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item active"><i class="fas fa-upload"></i><span>Upload Logs</span></a>
+                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-pie"></i><span>Home</span>
+                </a>
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item active">
+                    <i class="fas fa-search"></i><span>Detect Threat</span>
+                </a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-line"></i><span>Live Monitor</span>
+                </a>
+                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
+                    <i class="fas fa-upload"></i><span>Upload Logs</span>
+                </a>
+                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item">
+                    <i class="fas fa-bullseye"></i><span>Demo Scenarios</span>
+                </a>
             </div>
+            
             <div class="menu-nav-section">
                 <div class="menu-nav-title">Resources</div>
-                <a href="{{ url_for('documentation') }}" class="menu-nav-item"><i class="fas fa-book"></i><span>Documentation</span></a>
-                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item"><i class="fas fa-bullseye"></i><span>Demo Scenarios</span></a>
+                <a href="{{ url_for('landing') }}" class="menu-nav-item">
+                    <i class="fas fa-home"></i><span>Home</span>
+                </a>
+                <a href="{{ url_for('features') }}" class="menu-nav-item">
+                    <i class="fas fa-star"></i><span>Features</span>
+                </a>
+                <a href="{{ url_for('about') }}" class="menu-nav-item">
+                    <i class="fas fa-info-circle"></i><span>About</span>
+                </a>
+                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
+                    <i class="fas fa-sitemap"></i><span>Architecture</span>
+                </a>
+                <a href="{{ url_for('documentation') }}" class="menu-nav-item">
+                    <i class="fas fa-book"></i><span>Documentation</span>
+                </a>
+                <a href="{{ url_for('contact') }}" class="menu-nav-item">
+                    <i class="fas fa-envelope"></i><span>Contact</span>
+                </a>
+            </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Settings</div>
+                <a href="{{ url_for('profile') }}" class="menu-nav-item">
+                    <i class="fas fa-user"></i><span>Profile</span>
+                </a>
+                <a href="#" class="menu-nav-item">
+                    <i class="fas fa-question-circle"></i><span>Help & Support</span>
+                </a>
             </div>
         </div>
         
@@ -854,12 +892,6 @@
             <div class="code-block"><pre>[{"timestamp": "2024-01-15T10:30:00", "src_ip": "192.168.1.100", "dest_ip": "192.168.1.1", "src_port": 54321, "dest_port": 22, "proto": "tcp", "tool": "nmap", "attack_type": "port_scan", "severity": "high", "description": "Stealth port scanning detected"}]</pre></div>
             <h4><i class="fas fa-cogs"></i> Supported Attack Types</h4>
             <ul style="padding-left: 20px;"><li><strong>Port Scanning</strong>: nmap, masscan, zmap</li><li><strong>Brute Force</strong>: hydra, medusa, patator</li><li><strong>DDoS Attacks</strong>: hping3, slowloris, LOIC</li><li><strong>Web Attacks</strong>: sqlmap, nikto, gobuster</li><li><strong>Malware</strong>: metasploit, cobaltstrike</li><li><strong>Normal Traffic</strong>: browser, curl, wget</li></ul>
-        </div>
-
-        <div class="nav-buttons">
-            <a href="/" class="btn btn-secondary"><i class="fas fa-home"></i> Home</a>
-            <a href="/detect-threat" class="btn btn-secondary"><i class="fas fa-search"></i> Single Detection</a>
-            <a href="/dashboard" class="btn btn-secondary"><i class="fas fa-chart-bar"></i> Dashboard</a>
         </div>
     </div>
 
