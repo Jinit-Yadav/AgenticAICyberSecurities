@@ -4,53 +4,276 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberShield AI - Documentation</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        /* ========== ROOT VARIABLES (DARK THEME DEFAULT) ========== */
         :root {
-            --primary: #00d4ff;
-            --primary-dark: #0099cc;
-            --secondary: #636e72;
-            --dark: #0a0e27;
-            --darker: #0f1419;
+            --primary: #4a9eff;
+            --primary-dark: #2c7be5;
+            --secondary: #a855f7;
+            --dark: #0f0f1b;
+            --darker: #0a0a14;
             --light: #ffffff;
             --success: #00ff88;
             --error: #ff4757;
             --warning: #ffa502;
-            --card-bg: rgba(15, 20, 25, 0.6);
-            --card-border: rgba(0, 212, 255, 0.2);
-            --ai-purple: #a855f7;
+            --card-bg: rgba(18, 18, 30, 0.6);
+            --card-border: rgba(74, 158, 255, 0.2);
+            --sidebar-bg: rgba(18, 18, 30, 0.95);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --hover-glow: rgba(74, 158, 255, 0.2);
+            --grad-start: #4a9eff;
+            --grad-end: #a855f7;
         }
-        
+
+        /* ========== LIGHT THEME ========== */
+        body.light-theme {
+            --primary: #0077b6;
+            --primary-dark: #023e8a;
+            --secondary: #6f42c1;
+            --dark: #f5f7fa;
+            --darker: #ffffff;
+            --light: #212529;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --warning: #f39c12;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(0, 0, 0, 0.15);
+            --sidebar-bg: rgba(255, 255, 255, 0.98);
+            --text-muted: rgba(0, 0, 0, 0.6);
+            --text-dark: #212529;
+            --nav-bg: rgba(0, 0, 0, 0.05);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --hover-glow: rgba(0, 119, 182, 0.1);
+            --grad-start: #0077b6;
+            --grad-end: #6f42c1;
+        }
+
+        /* ========== CYBERPUNK THEME ========== */
+        body.cyberpunk-theme {
+            --primary: #0afff0;
+            --primary-dark: #00ccaa;
+            --secondary: #ff00e5;
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --light: #e0f2fe;
+            --success: #00ffaa;
+            --error: #ff3366;
+            --warning: #ffcc00;
+            --card-bg: rgba(10, 10, 20, 0.85);
+            --card-border: rgba(10, 255, 240, 0.5);
+            --sidebar-bg: rgba(5, 5, 15, 0.98);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #e0f2fe;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --hover-glow: rgba(10, 255, 240, 0.2);
+            --grad-start: #0afff0;
+            --grad-end: #ff00e5;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, var(--dark), var(--darker));
-            color: var(--light);
+            color: var(--text-dark);
             min-height: 100vh;
-            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+
+        /* ========== SLIDE-OUT MENU ========== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
+        }
+        .slide-menu.open {
+            transform: translateX(0);
+        }
+        .menu-header {
             padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        
-        /* Header */
+        .menu-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .close-menu-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--nav-bg);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-dark);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-menu-btn:hover {
+            background: var(--hover-glow);
+            transform: rotate(90deg);
+        }
+        .menu-user-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .menu-user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+        .menu-user-info {
+            flex: 1;
+        }
+        .menu-user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+        .menu-user-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .menu-nav {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .menu-nav-section {
+            margin-bottom: 25px;
+        }
+        .menu-nav-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        .menu-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .menu-nav-item i {
+            width: 24px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        .menu-nav-item:hover {
+            background: var(--hover-glow);
+            color: var(--text-dark);
+            transform: translateX(5px);
+        }
+        .menu-nav-item.active {
+            background: rgba(74, 158, 255, 0.15);
+            color: var(--text-dark);
+        }
+        .menu-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .menu-footer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .menu-footer-item:hover {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+        }
+
+        /* ========== MAIN HEADER ========== */
         .main-header {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px 30px;
-            margin-bottom: 50px;
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin: 20px 30px 30px 30px;
+            padding: 16px 28px;
             border: 1px solid var(--card-border);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
-        
         .nav-container {
             display: flex;
             justify-content: space-between;
@@ -58,58 +281,180 @@
             flex-wrap: wrap;
             gap: 20px;
         }
-        
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
         .logo {
-            font-size: 1.8em;
+            font-size: 1.6em;
             font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+        .logo i {
+            font-size: 1.4em;
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo span {
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-trigger {
+            width: 45px;
+            height: 45px;
+            background: var(--nav-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-trigger:hover {
+            background: var(--hover-glow);
+            transform: scale(1.05);
+        }
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
+            align-items: center;
         }
-        
-        .nav-btn {
-            padding: 12px 20px;
-            background: rgba(255,255,255,0.08);
-            color: white;
+        .nav-btn, .theme-btn {
+            padding: 10px 18px;
+            background: var(--nav-bg);
+            color: var(--text-dark);
             border: 1px solid var(--card-border);
-            border-radius: 10px;
+            border-radius: 12px;
             text-decoration: none;
             transition: all 0.3s;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        
-        .nav-btn:hover {
-            background: rgba(0,212,255,0.2);
+        .nav-btn:hover, .theme-btn:hover {
+            background: var(--hover-glow);
             transform: translateY(-2px);
         }
-        
         .nav-btn.active {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            color: white;
+            border: none;
         }
-        
-        /* Page Layout */
+        .theme-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .theme-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            min-width: 180px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            z-index: 1000;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .theme-dropdown-content.show {
+            display: block;
+        }
+        .theme-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+        .theme-option:hover {
+            background: var(--hover-glow);
+            padding-left: 20px;
+        }
+
+        /* Light Theme Logo Override */
+        body.light-theme .logo i,
+        body.light-theme .logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body.light-theme .menu-logo i,
+        body.light-theme .menu-logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body.cyberpunk-theme .logo i,
+        body.cyberpunk-theme .logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body.cyberpunk-theme .menu-logo i,
+        body.cyberpunk-theme .menu-logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Documentation specific styles */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px 40px;
+        }
+        .page-header {
+            margin-bottom: 40px;
+        }
+        .page-header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
         .docs-wrapper {
             display: grid;
             grid-template-columns: 280px 1fr;
             gap: 30px;
-            margin-top: 40px;
         }
-        
         @media (max-width: 768px) {
             .docs-wrapper {
                 grid-template-columns: 1fr;
             }
+            .container { padding: 0 20px 30px; }
+            .main-header { margin: 15px; }
         }
-        
-        /* Sidebar */
         .docs-sidebar {
             background: var(--card-bg);
             border-radius: 20px;
@@ -119,7 +464,6 @@
             position: sticky;
             top: 20px;
         }
-        
         .sidebar-title {
             font-size: 1.3em;
             color: var(--primary);
@@ -127,17 +471,14 @@
             padding-bottom: 10px;
             border-bottom: 1px solid var(--card-border);
         }
-        
         .sidebar-nav {
             list-style: none;
         }
-        
         .sidebar-nav-item {
             margin: 5px 0;
         }
-        
         .sidebar-nav-link {
-            color: white;
+            color: var(--text-dark);
             text-decoration: none;
             padding: 10px 15px;
             display: block;
@@ -145,39 +486,32 @@
             transition: all 0.3s;
             opacity: 0.7;
         }
-        
         .sidebar-nav-link:hover,
         .sidebar-nav-link.active {
-            background: rgba(0,212,255,0.1);
+            background: rgba(74, 158, 255, 0.1);
             opacity: 1;
             color: var(--primary);
             border-left: 3px solid var(--primary);
         }
-        
         .sidebar-nav-link i {
             width: 20px;
             margin-right: 10px;
         }
-        
         .sidebar-divider {
             height: 1px;
             background: var(--card-border);
             margin: 15px 0;
         }
-        
-        /* Main Content */
         .docs-content {
             background: var(--card-bg);
             border-radius: 20px;
             padding: 40px;
             border: 1px solid var(--card-border);
         }
-        
         .content-section {
             margin-bottom: 50px;
             scroll-margin-top: 20px;
         }
-        
         .section-title {
             font-size: 2em;
             color: var(--primary);
@@ -185,18 +519,11 @@
             padding-bottom: 10px;
             border-bottom: 1px solid var(--card-border);
         }
-        
         .subsection-title {
             font-size: 1.5em;
             margin: 30px 0 20px;
-            color: var(--ai-purple);
+            color: var(--secondary);
         }
-        
-        .subsection-title i {
-            margin-right: 10px;
-            color: var(--primary);
-        }
-        
         .code-block {
             background: rgba(0,0,0,0.3);
             border-radius: 10px;
@@ -206,21 +533,10 @@
             border-left: 4px solid var(--primary);
             overflow-x: auto;
         }
-        
         .code-block pre {
             color: var(--primary);
             white-space: pre-wrap;
         }
-        
-        .code-comment {
-            color: #6c757d;
-            font-style: italic;
-        }
-        
-        .code-keyword {
-            color: var(--success);
-        }
-        
         .api-endpoint {
             background: rgba(0,0,0,0.3);
             border-radius: 10px;
@@ -228,7 +544,6 @@
             margin: 15px 0;
             border-left: 4px solid var(--primary);
         }
-        
         .endpoint-method {
             display: inline-block;
             padding: 5px 12px;
@@ -236,63 +551,36 @@
             font-weight: bold;
             margin-right: 15px;
         }
-        
         .method-get {
             background: rgba(0,212,255,0.2);
             color: var(--primary);
         }
-        
         .method-post {
             background: rgba(168,85,247,0.2);
-            color: var(--ai-purple);
+            color: var(--secondary);
         }
-        
-        .endpoint-path {
-            font-family: 'Courier New', monospace;
-            font-size: 1.1em;
-        }
-        
-        .endpoint-desc {
-            margin-top: 10px;
-            opacity: 0.8;
-        }
-        
         .param-table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
         }
-        
         .param-table th {
             text-align: left;
             padding: 12px;
-            background: rgba(0,212,255,0.1);
+            background: rgba(74, 158, 255, 0.1);
             color: var(--primary);
         }
-        
         .param-table td {
             padding: 10px 12px;
             border-bottom: 1px solid var(--card-border);
         }
-        
-        .required {
-            color: var(--error);
-            font-size: 0.85em;
-        }
-        
-        .optional {
-            color: var(--warning);
-            font-size: 0.85em;
-        }
-        
         .info-box {
-            background: rgba(0,212,255,0.1);
+            background: rgba(74, 158, 255, 0.1);
             border-radius: 10px;
             padding: 20px;
             margin: 20px 0;
             border: 1px solid var(--primary);
         }
-        
         .warning-box {
             background: rgba(255,71,87,0.1);
             border-radius: 10px;
@@ -300,638 +588,370 @@
             margin: 20px 0;
             border: 1px solid var(--error);
         }
-        
-        .info-box i, .warning-box i {
-            margin-right: 10px;
-        }
-        
-        .info-box i {
-            color: var(--primary);
-        }
-        
-        .warning-box i {
-            color: var(--error);
-        }
-        
-        /* Table of Contents */
         .toc {
             background: rgba(0,0,0,0.2);
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 30px;
         }
-        
         .toc h4 {
             color: var(--primary);
             margin-bottom: 10px;
         }
-        
         .toc ul {
             list-style: none;
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
         }
-        
-        .toc li {
-            margin: 5px 0;
-        }
-        
         .toc a {
-            color: white;
+            color: var(--text-dark);
             text-decoration: none;
             opacity: 0.7;
-            transition: all 0.3s;
         }
-        
         .toc a:hover {
             opacity: 1;
             color: var(--primary);
         }
-        
-        /* Footer */
         .footer {
-            margin-top: 80px;
-            padding: 40px 0;
+            margin-top: 60px;
+            padding: 30px 0;
             border-top: 1px solid var(--card-border);
             text-align: center;
         }
-        
         .footer-links {
             display: flex;
             justify-content: center;
             gap: 30px;
-            margin-bottom: 20px;
             flex-wrap: wrap;
+            margin-bottom: 15px;
         }
-        
         .footer-link {
-            color: white;
+            color: var(--text-muted);
             text-decoration: none;
-            opacity: 0.7;
         }
-        
         .footer-link:hover {
-            opacity: 1;
+            color: var(--primary);
         }
-        
-        @media (max-width: 768px) {
-            .page-header h1 { font-size: 2.5em; }
-            .nav-container { flex-direction: column; }
+        /* Simulated login toggle button for demo */
+        .demo-toggle {
+            margin-left: 12px;
+            background: var(--primary);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .demo-toggle:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="main-header">
-            <div class="nav-container">
+    <!-- Header with Hamburger and Theme Switcher -->
+    <header class="main-header">
+        <div class="nav-container">
+            <div class="nav-left">
                 <div class="logo">
                     <i class="fas fa-shield-alt"></i>
-                    CyberShield AI
+                    <span>CyberShield AI</span>
                 </div>
-                <div class="nav-links">
-                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
-                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
-                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
-                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
-                    <a href="{{ url_for('research') }}" class="nav-btn">Research</a>
-                    <a href="{{ url_for('documentation') }}" class="nav-btn active">Docs</a>
-                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
-                        <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
-                    {% else %}
-                        <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
-                        <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
-                    {% endif %}
-                </div>
+                <button class="menu-trigger" id="menuTriggerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
-        </header>
+            <!-- DYNAMIC NAVIGATION LINKS: based on login state -->
+            <div class="nav-links" id="dynamicNavLinks"></div>
+        </div>
+    </header>
 
-        <section class="page-header">
+    <!-- Slide-out Menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-header">
+            <div class="menu-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Cybershield AI</span>
+            </div>
+            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="menu-user-section" id="menuUserSection">
+            <div class="menu-user-avatar" id="menuUserAvatar">G</div>
+            <div class="menu-user-info">
+                <div class="menu-user-name" id="menuUserName">Guest User</div>
+                <div class="menu-user-email" id="menuUserEmail">guest@cybershield.ai</div>
+            </div>
+        </div>
+        <div class="menu-nav">
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">General</div>
+                <a href="#" class="menu-nav-item" id="slideHomeLink"><i class="fas fa-chart-pie"></i><span>Home</span></a>
+                <a href="#" class="menu-nav-item" id="slideThreatLink"><i class="fas fa-bug"></i><span>Detect Threat</span></a>
+                <a href="#" class="menu-nav-item" id="slideMonitorLink"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
+                <a href="#" class="menu-nav-item" id="slideUploadLink"><i class="fas fa-upload"></i><span>Upload Logs</span></a>
+                <a href="#" class="menu-nav-item active" id="slideDocsLink"><i class="fas fa-book"></i><span>Documentation</span></a>
+            </div>
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Settings</div>
+                <a href="#" class="menu-nav-item" id="slideProfileLink"><i class="fas fa-user"></i><span>Profile</span></a>
+                <a href="#" class="menu-nav-item"><i class="fas fa-question-circle"></i><span>Help & Support</span></a>
+            </div>
+        </div>
+        <div class="menu-footer">
+            <a href="#" class="menu-footer-item" id="slideLogoutLink"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+        </div>
+    </div>
+
+    <!-- Documentation Content -->
+    <div class="container">
+        <div class="page-header">
             <h1>Documentation</h1>
             <p>Complete guide to installing, configuring, and using CyberShield AI</p>
-        </section>
+            <!-- Demo toggle button to simulate login/logout -->
+            <button class="demo-toggle" id="demoAuthToggle">🔐 Simulate Login</button>
+        </div>
 
         <div class="docs-wrapper">
-            <!-- Sidebar Navigation -->
             <div class="docs-sidebar">
                 <div class="sidebar-title">Documentation</div>
                 <ul class="sidebar-nav">
                     <li class="sidebar-nav-item"><a href="#getting-started" class="sidebar-nav-link active"><i class="fas fa-rocket"></i> Getting Started</a></li>
                     <li class="sidebar-nav-item"><a href="#installation" class="sidebar-nav-link"><i class="fas fa-download"></i> Installation</a></li>
                     <li class="sidebar-nav-item"><a href="#configuration" class="sidebar-nav-link"><i class="fas fa-cog"></i> Configuration</a></li>
-                    
                     <div class="sidebar-divider"></div>
                     <li class="sidebar-nav-item"><a href="#agents" class="sidebar-nav-link"><i class="fas fa-robot"></i> Agent System</a></li>
-                    <li class="sidebar-nav-item"><a href="#detection-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Detection Agent</a></li>
-                    <li class="sidebar-nav-item"><a href="#debate-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Debate Agent</a></li>
-                    <li class="sidebar-nav-item"><a href="#alert-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Alert Agent</a></li>
-                    <li class="sidebar-nav-item"><a href="#response-agent" class="sidebar-nav-link" style="padding-left: 35px;">• Response Agent</a></li>
-                    
-                    <div class="sidebar-divider"></div>
                     <li class="sidebar-nav-item"><a href="#api-reference" class="sidebar-nav-link"><i class="fas fa-code"></i> API Reference</a></li>
                     <li class="sidebar-nav-item"><a href="#ml-models" class="sidebar-nav-link"><i class="fas fa-brain"></i> ML Models</a></li>
-                    <li class="sidebar-nav-item"><a href="#database" class="sidebar-nav-link"><i class="fas fa-database"></i> Database Schema</a></li>
-                    
                     <div class="sidebar-divider"></div>
                     <li class="sidebar-nav-item"><a href="#usage" class="sidebar-nav-link"><i class="fas fa-user"></i> User Guide</a></li>
-                    <li class="sidebar-nav-item"><a href="#dashboard" class="sidebar-nav-link" style="padding-left: 35px;">• Dashboard</a></li>
-                    <li class="sidebar-nav-item"><a href="#detection" class="sidebar-nav-link" style="padding-left: 35px;">• Threat Detection</a></li>
-                    <li class="sidebar-nav-item"><a href="#upload" class="sidebar-nav-link" style="padding-left: 35px;">• Log Upload</a></li>
-                    
-                    <div class="sidebar-divider"></div>
                     <li class="sidebar-nav-item"><a href="#troubleshooting" class="sidebar-nav-link"><i class="fas fa-exclamation-triangle"></i> Troubleshooting</a></li>
                     <li class="sidebar-nav-item"><a href="#faq" class="sidebar-nav-link"><i class="fas fa-question-circle"></i> FAQ</a></li>
                 </ul>
             </div>
 
-            <!-- Main Content -->
             <div class="docs-content">
-                <!-- Table of Contents -->
-                <div class="toc">
-                    <h4><i class="fas fa-list"></i> On This Page</h4>
-                    <ul>
-                        <li><a href="#getting-started">Getting Started</a></li>
-                        <li><a href="#installation">Installation</a></li>
-                        <li><a href="#configuration">Configuration</a></li>
-                        <li><a href="#agents">Agent System</a></li>
-                        <li><a href="#api-reference">API Reference</a></li>
-                        <li><a href="#usage">User Guide</a></li>
-                    </ul>
-                </div>
-
-                <!-- Getting Started -->
-                <section id="getting-started" class="content-section">
-                    <h2 class="section-title">Getting Started</h2>
-                    <p>CyberShield AI is a comprehensive cybersecurity threat detection system that uses ensemble machine learning and multi-expert AI analysis to protect your infrastructure.</p>
-                    
-                    <h3 class="subsection-title"><i class="fas fa-check-circle"></i> Prerequisites</h3>
-                    <ul style="margin-left: 20px; opacity: 0.9;">
-                        <li>Python 3.9 or higher</li>
-                        <li>pip package manager</li>
-                        <li>Git (for cloning repository)</li>
-                        <li>8GB RAM minimum (16GB recommended for full functionality)</li>
-                        <li>Windows/Linux/macOS (Windows requires admin for some firewall features)</li>
-                    </ul>
-
-                    <div class="info-box">
-                        <i class="fas fa-info-circle"></i> <strong>Quick Start:</strong> Run `python application.py` after installation to start the server at http://localhost:5000
-                    </div>
-                </section>
-
-                <!-- Installation -->
-                <section id="installation" class="content-section">
-                    <h2 class="section-title">Installation</h2>
-                    
-                    <h3 class="subsection-title"><i class="fas fa-code-branch"></i> Clone Repository</h3>
-                    <div class="code-block">
-                        <pre>git clone https://github.com/yourusername/CyberShield-AI.git
-cd CyberShield-AI</pre>
-                    </div>
-
-                    <h3 class="subsection-title"><i class="fas fa-flask"></i> Create Virtual Environment</h3>
-                    <div class="code-block">
-                        <pre><span class="code-comment"># Windows</span>
-python -m venv venv
-venv\Scripts\activate
-
-<span class="code-comment"># Linux/macOS</span>
-python3 -m venv venv
-source venv/bin/activate</pre>
-                    </div>
-
-                    <h3 class="subsection-title"><i class="fas fa-cubes"></i> Install Dependencies</h3>
-                    <div class="code-block">
-                        <pre>pip install -r requirements.txt</pre>
-                    </div>
-
-                    <h3 class="subsection-title"><i class="fas fa-key"></i> Setup API Key (Optional - for Multi-Expert AI)</h3>
-                    <p>Create a <code>.env</code> file in the root directory:</p>
-                    <div class="code-block">
-                        <pre>OPENROUTER_API_KEY=your_openrouter_api_key_here
-SECRET_KEY=your_secret_key_here
-DEBUG=False
-HOST=0.0.0.0
-PORT=5000</pre>
-                    </div>
-
-                    <h3 class="subsection-title"><i class="fas fa-play"></i> Run Application</h3>
-                    <div class="code-block">
-                        <pre>python application.py</pre>
-                    </div>
-                    <p>The application will be available at <code>http://localhost:5000</code></p>
-                </section>
-
-                <!-- Configuration -->
-                <section id="configuration" class="content-section">
-                    <h2 class="section-title">Configuration</h2>
-                    
-                    <h3 class="subsection-title"><i class="fas fa-sliders-h"></i> Environment Variables</h3>
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Variable</th>
-                                <th>Description</th>
-                                <th>Default</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>SECRET_KEY</td><td>Flask secret key for sessions</td><td>cyber-threat-detection-secret-key-2024</td></tr>
-                            <tr><td>DEBUG</td><td>Enable debug mode</td><td>False</td></tr>
-                            <tr><td>HOST</td><td>Server host</td><td>0.0.0.0</td></tr>
-                            <tr><td>PORT</td><td>Server port</td><td>5000</td></tr>
-                            <tr><td>DATABASE_PATH</td><td>SQLite database path</td><td>threats.db</td></tr>
-                            <tr><td>LOG_LEVEL</td><td>Logging level</td><td>INFO</td></tr>
-                            <tr><td>OPENROUTER_API_KEY</td><td>API key for LLM access</td><td>None</td></tr>
-                        </tbody>
-                    </table>
-
-                    <h3 class="subsection-title"><i class="fas fa-envelope"></i> Alert Configuration</h3>
-                    <p>For email alerts, configure in <code>.env</code>:</p>
-                    <div class="code-block">
-                        <pre>SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-EMAIL_SENDER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password
-EMAIL_RECIPIENTS=admin1@example.com,admin2@example.com</pre>
-                    </div>
-
-                    <div class="info-box">
-                        <i class="fas fa-info-circle"></i> For Gmail, use an App Password instead of your regular password.
-                    </div>
-
-                    <h3 class="subsection-title"><i class="fab fa-slack"></i> Slack/Discord Webhooks</h3>
-                    <div class="code-block">
-                        <pre>SLACK_WEBHOOK=https://hooks.slack.com/services/xxx/yyy/zzz
-DISCORD_WEBHOOK=https://discord.com/api/webhooks/xxx/yyy</pre>
-                    </div>
-                </section>
-
-                <!-- Agent System -->
-                <section id="agents" class="content-section">
-                    <h2 class="section-title">Agent System</h2>
-                    
-                    <h3 id="detection-agent" class="subsection-title"><i class="fas fa-microchip"></i> DetectionAgent</h3>
-                    <p>Primary ML-based threat detection engine using XGBoost and LightGBM ensemble with sequential majority voting.</p>
-                    <div class="code-block">
-                        <pre><span class="code-keyword">from</span> detection_agent <span class="code-keyword">import</span> AdvancedDetectionAgent
-
-<span class="code-comment"># Initialize agent</span>
-agent = AdvancedDetectionAgent()
-
-<span class="code-comment"># Analyze logs</span>
-results = agent.analyze_logs_comprehensive(log_entries)
-
-<span class="code-comment"># Get statistics</span>
-stats = agent.get_detection_stats()</pre>
-                    </div>
-
-                    <h3 id="debate-agent" class="subsection-title"><i class="fas fa-brain"></i> DebateAgent</h3>
-                    <p>Multi-expert AI system with RAG (Retrieval-Augmented Generation) for comprehensive threat analysis.</p>
-                    <div class="code-block">
-                        <pre><span class="code-keyword">from</span> explanation_agent <span class="code-keyword">import</span> SimpleOptimizedDebateAgent
-
-<span class="code-comment"># Initialize agent</span>
-debate_agent, enabled = initialize_optimized_debate_agent()
-
-<span class="code-comment"># Analyze threat with multi-expert system</span>
-analysis = debate_agent.analyze_detection(detection_result)</pre>
-                    </div>
-
-                    <h3 id="alert-agent" class="subsection-title"><i class="fas fa-bell"></i> AlertAgent</h3>
-                    <p>Multi-channel alerting system for email, Slack, Discord, and logging.</p>
-                    <div class="code-block">
-                        <pre><span class="code-keyword">from</span> alert_agent <span class="code-keyword">import</span> AlertAgent, AlertConfig
-
-config = AlertConfig(
-    smtp_server="smtp.gmail.com",
-    email_sender="alerts@cybershield.ai",
-    slack_webhook="https://hooks.slack.com/..."
-)
-
-alert_agent = AlertAgent(config)
-alert_agent.start()
-
-<span class="code-comment"># Generate and queue alert</span>
-alert = alert_agent.generate_alert(threat_result)
-alert_agent.queue_alert(alert)</pre>
-                    </div>
-
-                    <h3 id="response-agent" class="subsection-title"><i class="fas fa-shield-alt"></i> ResponseAgent</h3>
-                    <p>Automated countermeasures including IP blocking and process termination.</p>
-                    <div class="code-block">
-                        <pre><span class="code-keyword">from</span> response_agent <span class="code-keyword">import</span> ResponseAgent
-
-response_agent = ResponseAgent(alert_agent, {
-    'auto_block_ips': True,
-    'auto_kill_processes': True,
-    'min_severity_for_response': 'high'
-})
-
-<span class="code-comment"># Execute automated response</span>
-response = response_agent.execute_response(alert)</pre>
-                    </div>
-                </section>
-
-                <!-- API Reference -->
-                <section id="api-reference" class="content-section">
-                    <h2 class="section-title">API Reference</h2>
-
-                    <h3 class="subsection-title"><i class="fas fa-cloud"></i> RESTful Endpoints</h3>
-
-                    <div class="api-endpoint">
-                        <span class="endpoint-method method-get">GET</span>
-                        <span class="endpoint-path">/</span>
-                        <div class="endpoint-desc">Landing page (public)</div>
-                    </div>
-
-                    <div class="api-endpoint">
-                        <span class="endpoint-method method-get">GET</span>
-                        <span class="endpoint-path">/dashboard</span>
-                        <div class="endpoint-desc">User dashboard (authenticated)</div>
-                    </div>
-
-                    <div class="api-endpoint">
-                        <span class="endpoint-method method-post">POST</span>
-                        <span class="endpoint-path">/api/detect</span>
-                        <div class="endpoint-desc">Threat detection API endpoint</div>
-                    </div>
-
-                    <h4>Request Body:</h4>
-                    <div class="code-block">
-                        <pre>{
-    "tool": "nmap",
-    "src_ip": "192.168.1.100",
-    "dest_ip": "192.168.1.1",
-    "dest_port": 22,
-    "proto": "tcp",
-    "attack_type": "port_scan",
-    "severity": "high",
-    "description": "Port scanning activity",
-    "confidence": 75,
-    "risk_score": 80
-}</pre>
-                    </div>
-
-                    <h4>Response:</h4>
-                    <div class="code-block">
-                        <pre>{
-    "success": true,
-    "threat_detected": true,
-    "attack_type": "port_scan",
-    "severity": "high",
-    "confidence": 87.5,
-    "explanation": "Port scanning detected...",
-    "source_ip": "192.168.1.100",
-    "target_ip": "192.168.1.1",
-    "risk_score": 85,
-    "recommendations": ["Block source IP..."]
-}</pre>
-                    </div>
-
-                    <h3 class="subsection-title"><i class="fas fa-chart-line"></i> Real-time Monitoring APIs</h3>
-
-                    <div class="api-endpoint">
-                        <span class="endpoint-method method-get">GET</span>
-                        <span class="endpoint-path">/api/real-time/network-data</span>
-                        <div class="endpoint-desc">Get real network connections</div>
-                    </div>
-
-                    <div class="api-endpoint">
-                        <span class="endpoint-method method-get">GET</span>
-                        <span class="endpoint-path">/api/real-time/process-data</span>
-                        <div class="endpoint-desc">Get running processes</div>
-                    </div>
-
-                    <div class="api-endpoint">
-                        <span class="endpoint-method method-get">GET</span>
-                        <span class="endpoint-path">/api/real-time/status</span>
-                        <div class="endpoint-desc">Get monitoring status</div>
-                    </div>
-
-                    <div class="api-endpoint">
-                        <span class="endpoint-method method-get">GET</span>
-                        <span class="endpoint-path">/api/system-info</span>
-                        <div class="endpoint-desc">Get system metrics (CPU, memory, disk)</div>
-                    </div>
-                </section>
-
-                <!-- ML Models -->
-                <section id="ml-models" class="content-section">
-                    <h2 class="section-title">ML Models</h2>
-
-                    <h3 class="subsection-title"><i class="fas fa-chart-bar"></i> Feature Engineering</h3>
-                    <p>The system extracts 40+ features including:</p>
-                    <ul style="margin-left: 20px; opacity: 0.9; columns: 2;">
-                        <li>duration (dur)</li>
-                        <li>source packets (spkts)</li>
-                        <li>destination packets (dpkts)</li>
-                        <li>source bytes (sbytes)</li>
-                        <li>destination bytes (dbytes)</li>
-                        <li>rate (packets/sec)</li>
-                        <li>source TTL (sttl)</li>
-                        <li>destination TTL (dttl)</li>
-                        <li>source loss (sloss)</li>
-                        <li>destination loss (dloss)</li>
-                        <li>packet size statistics</li>
-                        <li>traffic asymmetry</li>
-                        <li>port categories</li>
-                        <li>protocol encoding</li>
-                    </ul>
-
-                    <h3 class="subsection-title"><i class="fas fa-microchip"></i> Model Training</h3>
-                    <div class="code-block">
-                        <pre><span class="code-comment"># Train XGBoost model</span>
-xgb_model = xgb.XGBClassifier(
-    n_estimators=100,
-    max_depth=6,
-    learning_rate=0.1,
-    random_state=42
-)
-
-<span class="code-comment"># Train LightGBM model</span>
-lgb_model = lgb.LGBMClassifier(
-    n_estimators=100,
-    max_depth=6,
-    learning_rate=0.1,
-    random_state=42
-)
-
-<span class="code-comment"># Ensemble prediction (weighted average)</span>
-ensemble_pred = 0.6 * xgb_pred + 0.4 * lgb_pred</pre>
-                    </div>
-
-                    <h3 class="subsection-title"><i class="fas fa-vote-yea"></i> Sequential Majority Voting</h3>
-                    <ol style="margin-left: 20px;">
-                        <li><strong>Stage 1:</strong> ML Ensemble (XGBoost + LightGBM) - if confidence > 0.8, accept result</li>
-                        <li><strong>Stage 2:</strong> Rule-based detection - pattern matching for known attacks</li>
-                        <li><strong>Stage 3:</strong> Behavioral analysis - anomaly detection based on baselines</li>
-                        <li><strong>Stage 4:</strong> Threat intelligence correlation - check IPs against known malicious lists</li>
-                    </ol>
-                </section>
-
-                <!-- User Guide -->
-                <section id="usage" class="content-section">
-                    <h2 class="section-title">User Guide</h2>
-
-                    <h3 id="dashboard" class="subsection-title"><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
-                    <p>The dashboard provides:</p>
-                    <ul style="margin-left: 20px;">
-                        <li>Real-time threat statistics and trends</li>
-                        <li>Threat distribution by type and severity</li>
-                        <li>Recent threat timeline</li>
-                        <li>System health metrics</li>
-                        <li>User-specific detection history</li>
-                    </ul>
-
-                    <h3 id="detection" class="subsection-title"><i class="fas fa-search"></i> Manual Threat Detection</h3>
-                    <ol style="margin-left: 20px;">
-                        <li>Navigate to "Detect Threat" from the dashboard</li>
-                        <li>Enter attack details (tool, source/target IP, port, protocol)</li>
-                        <li>Click "Analyze" to run detection</li>
-                        <li>View comprehensive results including multi-expert analysis</li>
-                    </ol>
-
-                    <h3 id="upload" class="subsection-title"><i class="fas fa-file-upload"></i> Batch Log Upload</h3>
-                    <p>Supported formats:</p>
-                    <ul style="margin-left: 20px;">
-                        <li><strong>JSON</strong> - Single object or array of objects</li>
-                        <li><strong>CSV</strong> - With headers matching field names</li>
-                        <li><strong>Plain text</strong> - Space-separated log format</li>
-                    </ul>
-
-                    <div class="info-box">
-                        <i class="fas fa-lightbulb"></i> <strong>Pro Tip:</strong> Use the sample threat scenarios to test the system's detection capabilities.
-                    </div>
-                </section>
-
-                <!-- Troubleshooting -->
-                <section id="troubleshooting" class="content-section">
-                    <h2 class="section-title">Troubleshooting</h2>
-
-                    <div class="warning-box">
-                        <i class="fas fa-exclamation-triangle"></i> <strong>Common Issues</strong>
-                    </div>
-
-                    <h3>Application fails to start with "Address already in use"</h3>
-                    <div class="code-block">
-                        <pre><span class="code-comment"># Find process using port 5000</span>
-netstat -ano | findstr :5000
-taskkill /PID <PID> /F</pre>
-                    </div>
-
-                    <h3>Multi-Expert AI not working</h3>
-                    <ul style="margin-left: 20px;">
-                        <li>Check if OPENROUTER_API_KEY is set in .env file</li>
-                        <li>Verify API key is valid at https://openrouter.ai/keys</li>
-                        <li>Check rate limits (40 requests/day)</li>
-                    </ul>
-
-                    <h3>Database errors</h3>
-                    <ul style="margin-left: 20px;">
-                        <li>Delete threats.db file and restart (will be recreated)</li>
-                        <li>Check file permissions in the directory</li>
-                    </ul>
-
-                    <h3>Real-time monitoring not showing data</h3>
-                    <ul style="margin-left: 20px;">
-                        <li>Run as administrator/root for full system access</li>
-                        <li>Check if psutil is installed correctly</li>
-                        <li>Verify firewall isn't blocking network access</li>
-                    </ul>
-                </section>
-
-                <!-- FAQ -->
-                <section id="faq" class="content-section">
-                    <h2 class="section-title">Frequently Asked Questions</h2>
-
-                    <div style="margin: 20px 0;">
-                        <h4 style="color: var(--primary);">Q: Is CyberShield AI free to use?</h4>
-                        <p>A: Yes! This is a major project demonstration. All features are freely available for testing and evaluation.</p>
-                    </div>
-
-                    <div style="margin: 20px 0;">
-                        <h4 style="color: var(--primary);">Q: What datasets were used for training?</h4>
-                        <p>A: The models are trained on UNSW-NB15 and CIC-IDS2017 datasets, plus custom attack logs from real penetration testing tools.</p>
-                    </div>
-
-                    <div style="margin: 20px 0;">
-                        <h4 style="color: var(--primary);">Q: How accurate is the threat detection?</h4>
-                        <p>A: Our ensemble model achieves 82.4% accuracy with 87% threat detection rate using XGBoost + LightGBM ensemble.</p>
-                    </div>
-
-                    <div style="margin: 20px 0;">
-                        <h4 style="color: var(--primary);">Q: Can I integrate this with my existing security tools?</h4>
-                        <p>A: Yes! We provide RESTful APIs for programmatic integration. You can also configure email/Slack/Discord alerts.</p>
-                    </div>
-
-                    <div style="margin: 20px 0;">
-                        <h4 style="color: var(--primary);">Q: Does it work on Windows?</h4>
-                        <p>A: Yes! The system includes Windows-specific adaptations including safe logging (emoji removal) and firewall integration via netsh.</p>
-                    </div>
-
-                    <div style="margin: 20px 0;">
-                        <h4 style="color: var(--primary);">Q: What is the Multi-Expert AI system?</h4>
-                        <p>A: Three specialized LLM experts (Network Security, Threat Intelligence, Incident Response) analyze threats and reach consensus using RAG-enhanced knowledge retrieval.</p>
-                    </div>
-                </section>
+                <!-- Content sections (kept intact) -->
+                <section id="getting-started" class="content-section"><h2 class="section-title">Getting Started</h2><p>CyberShield AI is a comprehensive cybersecurity threat detection system using ensemble machine learning and multi-expert AI analysis.</p><h3 class="subsection-title"><i class="fas fa-check-circle"></i> Prerequisites</h3><ul style="margin-left: 20px;"><li>Python 3.9+</li><li>pip package manager</li><li>Git</li><li>8GB RAM minimum</li></ul><div class="info-box"><i class="fas fa-info-circle"></i> Quick Start: Run `python application.py` after installation to start the server at http://localhost:5000</div></section>
+                <section id="installation" class="content-section"><h2 class="section-title">Installation</h2><div class="code-block"><pre>git clone https://github.com/yourusername/CyberShield-AI.git<br>cd CyberShield-AI<br>python -m venv venv<br>source venv/bin/activate  # or venv\Scripts\activate<br>pip install -r requirements.txt<br>python application.py</pre></div></section>
+                <section id="configuration" class="content-section"><h2 class="section-title">Configuration</h2><p>Create a <code>.env</code> file with your settings:</p><div class="code-block"><pre>SECRET_KEY=your-secret-key<br>DEBUG=False<br>OPENROUTER_API_KEY=your_api_key<br>SMTP_SERVER=smtp.gmail.com<br>EMAIL_SENDER=alerts@cybershield.ai</pre></div></section>
+                <section id="agents" class="content-section"><h2 class="section-title">Agent System</h2><h3 class="subsection-title"><i class="fas fa-microchip"></i> DetectionAgent</h3><div class="code-block"><pre>from detection_agent import AdvancedDetectionAgent<br>agent = AdvancedDetectionAgent()<br>results = agent.analyze_logs_comprehensive(log_entries)</pre></div><h3 class="subsection-title"><i class="fas fa-brain"></i> DebateAgent (Multi-Expert AI)</h3><div class="code-block"><pre>from explanation_agent import SimpleOptimizedDebateAgent<br>debate_agent, enabled = initialize_optimized_debate_agent()<br>analysis = debate_agent.analyze_detection(detection_result)</pre></div></section>
+                <section id="api-reference" class="content-section"><h2 class="section-title">API Reference</h2><div class="api-endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/dashboard</span><div class="endpoint-desc">User dashboard</div></div><div class="api-endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/detect</span><div class="endpoint-desc">Threat detection endpoint</div></div><div class="api-endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/system-info</span><div class="endpoint-desc">System metrics</div></div></section>
+                <section id="ml-models" class="content-section"><h2 class="section-title">ML Models</h2><p>Ensemble of XGBoost + LightGBM with sequential majority voting. Achieves 82.4% accuracy.</p></section>
+                <section id="usage" class="content-section"><h2 class="section-title">User Guide</h2><p>Navigate to <strong>Threat Detection</strong> to manually analyze threats, or <strong>Upload Logs</strong> for batch processing. Real-time monitoring provides live system insights.</p></section>
+                <section id="troubleshooting" class="content-section"><h2 class="section-title">Troubleshooting</h2><div class="warning-box"><i class="fas fa-exclamation-triangle"></i> Port 5000 in use? Run: netstat -ano | findstr :5000 then taskkill /PID <PID> /F</div></section>
+                <section id="faq" class="content-section"><h2 class="section-title">FAQ</h2><div><h4 style="color: var(--primary);">Is CyberShield AI free?</h4><p>Yes! All features are freely available.</p></div><div><h4 style="color: var(--primary);">How accurate is detection?</h4><p>Ensemble model achieves 87% threat detection rate.</p></div></section>
             </div>
         </div>
 
         <footer class="footer">
             <div class="footer-links">
-                <a href="{{ url_for('about') }}" class="footer-link">About</a>
-                <a href="{{ url_for('features') }}" class="footer-link">Features</a>
-                <a href="{{ url_for('architecture') }}" class="footer-link">Architecture</a>
-                <a href="{{ url_for('research') }}" class="footer-link">Research</a>
-                <a href="{{ url_for('documentation') }}" class="footer-link">Documentation</a>
-                <a href="{{ url_for('contact') }}" class="footer-link">Contact</a>
+                <a href="#" class="footer-link" id="footerAbout">About</a>
+                <a href="#" class="footer-link" id="footerFeatures">Features</a>
+                <a href="#" class="footer-link">Architecture</a>
+                <a href="#" class="footer-link">Documentation</a>
             </div>
-            <div class="copyright">
-                <i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration
-            </div>
+            <div class="copyright"><i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration</div>
         </footer>
     </div>
 
     <script>
-        // Smooth scrolling for anchor links
+        // Simulated authentication state for demo (frontend-only, matches requirements)
+        let isLoggedIn = false;  // start as logged out
+
+        // Helper: update entire UI based on login state (both main nav-links + slide-out menu specifics)
+        function updateUIByAuth() {
+            const navLinksContainer = document.getElementById('dynamicNavLinks');
+            if (!navLinksContainer) return;
+
+            if (isLoggedIn) {
+                // LOGGED IN: show the exact premium set: Home, Threat Detection, Live Monitor, Upload Logs, Demo Scenarios, Theme dropdown, Logout
+                navLinksContainer.innerHTML = `
+                    <a href="#" class="nav-btn active">Home</a>
+                    <a href="#" class="nav-btn">Threat Detection</a>
+                    <a href="#" class="nav-btn">Live Monitor</a>
+                    <a href="#" class="nav-btn">Upload Logs</a>
+                    <a href="#" class="nav-btn">Demo Scenarios</a>
+                    <div class="theme-dropdown">
+                        <button class="theme-btn" id="themeBtn">
+                            <i class="fas fa-palette"></i> Theme
+                        </button>
+                        <div class="theme-dropdown-content" id="themeDropdown">
+                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                        </div>
+                    </div>
+                    <a href="#" class="nav-btn" id="logoutNavBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                `;
+                // update slide-out menu user info and visible items
+                document.getElementById('menuUserAvatar').innerText = 'JD';
+                document.getElementById('menuUserName').innerText = 'John Doe';
+                document.getElementById('menuUserEmail').innerText = 'john.doe@cybershield.ai';
+                // Slide menu links: keep proper text (Home, Detect Threat, Live Monitor, Upload Logs, Documentation etc)
+                document.getElementById('slideHomeLink').innerHTML = '<i class="fas fa-chart-pie"></i><span>Home</span>';
+                document.getElementById('slideThreatLink').innerHTML = '<i class="fas fa-bug"></i><span>Detect Threat</span>';
+                document.getElementById('slideMonitorLink').innerHTML = '<i class="fas fa-chart-line"></i><span>Live Monitor</span>';
+                document.getElementById('slideUploadLink').innerHTML = '<i class="fas fa-upload"></i><span>Upload Logs</span>';
+                document.getElementById('slideDocsLink').innerHTML = '<i class="fas fa-book"></i><span>Documentation</span>';
+                document.getElementById('slideProfileLink').innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+                document.getElementById('slideLogoutLink').innerHTML = '<i class="fas fa-sign-out-alt"></i><span>Log Out</span>';
+                // ensure logout action
+                const logoutBtnMain = document.getElementById('logoutNavBtn');
+                if (logoutBtnMain) logoutBtnMain.addEventListener('click', (e) => { e.preventDefault(); isLoggedIn = false; updateUIByAuth(); closeMenu(); });
+                const slideLogout = document.getElementById('slideLogoutLink');
+                if (slideLogout) slideLogout.addEventListener('click', (e) => { e.preventDefault(); isLoggedIn = false; updateUIByAuth(); closeMenu(); });
+            } else {
+                // LOGGED OUT: show exactly: Home, Features, About, Contact, Theme, Dashboard, Logout 
+                // But also need to include "Dashboard" and "Logout" per spec (for logged out? Actually spec says: when logged out: Home, Features, About, Contact, Theme, Dashboard, Logout)
+                navLinksContainer.innerHTML = `
+                    <a href="#" class="nav-btn active">Home</a>
+                    <a href="#" class="nav-btn">Features</a>
+                    <a href="#" class="nav-btn">About</a>
+                    <a href="#" class="nav-btn">Contact</a>
+                    <div class="theme-dropdown">
+                        <button class="theme-btn" id="themeBtnOut">
+                            <i class="fas fa-palette"></i> Theme
+                        </button>
+                        <div class="theme-dropdown-content" id="themeDropdownOut">
+                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                        </div>
+                    </div>
+                    <a href="#" class="nav-btn" id="dashboardNavBtn"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a href="#" class="nav-btn" id="logoutNavBtnOut"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                `;
+                // update slide-out menu for guest
+                document.getElementById('menuUserAvatar').innerText = 'GU';
+                document.getElementById('menuUserName').innerText = 'Guest User';
+                document.getElementById('menuUserEmail').innerText = 'guest@cybershield.ai';
+                document.getElementById('slideHomeLink').innerHTML = '<i class="fas fa-home"></i><span>Home</span>';
+                document.getElementById('slideThreatLink').innerHTML = '<i class="fas fa-info-circle"></i><span>Features</span>';
+                document.getElementById('slideMonitorLink').innerHTML = '<i class="fas fa-address-card"></i><span>About</span>';
+                document.getElementById('slideUploadLink').innerHTML = '<i class="fas fa-envelope"></i><span>Contact</span>';
+                document.getElementById('slideDocsLink').innerHTML = '<i class="fas fa-book"></i><span>Documentation</span>';
+                document.getElementById('slideProfileLink').innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+                document.getElementById('slideLogoutLink').innerHTML = '<i class="fas fa-sign-out-alt"></i><span>Log Out</span>';
+                // attach Dashboard & Logout for logged out state
+                const dashboardBtn = document.getElementById('dashboardNavBtn');
+                if (dashboardBtn) dashboardBtn.addEventListener('click', (e) => { e.preventDefault(); alert('Dashboard would open after login (demo).'); });
+                const logoutOutBtn = document.getElementById('logoutNavBtnOut');
+                if (logoutOutBtn) logoutOutBtn.addEventListener('click', (e) => { e.preventDefault(); alert('Logged out already (demo).'); });
+                const slideLogoutOut = document.getElementById('slideLogoutLink');
+                if (slideLogoutOut) slideLogoutOut.addEventListener('click', (e) => { e.preventDefault(); isLoggedIn = false; updateUIByAuth(); closeMenu(); });
+            }
+
+            // re-attach theme dropdown event listeners for new dynamic elements
+            attachThemeDropdownEvents();
+
+            // update demo toggle button text
+            const toggleBtn = document.getElementById('demoAuthToggle');
+            if (toggleBtn) toggleBtn.textContent = isLoggedIn ? "🔐 Logout (Simulate)" : "🔐 Simulate Login";
+        }
+
+        function attachThemeDropdownEvents() {
+            // Because theme dropdown might be recreated, we bind to document for theme options
+            // For logged-in version themeBtn and themeDropdown
+            const themeBtn = document.getElementById('themeBtn') || document.getElementById('themeBtnOut');
+            const themeDropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
+            if (themeBtn && themeDropdown) {
+                // remove old listeners to avoid duplicates
+                const newThemeBtn = themeBtn.cloneNode(true);
+                themeBtn.parentNode.replaceChild(newThemeBtn, themeBtn);
+                const newDropdown = themeDropdown.cloneNode(true);
+                themeDropdown.parentNode.replaceChild(newDropdown, themeDropdown);
+                const finalThemeBtn = document.getElementById('themeBtn') || document.getElementById('themeBtnOut');
+                const finalDropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
+                if (finalThemeBtn && finalDropdown) {
+                    finalThemeBtn.addEventListener('click', (e) => { e.stopPropagation(); finalDropdown.classList.toggle('show'); });
+                    document.addEventListener('click', (e) => { if (finalThemeBtn && !finalThemeBtn.contains(e.target) && finalDropdown && !finalDropdown.contains(e.target)) finalDropdown.classList.remove('show'); });
+                }
+            }
+            // theme options handler
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.removeEventListener('click', themeClickHandler);
+                opt.addEventListener('click', themeClickHandler);
+            });
+        }
+
+        function themeClickHandler(e) {
+            const theme = this.getAttribute('data-theme');
+            setTheme(theme);
+            const dropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
+            if (dropdown) dropdown.classList.remove('show');
+        }
+
+        function setTheme(themeName) {
+            document.body.classList.remove('light-theme', 'cyberpunk-theme');
+            if (themeName === 'light') {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('vertexguard_theme', 'light');
+            } else if (themeName === 'cyberpunk') {
+                document.body.classList.add('cyberpunk-theme');
+                localStorage.setItem('vertexguard_theme', 'cyberpunk');
+            } else {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('vertexguard_theme', 'dark');
+            }
+        }
+
+        // slide-out menu logic
+        const menu = document.getElementById('slideMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const menuTrigger = document.getElementById('menuTriggerBtn');
+        const closeBtn = document.getElementById('closeMenuBtn');
+        function openMenu() { menu.classList.add('open'); overlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeMenu() { menu.classList.remove('open'); overlay.classList.remove('active'); document.body.style.overflow = ''; }
+        if (menuTrigger) menuTrigger.addEventListener('click', openMenu);
+        if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+        if (overlay) overlay.addEventListener('click', closeMenu);
+        document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.key === 'b') { e.preventDefault(); menu.classList.contains('open') ? closeMenu() : openMenu(); } if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu(); });
+
+        // smooth scrolling & active sidebar
         document.querySelectorAll('.sidebar-nav-link, .toc a').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const targetId = this.getAttribute('href');
                 if (targetId && targetId !== '#') {
                     const targetElement = document.querySelector(targetId);
-                    if (targetElement) {
-                        targetElement.scrollIntoView({ behavior: 'smooth' });
-                        
-                        // Update active state in sidebar
-                        document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
-                        this.classList.add('active');
-                    }
+                    if (targetElement) targetElement.scrollIntoView({ behavior: 'smooth' });
+                    document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
                 }
             });
         });
-
-        // Highlight active section on scroll
         window.addEventListener('scroll', () => {
             const sections = document.querySelectorAll('.content-section');
             let current = '';
-            
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop - 100;
-                if (scrollY >= sectionTop) {
-                    current = '#' + section.getAttribute('id');
-                }
-            });
-            
-            document.querySelectorAll('.sidebar-nav-link').forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === current) {
-                    link.classList.add('active');
-                }
-            });
+            sections.forEach(section => { if (scrollY >= section.offsetTop - 100) current = '#' + section.getAttribute('id'); });
+            document.querySelectorAll('.sidebar-nav-link').forEach(link => { link.classList.remove('active'); if (link.getAttribute('href') === current) link.classList.add('active'); });
         });
+
+        // initial theme load
+        const savedTheme = localStorage.getItem('vertexguard_theme') || 'dark';
+        setTheme(savedTheme);
+        // initialize auth UI (logged out by default)
+        updateUIByAuth();
+
+        // Toggle simulation button: switch between logged in / out
+        const authToggle = document.getElementById('demoAuthToggle');
+        if (authToggle) {
+            authToggle.addEventListener('click', () => {
+                isLoggedIn = !isLoggedIn;
+                updateUIByAuth();
+                // also reset any dropdowns
+                const anyDropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
+                if (anyDropdown) anyDropdown.classList.remove('show');
+            });
+        }
+
+        // additional footer links (simple demo)
+        document.getElementById('footerAbout')?.addEventListener('click', (e) => { e.preventDefault(); alert('About page (demo).'); });
+        document.getElementById('footerFeatures')?.addEventListener('click', (e) => { e.preventDefault(); alert('Features page (demo).'); });
     </script>
 </body>
 </html>

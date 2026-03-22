@@ -3,130 +3,574 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield AI - Multi-Expert Analysis Results</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Multi-Expert Analysis Results - Cyber Security AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        /* ========== ROOT VARIABLES (DARK THEME DEFAULT) ========== */
         :root {
-            --primary: #00b4db;
-            --primary-dark: #0083b0;
-            --secondary: #636e72;
-            --dark: #0c0c0c;
-            --darker: #1a1a2e;
+            --primary: #4a9eff;
+            --primary-dark: #2c7be5;
+            --secondary: #a855f7;
+            --dark: #0f0f1b;
+            --darker: #0a0a14;
             --light: #ffffff;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --error: #e74c3c;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
             --critical: #c0392b;
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --card-border: rgba(255, 255, 255, 0.15);
+            --card-bg: rgba(18, 18, 30, 0.6);
+            --card-border: rgba(74, 158, 255, 0.2);
+            --sidebar-bg: rgba(18, 18, 30, 0.95);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --hover-glow: rgba(74, 158, 255, 0.2);
+            --grad-start: #4a9eff;
+            --grad-end: #a855f7;
         }
-        
+
+        /* ========== LIGHT THEME ========== */
+        body.light-theme {
+            --primary: #0077b6;
+            --primary-dark: #023e8a;
+            --secondary: #6f42c1;
+            --dark: #f5f7fa;
+            --darker: #ffffff;
+            --light: #212529;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --warning: #f39c12;
+            --critical: #c0392b;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(0, 0, 0, 0.15);
+            --sidebar-bg: rgba(255, 255, 255, 0.98);
+            --text-muted: rgba(0, 0, 0, 0.6);
+            --text-dark: #212529;
+            --nav-bg: rgba(0, 0, 0, 0.05);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --hover-glow: rgba(0, 119, 182, 0.1);
+            --grad-start: #0077b6;
+            --grad-end: #6f42c1;
+        }
+
+        /* ========== CYBERPUNK THEME ========== */
+        body.cyberpunk-theme {
+            --primary: #0afff0;
+            --primary-dark: #00ccaa;
+            --secondary: #ff00e5;
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --light: #e0f2fe;
+            --success: #00ffaa;
+            --error: #ff3366;
+            --warning: #ffcc00;
+            --critical: #ff00e5;
+            --card-bg: rgba(10, 10, 20, 0.85);
+            --card-border: rgba(10, 255, 240, 0.5);
+            --sidebar-bg: rgba(5, 5, 15, 0.98);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #e0f2fe;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --hover-glow: rgba(10, 255, 240, 0.2);
+            --grad-start: #0afff0;
+            --grad-end: #ff00e5;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, var(--dark), var(--darker));
-            color: var(--light);
+            color: var(--text-dark);
             min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ========== SLIDE-OUT MENU ========== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
+        }
+        .slide-menu.open {
+            transform: translateX(0);
+        }
+        .menu-header {
             padding: 20px;
-            line-height: 1.6;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .menu-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        
-        .header {
-            text-align: center;
-            padding: 40px 0;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            font-size: 2.8em;
-            margin-bottom: 15px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+        .menu-logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-weight: 700;
-            letter-spacing: -0.5px;
         }
-        
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.85;
-            max-width: 600px;
-            margin: 0 auto;
+        .menu-logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        
-        .stats-overview {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            margin-bottom: 40px;
+        .close-menu-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--nav-bg);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-dark);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        
-        .stats-overview h2 {
-            color: var(--primary);
+        .close-menu-btn:hover {
+            background: var(--hover-glow);
+            transform: rotate(90deg);
+        }
+        .menu-user-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .menu-user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+        .menu-user-info {
+            flex: 1;
+        }
+        .menu-user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+        .menu-user-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .menu-nav {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .menu-nav-section {
             margin-bottom: 25px;
-            font-size: 1.8em;
+        }
+        .menu-nav-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        .menu-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .menu-nav-item i {
+            width: 24px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        .menu-nav-item:hover {
+            background: var(--hover-glow);
+            color: var(--text-dark);
+            transform: translateX(5px);
+        }
+        .menu-nav-item.active {
+            background: rgba(74, 158, 255, 0.15);
+            color: var(--text-dark);
+        }
+        .menu-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .menu-footer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .menu-footer-item:hover {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+        }
+
+        /* ========== MAIN HEADER ========== */
+        .main-header {
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin: 20px 30px 30px 30px;
+            padding: 16px 28px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logo {
+            font-size: 1.6em;
+            font-weight: bold;
             display: flex;
             align-items: center;
             gap: 10px;
         }
+        .logo i {
+            font-size: 1.4em;
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo span {
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-trigger {
+            width: 45px;
+            height: 45px;
+            background: var(--nav-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-trigger:hover {
+            background: var(--hover-glow);
+            transform: scale(1.05);
+        }
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .nav-btn, .theme-btn {
+            padding: 10px 18px;
+            background: var(--nav-bg);
+            color: var(--text-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-btn:hover, .theme-btn:hover {
+            background: var(--hover-glow);
+            transform: translateY(-2px);
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            color: white;
+            border: none;
+        }
+        .theme-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .theme-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            min-width: 180px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            z-index: 1000;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .theme-dropdown-content.show {
+            display: block;
+        }
+        .theme-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+        .theme-option:hover {
+            background: var(--hover-glow);
+            padding-left: 20px;
+        }
+
+        /* Light Theme Logo Override */
+        body.light-theme .logo i,
+        body.light-theme .logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        body.light-theme .menu-logo i,
+        body.light-theme .menu-logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Cyberpunk Theme Logo Override */
+        body.cyberpunk-theme .logo i,
+        body.cyberpunk-theme .logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        body.cyberpunk-theme .menu-logo i,
+        body.cyberpunk-theme .menu-logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            max-width: 1400px;
+            margin: 30px auto 40px;
+            padding: 20px 25px;
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .page-header p {
+            font-size: 1.1em;
+            opacity: 0.85;
+            max-width: 600px;
+            margin: 0 auto;
+            color: var(--text-muted);
+        }
+
+        .model-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.8em;
+            font-weight: bold;
+            gap: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Stats Overview */
+        .stats-overview {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .stats-overview h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+        }
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
         }
         
         .stat-card {
-            background: rgba(0, 180, 219, 0.1);
-            padding: 25px;
-            border-radius: 15px;
+            background: rgba(74, 158, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
             text-align: center;
-            border-left: 4px solid var(--primary);
             transition: transform 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            background: rgba(74, 158, 255, 0.15);
         }
         
         .stat-number {
-            font-size: 2.5em;
+            font-size: 2.2em;
             font-weight: bold;
             color: var(--primary);
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 180, 219, 0.3);
         }
         
+        /* Severity Filter */
+        .severity-filter {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .filter-btn:hover {
+            background: var(--hover-glow);
+            transform: translateY(-2px);
+        }
+        
+        /* Results Section */
         .results-section {
-            margin: 40px 0;
+            margin: 30px 0;
         }
         
         .threat-card {
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
+            padding: 25px;
+            border-radius: 16px;
             margin-bottom: 25px;
             border-left: 4px solid;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
             border: 1px solid var(--card-border);
         }
         
@@ -135,25 +579,10 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
         
-        .threat-critical { 
-            border-left-color: var(--critical); 
-            background: rgba(192, 57, 43, 0.1); 
-        }
-        
-        .threat-high { 
-            border-left-color: var(--error); 
-            background: rgba(231, 76, 60, 0.1); 
-        }
-        
-        .threat-medium { 
-            border-left-color: var(--warning); 
-            background: rgba(243, 156, 18, 0.1); 
-        }
-        
-        .threat-low { 
-            border-left-color: var(--success); 
-            background: rgba(46, 204, 113, 0.1); 
-        }
+        .threat-critical { border-left-color: var(--critical); background: rgba(192, 57, 43, 0.1); }
+        .threat-high { border-left-color: var(--error); background: rgba(255, 71, 87, 0.1); }
+        .threat-medium { border-left-color: var(--warning); background: rgba(255, 165, 2, 0.1); }
+        .threat-low { border-left-color: var(--success); background: rgba(0, 255, 136, 0.1); }
         
         .threat-header {
             display: flex;
@@ -168,36 +597,21 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.4em;
+            font-size: 1.2em;
+            font-weight: 600;
         }
         
         .threat-badge {
-            padding: 8px 18px;
+            padding: 6px 15px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 0.9em;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            font-size: 0.8em;
         }
         
-        .badge-critical { 
-            background: var(--critical); 
-            color: white;
-        }
-        
-        .badge-high { 
-            background: var(--error); 
-            color: white;
-        }
-        
-        .badge-medium { 
-            background: var(--warning); 
-            color: #000; 
-        }
-        
-        .badge-low { 
-            background: var(--success); 
-            color: white;
-        }
+        .badge-critical { background: var(--critical); color: white; }
+        .badge-high { background: var(--error); color: white; }
+        .badge-medium { background: var(--warning); color: #000; }
+        .badge-low { background: var(--success); color: white; }
         
         .confidence-badge {
             display: inline-flex;
@@ -206,45 +620,57 @@
             background: rgba(0, 0, 0, 0.3);
             padding: 6px 12px;
             border-radius: 15px;
+            font-size: 0.8em;
+        }
+        
+        .multi-expert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
             font-weight: 600;
         }
         
         .threat-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
         
         .detail-item {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
         }
         
         .detail-label {
-            font-size: 0.85em;
+            font-size: 0.8em;
             opacity: 0.7;
+            display: block;
+            margin-bottom: 5px;
         }
         
         .detail-value {
             font-weight: 600;
         }
         
-        /* Multi-Expert Analysis Styling */
+        /* Expert Analysis */
         .expert-analysis-section {
-            margin: 25px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             overflow: hidden;
         }
         
         .expert-analysis-header {
-            background: linear-gradient(45deg, #8e44ad, #9b59b6);
-            padding: 20px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            padding: 15px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -257,14 +683,14 @@
             align-items: center;
             gap: 8px;
             background: rgba(255, 255, 255, 0.2);
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 20px;
-            font-weight: 600;
+            font-size: 0.8em;
         }
         
         .expert-analyses-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 15px;
             padding: 20px;
             background: rgba(0, 0, 0, 0.2);
@@ -272,9 +698,9 @@
         
         .expert-card {
             background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 4px solid;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid;
             transition: transform 0.3s ease;
         }
         
@@ -290,16 +716,16 @@
         .expert-role {
             font-weight: bold;
             color: var(--primary);
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
         .expert-specialty {
-            font-size: 0.85em;
+            font-size: 0.75em;
             opacity: 0.8;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .expert-confidence {
@@ -307,51 +733,51 @@
             align-items: center;
             gap: 5px;
             background: rgba(0, 0, 0, 0.3);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            margin-top: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            margin-top: 8px;
         }
         
         .consensus-section {
             background: rgba(46, 204, 113, 0.1);
             border: 1px solid rgba(46, 204, 113, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px;
         }
         
         .consensus-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 10px;
             color: var(--success);
         }
         
         .solution-roadmap {
             background: rgba(52, 152, 219, 0.1);
             border: 1px solid rgba(52, 152, 219, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px;
         }
         
         .roadmap-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 10px;
             color: #3498db;
         }
         
         .explanation {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
             border-radius: 10px;
-            margin: 20px 0;
-            line-height: 1.6;
-            border-left: 4px solid var(--primary);
+            margin: 15px 0;
+            line-height: 1.5;
+            border-left: 3px solid var(--primary);
         }
         
         .explanation h4 {
@@ -363,12 +789,12 @@
         }
         
         .recommendations {
-            margin-top: 20px;
+            margin-top: 15px;
         }
         
         .recommendations h4 {
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -379,9 +805,9 @@
         }
         
         .recommendations li {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             position: relative;
-            padding-left: 10px;
+            padding-left: 5px;
         }
         
         .recommendations li::before {
@@ -392,63 +818,31 @@
             left: -15px;
         }
         
-        .campaign-info {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border-left: 4px solid var(--warning);
-        }
-        
-        .campaign-info h4 {
-            color: var(--warning);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .campaign-info p {
-            margin-bottom: 8px;
-        }
-        
         .detection-time {
-            margin-top: 20px;
+            margin-top: 15px;
             opacity: 0.7;
-            font-size: 0.9em;
+            font-size: 0.8em;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .btn {
-            padding: 16px 35px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
+        .no-threats {
+            text-align: center;
+            padding: 60px 40px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .no-threats h2 {
+            color: var(--success);
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 180, 219, 0.4);
-        }
-        
-        .btn:active {
-            transform: translateY(1px);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(45deg, var(--secondary), #2d3436);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            justify-content: center;
+            gap: 15px;
         }
         
         .nav-buttons {
@@ -459,198 +853,61 @@
             flex-wrap: wrap;
         }
         
-        .no-threats {
-            text-align: center;
-            padding: 60px 40px;
-            background: var(--card-bg);
-            border-radius: 20px;
-            margin: 40px 0;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        .no-threats h2 {
-            color: var(--success);
-            margin-bottom: 20px;
-            font-size: 2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-        
-        .severity-filter {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .filter-btn {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .filter-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            box-shadow: 0 3px 10px rgba(0, 180, 219, 0.3);
-        }
-        
-        .filter-btn:hover {
-            background: rgba(0, 180, 219, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        .model-badge {
-            -webkit-text-fill-color: white !important;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white !important;
-            display: inline-flex;
-            align-items: center;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 30px;
-            font-size: 0.8em;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            gap: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Multi-Expert Badge */
-        .multi-expert-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        /* Header Navigation Styles */
-        .main-header {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 18px 25px;
-            margin-bottom: 40px;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        /* Add this to your CSS */
-        .consensus-section p {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        /* Or for better readability */
-        .text-container {
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .logo {
-            font-size: 1.6em;
-            font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-btn {
-            padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.08);
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 0.95em;
+            border-radius: 10px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.9em;
         }
         
-        .nav-btn:hover {
-            background: rgba(0, 180, 219, 0.25);
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            filter: brightness(1.05);
         }
         
-        .nav-btn.active {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
         }
         
-        /* Responsive adjustments */
+        .btn-secondary:hover {
+            background: var(--hover-glow);
+            border-color: var(--primary);
+        }
+        
+        .text-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 20px;
+            .main-header {
+                margin: 15px;
             }
             
-            .nav-links {
-                justify-content: center;
+            .main-content {
+                padding: 20px;
             }
             
-            .nav-btn {
-                padding: 10px 15px;
-                font-size: 0.9em;
+            .page-header h1 {
+                font-size: 1.8em;
             }
             
             .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .threat-details {
@@ -662,20 +919,15 @@
                 align-items: flex-start;
             }
             
-            .header h1 {
-                font-size: 2.2em;
-            }
-            
-            .stats-overview, .threat-card {
-                padding: 25px 20px;
-            }
-            
             .expert-analyses-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .severity-filter {
+                justify-content: center;
+            }
         }
         
-        /* Animation for critical threats */
         @keyframes pulse-critical {
             0% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(192, 57, 43, 0); }
@@ -688,31 +940,159 @@
     </style>
 </head>
 <body>
-    <!-- Header Navigation - UPDATED with Login/Logout -->
+    <!-- Header with Hamburger and Theme Switcher -->
     <header class="main-header">
         <div class="nav-container">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                CyberShield AI
+            <div class="nav-left">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>CyberShield AI</span>
+                </div>
+                <button class="menu-trigger" id="menuTriggerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
             <div class="nav-links">
-                <a href="/" class="nav-btn"><i class="fas fa-home"></i> Home</a>
-                <a href="/detect-threat" class="nav-btn"><i class="fas fa-search"></i> Custom Detection</a>
-                <a href="/upload-logs" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
-                <a href="/real-time-dashboard" class="nav-btn"><i class="fas fa-chart-line"></i> Real-time Dashboard</a>
-                <!-- NEW: Login/Logout links based on authentication status -->
+                <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Home</a>
+                <a href="{{ url_for('detect_threat') }}" class="nav-btn">Detect Threat</a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn">Live Monitor</a>
+                <a href="{{ url_for('upload_logs') }}" class="nav-btn active">Upload Logs</a>
+                <a href="{{ url_for('sample_threats') }}" class="nav-btn">Demo Scenarios</a>
+                <a href="{{ url_for('profile') }}" class="nav-btn">Profile</a>
+                <div class="theme-dropdown">
+                    <button class="theme-btn" id="themeBtn">
+                        <i class="fas fa-palette"></i> Theme
+                    </button>
+                    <div class="theme-dropdown-content" id="themeDropdown">
+                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                    </div>
+                </div>
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
                 {% endif %}
-            </div>
+                </div>
         </div>
     </header>
 
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-chart-bar"></i> Multi-Expert Analysis Results <span class="model-badge">MULTI-EXPERT AI</span></h1>
+    <!-- Slide-out Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Reddit-style Slide-out Menu -->
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-header">
+            <div class="menu-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>CyberShield AI</span>
+            </div>
+            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="menu-user-section">
+            <div class="menu-user-avatar">
+                {% if current_user.is_authenticated %}
+                    {{ current_user.username[0]|upper }}
+                {% else %}
+                    G
+                {% endif %}
+            </div>
+            <div class="menu-user-info">
+                <div class="menu-user-name">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.username }}
+                    {% else %}
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="menu-user-email">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.email }}
+                    {% else %}
+                        guest@cybershield.ai
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="menu-nav">
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Main</div>
+                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
+                    <i class="fas fa-search"></i><span>Detect Threat</span>
+                </a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-line"></i><span>Live Monitor</span>
+                </a>
+                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
+                    <i class="fas fa-upload"></i><span>Upload Logs</span>
+                </a>
+                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item">
+                    <i class="fas fa-bullseye"></i><span>Demo Scenarios</span>
+                </a>
+            </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Resources</div>
+                <a href="{{ url_for('landing') }}" class="menu-nav-item">
+                    <i class="fas fa-home"></i><span>Home</span>
+                </a>
+                <a href="{{ url_for('features') }}" class="menu-nav-item">
+                    <i class="fas fa-star"></i><span>Features</span>
+                </a>
+                <a href="{{ url_for('about') }}" class="menu-nav-item">
+                    <i class="fas fa-info-circle"></i><span>About</span>
+                </a>
+                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
+                    <i class="fas fa-sitemap"></i><span>Architecture</span>
+                </a>
+                <a href="{{ url_for('documentation') }}" class="menu-nav-item">
+                    <i class="fas fa-book"></i><span>Documentation</span>
+                </a>
+                <a href="{{ url_for('contact') }}" class="menu-nav-item">
+                    <i class="fas fa-envelope"></i><span>Contact</span>
+                </a>
+            </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Settings</div>
+                <a href="{{ url_for('profile') }}" class="menu-nav-item">
+                    <i class="fas fa-user"></i><span>Profile</span>
+                </a>
+                <a href="#" class="menu-nav-item">
+                    <i class="fas fa-question-circle"></i><span>Help & Support</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-footer">
+            <a href="{{ url_for('profile') }}" class="menu-footer-item">
+                <i class="fas fa-user"></i><span>Profile</span>
+            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-out-alt"></i><span>Log Out</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-in-alt"></i><span>Log In</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-chart-bar"></i> Multi-Expert Analysis Results 
+                <span class="model-badge">MULTI-EXPERT AI</span>
+            </h1>
             <p>Batch threat detection results with Multi-LLM Debate AI-powered analysis</p>
         </div>
 
@@ -720,22 +1100,22 @@
             <h2><i class="fas fa-tachometer-alt"></i> Multi-Expert Detection Summary</h2>
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number">{{ total_logs }}</div>
+                    <div class="stat-number">{{ total_logs|default(0) }}</div>
                     <div>Total Logs Analyzed</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">{{ results|length }}</div>
+                    <div class="stat-number">{{ results|length|default(0) }}</div>
                     <div>Threats Detected</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">
-                        {{ (results|selectattr('severity', 'equalto', 'critical')|list|length) }}
+                        {{ results|selectattr('severity', 'equalto', 'critical')|list|length|default(0) }}
                     </div>
                     <div>Critical Threats</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">
-                        {{ results|selectattr('multi_expert_analysis_used')|list|length }}
+                        {{ results|selectattr('multi_expert_analysis_used')|list|length|default(0) }}
                     </div>
                     <div>Multi-Expert Analyses</div>
                 </div>
@@ -761,36 +1141,34 @@
         </div>
 
         <div class="results-section" id="resultsSection">
-            {% if results %}
+            {% if results and results|length > 0 %}
                 {% for result in results %}
                 <div class="threat-card threat-{{ result.severity }}" data-severity="{{ result.severity }}">
                     <div class="threat-header">
                         <div class="threat-title">
-                            {% if result.attack_type == 'Coordinated Attack Campaign' %}
-                                <i class="fas fa-chess-queen"></i>
-                            {% elif 'Port Scanning' in result.attack_type %}
+                            {% if 'Port Scanning' in result.attack_type %}
                                 <i class="fas fa-search"></i>
                             {% elif 'Brute Force' in result.attack_type %}
                                 <i class="fas fa-key"></i>
-                            {% elif 'DoS' in result.attack_type %}
+                            elif 'DoS' in result.attack_type or 'DDoS' in result.attack_type %}
                                 <i class="fas fa-bolt"></i>
-                            {% else %}
+                            else %}
                                 <i class="fas fa-exclamation-triangle"></i>
                             {% endif %}
                             {{ result.attack_type }}
                         </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
                             <span class="threat-badge badge-{{ result.severity }}">
                                 <i class="fas fa-{% if result.severity == 'critical' %}skull{% elif result.severity == 'high' %}exclamation-triangle{% elif result.severity == 'medium' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
                                 {{ result.severity|upper }}
                             </span>
                             <span class="confidence-badge">
                                 <i class="fas fa-chart-line"></i>
-                                {{ "%.1f"|format(result.final_confidence * 100) }}%
+                                {{ "%.1f"|format(result.final_confidence) }}%
                             </span>
                             {% if result.multi_expert_analysis_used %}
                             <span class="multi-expert-badge">
-                                <i class="fas fa-users"></i> {{ result.expert_count }} Experts
+                                <i class="fas fa-users"></i> {{ result.expert_count|default(0) }} Experts
                             </span>
                             {% endif %}
                         </div>
@@ -799,19 +1177,19 @@
                     <div class="threat-details">
                         <div class="detail-item">
                             <span class="detail-label"><i class="fas fa-laptop"></i> Source IP</span>
-                            <span class="detail-value">{{ result.source_ip }}</span>
+                            <span class="detail-value">{{ result.source_ip|default('Unknown') }}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label"><i class="fas fa-server"></i> Target</span>
-                            <span class="detail-value">{{ result.target_ip }}:{{ result.target_port }}</span>
+                            <span class="detail-value">{{ result.target_ip|default('Unknown') }}:{{ result.target_port|default('0') }}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label"><i class="fas fa-network-wired"></i> Protocol</span>
-                            <span class="detail-value">{{ result.protocol|upper }}</span>
+                            <span class="detail-value">{{ result.protocol|default('Unknown')|upper }}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label"><i class="fas fa-tools"></i> Tool</span>
-                            <span class="detail-value">{{ result.tool }}</span>
+                            <span class="detail-value">{{ result.tool|default('Unknown') }}</span>
                         </div>
                     </div>
 
@@ -819,26 +1197,11 @@
                     {% if result.multi_expert_analysis_used and result.multi_expert_analysis %}
                     <div class="expert-analysis-section">
                         <div class="expert-analysis-header">
-                            <h3 style="margin: 0; color: white;">
+                            <h3 style="margin: 0; color: white; font-size: 1em;">
                                 <i class="fas fa-users"></i> Multi-Expert Consensus Analysis
                             </h3>
                             <div class="expert-count">
-                                <i class="fas fa-user-shield"></i> {{ result.expert_count }} Security Experts
-                                <span class="confidence-badge" style="margin-left: 10px;">
-                                    <i class="fas fa-chart-line"></i> Consensus: 
-                                    <!-- Replace the current consensus section with this -->
-                                    {% if result.multi_expert_analysis.consensus_analysis %}
-                                    <div class="consensus-section">
-                                        <div class="consensus-header">
-                                            <i class="fas fa-handshake"></i>
-                                            <h4 style="margin: 0;">Unified Expert Consensus</h4>
-                                        </div>
-                                        <div class="text-container">
-                                            <pre style="background: transparent; border: none; color: inherit; font-family: inherit; white-space: pre-wrap; margin: 0;">{{ result.multi_expert_analysis.consensus_analysis }}</pre>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </span>
+                                <i class="fas fa-user-shield"></i> {{ result.expert_count|default(0) }} Security Experts
                             </div>
                         </div>
 
@@ -853,14 +1216,14 @@
                                 <div class="expert-specialty">
                                     <i class="fas fa-star"></i> {{ expert.specialty }}
                                 </div>
-                                <div style="font-size: 0.9em; margin-bottom: 10px;">
-                                    {{ expert.analysis }}
+                                <div style="font-size: 0.85em; margin-bottom: 8px;">
+                                    {{ expert.analysis|truncate(150) }}
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <span class="expert-confidence">
                                         <i class="fas fa-bullseye"></i> {{ "%.0f"|format(expert.confidence * 100) }}%
                                     </span>
-                                    <span style="font-size: 0.8em; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 10px;">
+                                    <span style="font-size: 0.7em; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 8px;">
                                         {{ expert.risk_level }}
                                     </span>
                                 </div>
@@ -874,9 +1237,11 @@
                         <div class="consensus-section">
                             <div class="consensus-header">
                                 <i class="fas fa-handshake"></i>
-                                <h4 style="margin: 0;">Unified Expert Consensus</h4>
+                                <h4 style="margin: 0; font-size: 0.95em;">Unified Expert Consensus</h4>
                             </div>
-                            <p>{{ result.multi_expert_analysis.consensus_analysis }}</p>
+                            <div class="text-container">
+                                <p style="margin: 0;">{{ result.multi_expert_analysis.consensus_analysis }}</p>
+                            </div>
                         </div>
                         {% endif %}
 
@@ -885,23 +1250,11 @@
                         <div class="solution-roadmap">
                             <div class="roadmap-header">
                                 <i class="fas fa-road"></i>
-                                <h4 style="margin: 0;">Implementation Roadmap</h4>
+                                <h4 style="margin: 0; font-size: 0.95em;">Implementation Roadmap</h4>
                             </div>
-                            <ul style="padding-left: 20px;">
+                            <ul style="padding-left: 20px; margin: 0;">
                                 {% for step in result.multi_expert_analysis.implementation_steps %}
-                                <li>{{ step }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
-
-                        <!-- Monitoring Recommendations -->
-                        {% if result.multi_expert_analysis.monitoring_recommendations %}
-                        <div class="recommendations">
-                            <h4><i class="fas fa-chart-line"></i> Monitoring & Validation</h4>
-                            <ul>
-                                {% for monitor in result.multi_expert_analysis.monitoring_recommendations %}
-                                <li>{{ monitor }}</li>
+                                <li style="margin-bottom: 5px;">{{ step }}</li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -913,7 +1266,7 @@
                         <h4><i class="fas fa-robot"></i> Threat Intelligence</h4>
                         <p>{{ result.description }}</p>
                         {% if result.get('multi_expert_analysis_used') %}
-                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                        <div style="margin-top: 8px; font-size: 0.8em; opacity: 0.8;">
                             <i class="fas fa-users"></i> Multi-Expert Consensus Analysis Applied
                         </div>
                         {% endif %}
@@ -927,16 +1280,6 @@
                             <li>{{ recommendation }}</li>
                             {% endfor %}
                         </ul>
-                    </div>
-                    {% endif %}
-
-                    {% if result.campaign_details %}
-                    <div class="campaign-info">
-                        <h4><i class="fas fa-chess-queen"></i> Campaign Details</h4>
-                        <p><strong>Techniques Used:</strong> {{ result.campaign_details.techniques_used|join(', ') }}</p>
-                        <p><strong>Total Techniques:</strong> {{ result.campaign_details.total_techniques }}</p>
-                        <p><strong>Time Range:</strong> {{ result.campaign_details.time_range }}</p>
-                        <p><strong>Campaign Duration:</strong> {{ result.campaign_details.campaign_duration_minutes|round(1) }} minutes</p>
                     </div>
                     {% endif %}
 
@@ -956,37 +1299,108 @@
         </div>
 
         <div class="nav-buttons">
-            <a href="/upload-logs" class="btn"><i class="fas fa-file-upload"></i> Upload More Logs</a>
-            <a href="/detect-threat" class="btn btn-secondary"><i class="fas fa-search"></i> Single Detection</a>
-            <a href="/dashboard" class="btn btn-secondary"><i class="fas fa-chart-bar"></i> Live Dashboard</a>
-            <a href="/" class="btn btn-secondary"><i class="fas fa-home"></i> Home</a>
+            <a href="{{ url_for('upload_logs') }}" class="btn"><i class="fas fa-file-upload"></i> Upload More Logs</a>
+            <a href="{{ url_for('detect_threat') }}" class="btn btn-secondary"><i class="fas fa-search"></i> Single Detection</a>
+            <a href="{{ url_for('dashboard_home') }}" class="btn btn-secondary"><i class="fas fa-chart-bar"></i> Live Dashboard</a>
+            <a href="{{ url_for('landing') }}" class="btn btn-secondary"><i class="fas fa-home"></i> Home</a>
         </div>
     </div>
 
     <script>
-        // Severity filter functionality
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+        // ========== THEME SWITCHER ==========
+        function setTheme(themeName) {
+            document.body.classList.remove('light-theme', 'cyberpunk-theme');
+            if (themeName === 'light') {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('cybershield_theme', 'light');
+            } else if (themeName === 'cyberpunk') {
+                document.body.classList.add('cyberpunk-theme');
+                localStorage.setItem('cybershield_theme', 'cyberpunk');
+            } else {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('cybershield_theme', 'dark');
+            }
+        }
+        
+        const savedTheme = localStorage.getItem('cybershield_theme') || 'dark';
+        setTheme(savedTheme);
+        
+        const themeBtn = document.getElementById('themeBtn');
+        const themeDropdown = document.getElementById('themeDropdown');
+        
+        if (themeBtn && themeDropdown) {
+            themeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themeDropdown.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!themeBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                    themeDropdown.classList.remove('show');
+                }
+            });
+            
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    setTheme(option.getAttribute('data-theme'));
+                    themeDropdown.classList.remove('show');
+                });
+            });
+        }
+        
+        // ========== SLIDE-OUT MENU FUNCTIONALITY ==========
+        const menu = document.getElementById('slideMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const menuTrigger = document.getElementById('menuTriggerBtn');
+        const closeBtn = document.getElementById('closeMenuBtn');
+        
+        function openMenu() {
+            menu.classList.add('open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMenu() {
+            menu.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        if (menuTrigger) menuTrigger.addEventListener('click', openMenu);
+        if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+        if (overlay) overlay.addEventListener('click', closeMenu);
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                if (menu && menu.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+            if (e.key === 'Escape' && menu && menu.classList.contains('open')) closeMenu();
+        });
+        
+        // ========== SEVERITY FILTER FUNCTIONALITY ==========
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const threatCards = document.querySelectorAll('.threat-card');
+        
+        filterBtns.forEach(btn => {
             btn.addEventListener('click', function() {
-                // Update active button
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                filterBtns.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 
                 const severity = this.getAttribute('data-severity');
-                const threats = document.querySelectorAll('.threat-card');
                 
-                threats.forEach(threat => {
-                    if (severity === 'all' || threat.getAttribute('data-severity') === severity) {
-                        threat.style.display = 'block';
+                threatCards.forEach(card => {
+                    if (severity === 'all' || card.getAttribute('data-severity') === severity) {
+                        card.style.display = 'block';
                     } else {
-                        threat.style.display = 'none';
+                        card.style.display = 'none';
                     }
                 });
             });
-        });
-
-        // Auto-expand critical threats with animation
-        document.querySelectorAll('.threat-card.threat-critical').forEach(card => {
-            card.style.display = 'block';
         });
     </script>
 </body>

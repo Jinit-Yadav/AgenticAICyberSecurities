@@ -8,46 +8,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        /* ========== ROOT VARIABLES (DARK THEME DEFAULT) ========== */
         :root {
-            --primary: #00d4ff;
-            --primary-dark: #0099cc;
-            --secondary: #636e72;
-            --dark: #0a0e27;
-            --darker: #0f1419;
+            --primary: #4a9eff;
+            --primary-dark: #2c7be5;
+            --secondary: #a855f7;
+            --dark: #0f0f1b;
+            --darker: #0a0a14;
             --light: #ffffff;
             --success: #00ff88;
             --error: #ff4757;
             --warning: #ffa502;
-            --card-bg: rgba(15, 20, 25, 0.6);
-            --card-border: rgba(0, 212, 255, 0.2);
-            --ai-purple: #a855f7;
-            --ai-pink: #c084fc;
-            --critical: #c0392b;
-            --sidebar-bg: rgba(10, 14, 25, 0.98);
+            --card-bg: rgba(18, 18, 30, 0.6);
+            --card-border: rgba(74, 158, 255, 0.2);
+            --sidebar-bg: rgba(18, 18, 30, 0.95);
             --text-muted: rgba(255, 255, 255, 0.7);
             --text-dark: #ffffff;
-            --nav-bg: rgba(255,255,255,0.08);
-            --border-color: rgba(255,255,255,0.1);
-            --hover-glow: rgba(0, 212, 255, 0.2);
-            --grad-start: #00d4ff;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --hover-glow: rgba(74, 158, 255, 0.2);
+            --grad-start: #4a9eff;
             --grad-end: #a855f7;
+            --ai-purple: #a855f7;
+            --ai-pink: #c084fc;
         }
-        
-        /* Light Theme - Enhanced for better visibility */
+
+        /* ========== LIGHT THEME ========== */
         body.light-theme {
             --primary: #0077b6;
             --primary-dark: #023e8a;
-            --secondary: #6c757d;
-            --dark: #f8f9fa;
+            --secondary: #6f42c1;
+            --dark: #f5f7fa;
             --darker: #ffffff;
             --light: #212529;
             --success: #2ecc71;
             --error: #e74c3c;
             --warning: #f39c12;
             --card-bg: rgba(255, 255, 255, 0.95);
-            --card-border: rgba(0, 0, 0, 0.2);
-            --ai-purple: #6f42c1;
-            --ai-pink: #e83e8c;
+            --card-border: rgba(0, 0, 0, 0.15);
             --sidebar-bg: rgba(255, 255, 255, 0.98);
             --text-muted: rgba(0, 0, 0, 0.6);
             --text-dark: #212529;
@@ -56,9 +54,11 @@
             --hover-glow: rgba(0, 119, 182, 0.1);
             --grad-start: #0077b6;
             --grad-end: #6f42c1;
+            --ai-purple: #6f42c1;
+            --ai-pink: #e83e8c;
         }
-        
-        /* Cyberpunk Theme */
+
+        /* ========== CYBERPUNK THEME ========== */
         body.cyberpunk-theme {
             --primary: #0afff0;
             --primary-dark: #00ccaa;
@@ -71,34 +71,32 @@
             --warning: #ffcc00;
             --card-bg: rgba(10, 10, 20, 0.85);
             --card-border: rgba(10, 255, 240, 0.5);
-            --ai-purple: #ff00e5;
-            --ai-pink: #ff66cc;
             --sidebar-bg: rgba(5, 5, 15, 0.98);
             --text-muted: rgba(255, 255, 255, 0.7);
             --text-dark: #e0f2fe;
-            --nav-bg: rgba(255,255,255,0.08);
-            --border-color: rgba(255,255,255,0.15);
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.15);
             --hover-glow: rgba(10, 255, 240, 0.2);
             --grad-start: #0afff0;
             --grad-end: #ff00e5;
+            --ai-purple: #ff00e5;
+            --ai-pink: #ff66cc;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, var(--dark), var(--darker));
-            color: var(--light);
+            color: var(--text-dark);
             min-height: 100vh;
-            line-height: 1.6;
-            overflow-x: hidden;
             transition: background 0.3s ease, color 0.3s ease;
         }
-        
+
         /* ========== SLIDE-OUT MENU ========== */
         .menu-overlay {
             position: fixed;
@@ -113,12 +111,10 @@
             visibility: hidden;
             transition: all 0.3s ease;
         }
-        
         .menu-overlay.active {
             opacity: 1;
             visibility: visible;
         }
-        
         .slide-menu {
             position: fixed;
             top: 0;
@@ -135,11 +131,9 @@
             flex-direction: column;
             box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
         }
-        
         .slide-menu.open {
             transform: translateX(0);
         }
-        
         .menu-header {
             padding: 20px;
             border-bottom: 1px solid var(--border-color);
@@ -147,13 +141,11 @@
             align-items: center;
             justify-content: space-between;
         }
-        
         .menu-logo {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        
         .menu-logo i {
             font-size: 1.8rem;
             background: linear-gradient(45deg, #4a9eff, #a855f7);
@@ -161,7 +153,6 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .menu-logo span {
             font-size: 1.3rem;
             font-weight: bold;
@@ -170,7 +161,6 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .close-menu-btn {
             width: 36px;
             height: 36px;
@@ -185,12 +175,10 @@
             align-items: center;
             justify-content: center;
         }
-        
         .close-menu-btn:hover {
             background: var(--hover-glow);
             transform: rotate(90deg);
         }
-        
         .menu-user-section {
             padding: 20px;
             border-bottom: 1px solid var(--border-color);
@@ -198,7 +186,6 @@
             align-items: center;
             gap: 15px;
         }
-        
         .menu-user-avatar {
             width: 48px;
             height: 48px;
@@ -211,32 +198,26 @@
             font-weight: bold;
             color: white;
         }
-        
         .menu-user-info {
             flex: 1;
         }
-        
         .menu-user-name {
             font-weight: 600;
             margin-bottom: 4px;
             color: var(--text-dark);
         }
-        
         .menu-user-email {
             font-size: 0.8rem;
             color: var(--text-muted);
         }
-        
         .menu-nav {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
         }
-        
         .menu-nav-section {
             margin-bottom: 25px;
         }
-        
         .menu-nav-title {
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -245,7 +226,6 @@
             margin-bottom: 12px;
             padding-left: 12px;
         }
-        
         .menu-nav-item {
             display: flex;
             align-items: center;
@@ -257,29 +237,24 @@
             border-radius: 12px;
             transition: all 0.2s;
         }
-        
         .menu-nav-item i {
             width: 24px;
             font-size: 1.1rem;
             color: var(--primary);
         }
-        
         .menu-nav-item:hover {
             background: var(--hover-glow);
             color: var(--text-dark);
             transform: translateX(5px);
         }
-        
         .menu-nav-item.active {
-            background: rgba(0, 212, 255, 0.15);
+            background: rgba(74, 158, 255, 0.15);
             color: var(--text-dark);
         }
-        
         .menu-footer {
             padding: 20px;
             border-top: 1px solid var(--border-color);
         }
-        
         .menu-footer-item {
             display: flex;
             align-items: center;
@@ -290,12 +265,11 @@
             border-radius: 10px;
             transition: all 0.2s;
         }
-        
         .menu-footer-item:hover {
             background: rgba(255, 71, 87, 0.1);
             color: var(--error);
         }
-        
+
         /* ========== MAIN HEADER (VERTEXGUARD STYLE) ========== */
         .main-header {
             background: var(--nav-bg);
@@ -306,7 +280,6 @@
             border: 1px solid var(--card-border);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
-        
         .nav-container {
             display: flex;
             justify-content: space-between;
@@ -314,13 +287,11 @@
             flex-wrap: wrap;
             gap: 20px;
         }
-        
         .nav-left {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-        
         .logo {
             font-size: 1.6em;
             font-weight: bold;
@@ -328,7 +299,6 @@
             align-items: center;
             gap: 10px;
         }
-        
         .logo i {
             font-size: 1.4em;
             background: linear-gradient(45deg, #4a9eff, #a855f7);
@@ -336,14 +306,12 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .logo span {
             background: linear-gradient(45deg, #4a9eff, #a855f7);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .menu-trigger {
             width: 45px;
             height: 45px;
@@ -358,19 +326,16 @@
             align-items: center;
             justify-content: center;
         }
-        
         .menu-trigger:hover {
             background: var(--hover-glow);
             transform: scale(1.05);
         }
-        
         .nav-links {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
             align-items: center;
         }
-        
         .nav-btn, .theme-btn {
             padding: 10px 18px;
             background: var(--nav-bg);
@@ -385,23 +350,19 @@
             align-items: center;
             gap: 8px;
         }
-        
         .nav-btn:hover, .theme-btn:hover {
             background: var(--hover-glow);
             transform: translateY(-2px);
         }
-        
         .nav-btn.active {
             background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
             color: white;
             border: none;
         }
-        
         .theme-dropdown {
             position: relative;
             display: inline-block;
         }
-        
         .theme-dropdown-content {
             display: none;
             position: absolute;
@@ -416,11 +377,9 @@
             margin-top: 8px;
             overflow: hidden;
         }
-        
         .theme-dropdown-content.show {
             display: block;
         }
-        
         .theme-option {
             padding: 12px 16px;
             cursor: pointer;
@@ -431,16 +390,14 @@
             gap: 10px;
             border-bottom: 1px solid var(--border-color);
         }
-        
         .theme-option:last-child {
             border-bottom: none;
         }
-        
         .theme-option:hover {
             background: var(--hover-glow);
             padding-left: 20px;
         }
-        
+
         /* Light Theme Logo Override */
         body.light-theme .logo i,
         body.light-theme .logo span {
@@ -457,7 +414,7 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         /* Cyberpunk Theme Logo Override */
         body.cyberpunk-theme .logo i,
         body.cyberpunk-theme .logo span {
@@ -473,6 +430,13 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
         }
         
         .header {
@@ -921,18 +885,12 @@
                 </button>
             </div>
             <div class="nav-links">
-                <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
-                <a href="{{ url_for('detect_threat') }}" class="nav-btn">Threat Detection</a>
+                <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Home</a>
+                <a href="{{ url_for('detect_threat') }}" class="nav-btn">Detect Threat</a>
                 <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn active">Live Monitor</a>
                 <a href="{{ url_for('upload_logs') }}" class="nav-btn">Upload Logs</a>
                 <a href="{{ url_for('sample_threats') }}" class="nav-btn">Demo Scenarios</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('profile') }}" class="nav-btn">Profile</a>
-                    <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
-                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
-                {% endif %}
+                <a href="{{ url_for('profile') }}" class="nav-btn">Profile</a>
                 <div class="theme-dropdown">
                     <button class="theme-btn" id="themeBtn">
                         <i class="fas fa-palette"></i> Theme
@@ -942,6 +900,12 @@
                         <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
                         <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
                     </div>
+                </div>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
+                {% endif %}
                 </div>
             </div>
         </div>

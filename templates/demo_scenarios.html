@@ -7,146 +7,492 @@
     <title>Demo Scenarios - Cyber Security AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ========== ROOT VARIABLES (DARK THEME DEFAULT) ========== */
         :root {
-            --primary: #00b4db;
-            --primary-dark: #0083b0;
-            --secondary: #636e72;
-            --dark: #0c0c0c;
-            --darker: #1a1a2e;
+            --primary: #4a9eff;
+            --primary-dark: #2c7be5;
+            --secondary: #a855f7;
+            --dark: #0f0f1b;
+            --darker: #0a0a14;
             --light: #ffffff;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(18, 18, 30, 0.6);
+            --card-border: rgba(74, 158, 255, 0.2);
+            --sidebar-bg: rgba(18, 18, 30, 0.95);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --hover-glow: rgba(74, 158, 255, 0.2);
+            --grad-start: #4a9eff;
+            --grad-end: #a855f7;
+        }
+
+        /* ========== LIGHT THEME ========== */
+        body.light-theme {
+            --primary: #0077b6;
+            --primary-dark: #023e8a;
+            --secondary: #6f42c1;
+            --dark: #f5f7fa;
+            --darker: #ffffff;
+            --light: #212529;
             --success: #2ecc71;
             --error: #e74c3c;
-            --warning: #f1c40f;
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --card-border: rgba(255, 255, 255, 0.15);
+            --warning: #f39c12;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(0, 0, 0, 0.15);
+            --sidebar-bg: rgba(255, 255, 255, 0.98);
+            --text-muted: rgba(0, 0, 0, 0.6);
+            --text-dark: #212529;
+            --nav-bg: rgba(0, 0, 0, 0.05);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --hover-glow: rgba(0, 119, 182, 0.1);
+            --grad-start: #0077b6;
+            --grad-end: #6f42c1;
         }
-        
+
+        /* ========== CYBERPUNK THEME ========== */
+        body.cyberpunk-theme {
+            --primary: #0afff0;
+            --primary-dark: #00ccaa;
+            --secondary: #ff00e5;
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --light: #e0f2fe;
+            --success: #00ffaa;
+            --error: #ff3366;
+            --warning: #ffcc00;
+            --card-bg: rgba(10, 10, 20, 0.85);
+            --card-border: rgba(10, 255, 240, 0.5);
+            --sidebar-bg: rgba(5, 5, 15, 0.98);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #e0f2fe;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --hover-glow: rgba(10, 255, 240, 0.2);
+            --grad-start: #0afff0;
+            --grad-end: #ff00e5;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, var(--dark), var(--darker));
-            color: var(--light);
+            color: var(--text-dark);
             min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ========== SLIDE-OUT MENU ========== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
+        }
+        .slide-menu.open {
+            transform: translateX(0);
+        }
+        .menu-header {
             padding: 20px;
-            line-height: 1.6;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .menu-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        
+        .menu-logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .close-menu-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--nav-bg);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-dark);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-menu-btn:hover {
+            background: var(--hover-glow);
+            transform: rotate(90deg);
+        }
+        .menu-user-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .menu-user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+        .menu-user-info {
+            flex: 1;
+        }
+        .menu-user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+        .menu-user-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .menu-nav {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .menu-nav-section {
+            margin-bottom: 25px;
+        }
+        .menu-nav-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        .menu-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .menu-nav-item i {
+            width: 24px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        .menu-nav-item:hover {
+            background: var(--hover-glow);
+            color: var(--text-dark);
+            transform: translateX(5px);
+        }
+        .menu-nav-item.active {
+            background: rgba(74, 158, 255, 0.15);
+            color: var(--text-dark);
+        }
+        .menu-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .menu-footer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .menu-footer-item:hover {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+        }
+
+        /* ========== MAIN HEADER (EXACT SAME SIZE) ========== */
         .main-header {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 18px 25px;
-            margin-bottom: 40px;
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin: 20px 30px 30px 30px;
+            padding: 16px 28px;
             border: 1px solid var(--card-border);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
-        
         .nav-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            gap: 20px;
         }
-        
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
         .logo {
             font-size: 1.6em;
             font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+        .logo i {
+            font-size: 1.4em;
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo span {
+            background: linear-gradient(45deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-trigger {
+            width: 45px;
+            height: 45px;
+            background: var(--nav-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-trigger:hover {
+            background: var(--hover-glow);
+            transform: scale(1.05);
+        }
         .nav-links {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+            align-items: center;
         }
-        
-        .nav-btn {
-            padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95em;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .nav-btn, .theme-btn {
+            padding: 10px 18px;
+            background: var(--nav-bg);
+            color: var(--text-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
             text-decoration: none;
-            display: flex;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
-        
-        .nav-btn:hover {
-            background: rgba(0, 180, 219, 0.25);
+        .nav-btn:hover, .theme-btn:hover {
+            background: var(--hover-glow);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
         .nav-btn.active {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            color: white;
+            border: none;
         }
-        
-        .header {
-            text-align: center;
-            padding: 40px 0;
-            margin-bottom: 30px;
+        .theme-dropdown {
+            position: relative;
+            display: inline-block;
         }
-        
-        .header h1 {
-            font-size: 2.8em;
-            margin-bottom: 15px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+        .theme-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            min-width: 180px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            z-index: 1000;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .theme-dropdown-content.show {
+            display: block;
+        }
+        .theme-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+        .theme-option:hover {
+            background: var(--hover-glow);
+            padding-left: 20px;
+        }
+
+        /* Light Theme Logo Override */
+        body.light-theme .logo i,
+        body.light-theme .logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-weight: 700;
+        }
+        
+        body.light-theme .menu-logo i,
+        body.light-theme .menu-logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Cyberpunk Theme Logo Override */
+        body.cyberpunk-theme .logo i,
+        body.cyberpunk-theme .logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        body.cyberpunk-theme .menu-logo i,
+        body.cyberpunk-theme .menu-logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ========== DASHBOARD LAYOUT ========== */
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 0;
+            padding: 24px 32px;
+        }
+
+        /* Demo Scenarios Page Specific Styles */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
         }
         
         .model-badge {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
             color: white;
-            padding: 8px 18px;
+            padding: 6px 16px;
             border-radius: 30px;
-            font-size: 0.8em;
+            font-size: 0.75rem;
             font-weight: bold;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            margin-left: 12px;
+        }
+        
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
         }
         
         .scenarios-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin: 30px 0;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
         }
         
         .scenario-card {
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid var(--card-border);
-            transition: transform 0.3s ease;
+            border-radius: 20px;
+            padding: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         .scenario-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 180, 219, 0.3);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
         }
         
         .scenario-header {
@@ -157,74 +503,96 @@
         }
         
         .scenario-icon {
-            font-size: 2.5em;
-            margin-right: 15px;
+            font-size: 2.2rem;
+            color: var(--primary);
         }
         
         .scenario-title h3 {
-            color: var(--primary);
+            font-size: 1.2rem;
             margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+        
+        .scenario-title p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
         
         .severity-badge {
-            padding: 6px 15px;
+            padding: 5px 14px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 0.8em;
+            font-size: 0.75rem;
         }
         
-        .badge-critical { background: var(--error); }
-        .badge-high { background: var(--warning); color: #000; }
-        .badge-medium { background: #f39c12; }
-        .badge-low { background: var(--success); }
+        .badge-critical { background: rgba(255, 71, 87, 0.2); color: var(--error); border: 1px solid var(--error); }
+        .badge-high { background: rgba(255, 165, 2, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .badge-medium { background: rgba(243, 156, 18, 0.2); color: #f39c12; border: 1px solid #f39c12; }
+        .badge-low { background: rgba(46, 204, 113, 0.2); color: var(--success); border: 1px solid var(--success); }
         
         .scenario-details {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
             border-radius: 12px;
             margin: 20px 0;
         }
         
         .detail-item {
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .detail-item:last-child {
+            margin-bottom: 0;
         }
         
         .detail-label {
-            font-weight: bold;
+            font-weight: 600;
             color: var(--primary);
         }
         
-        .btn {
-            padding: 16px 25px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
+        .detail-value {
+            color: var(--text-muted);
+        }
+        
+        .btn-analyze {
             width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.3s ease;
         }
         
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 180, 219, 0.4);
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 158, 255, 0.4);
         }
         
-        .loading {
+        .btn-analyze:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-indicator {
             text-align: center;
             padding: 40px;
             display: none;
         }
         
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 4px solid rgba(74, 158, 255, 0.2);
             border-radius: 50%;
             border-top: 4px solid var(--primary);
             width: 50px;
@@ -245,8 +613,9 @@
         
         .result-card {
             background: var(--card-bg);
-            padding: 30px;
+            backdrop-filter: blur(10px);
             border-radius: 20px;
+            padding: 28px;
             border-left: 4px solid;
             margin-bottom: 20px;
         }
@@ -256,193 +625,300 @@
         .result-medium { border-left-color: #f39c12; }
         .result-low { border-left-color: var(--success); }
         
+        .result-card h3 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
         .explanation {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 18px;
             border-radius: 12px;
             margin: 20px 0;
+        }
+        
+        .explanation h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .explanation p {
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+        
+        .result-timestamp {
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.7;
         }
         
         .nav-buttons {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             margin-top: 40px;
             flex-wrap: wrap;
         }
         
         .btn-secondary {
-            background: linear-gradient(45deg, var(--secondary), #2d3436);
+            background: var(--nav-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-dark);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--hover-glow);
+            transform: translateY(-2px);
         }
         
         @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 20px;
+            .main-content {
+                padding: 20px;
+            }
+            .main-header {
+                margin: 15px;
+                padding: 12px 20px;
             }
             .scenarios-grid {
                 grid-template-columns: 1fr;
             }
+            .page-header h1 {
+                font-size: 1.6rem;
+                flex-direction: column;
+            }
+            .model-badge {
+                margin-left: 0;
+                margin-top: 8px;
+            }
         }
         
         .analyzing {
-            animation: pulse 1.5s infinite;
+            animation: pulse 1.2s infinite;
         }
         
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
+    <!-- Header with Hamburger and Theme Switcher -->
     <header class="main-header">
         <div class="nav-container">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                CyberShield AI
+            <div class="nav-left">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>CyberShield AI</span>
+                </div>
+                <button class="menu-trigger" id="menuTriggerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
             <div class="nav-links">
-                <a href="/" class="nav-btn"><i class="fas fa-home"></i> Home</a>
-                <a href="/detect-threat" class="nav-btn"><i class="fas fa-search"></i> Custom Detection</a>
-                <a href="/upload-logs" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
-                <a href="/sample-threats" class="nav-btn active"><i class="fas fa-bullseye"></i> Demo Scenarios</a>
+                <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Home</a>
+                <a href="{{ url_for('detect_threat') }}" class="nav-btn">Detect Threat</a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn">Live Monitor</a>
+                <a href="{{ url_for('upload_logs') }}" class="nav-btn">Upload Logs</a>
+                <a href="{{ url_for('sample_threats') }}" class="nav-btn active">Demo Scenarios</a>
+                <a href="{{ url_for('profile') }}" class="nav-btn">Profile</a>
+                <div class="theme-dropdown">
+                    <button class="theme-btn" id="themeBtn">
+                        <i class="fas fa-palette"></i> Theme
+                    </button>
+                    <div class="theme-dropdown-content" id="themeDropdown">
+                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                    </div>
+                </div>
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
                 {% endif %}
-            </div>
+                </div>
         </div>
     </header>
 
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-bullseye"></i> Demo Threat Scenarios 
-                <span class="model-badge">MULTI-EXPERT AI</span>
-            </h1>
-            <p>Test the detection system with pre-built attack scenarios</p>
+    <!-- Slide-out Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Slide-out Menu -->
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-header">
+            <div class="menu-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Cybershield AI</span>
+            </div>
+            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
         </div>
-
-        <div class="scenarios-grid">
-            <!-- Port Scanning Scenario -->
-            <div class="scenario-card">
-                <div class="scenario-header">
-                    <div class="scenario-icon"><i class="fas fa-search"></i></div>
-                    <div class="scenario-title">
-                        <h3>Port Scanning (Nmap)</h3>
-                        <p>Reconnaissance activity</p>
-                    </div>
-                    <span class="severity-badge badge-high">HIGH</span>
-                </div>
-                <div class="scenario-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Tool:</span>
-                        <span>nmap</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Target Ports:</span>
-                        <span>21, 22, 80, 443, 3389</span>
-                    </div>
-                </div>
-                <button class="btn" onclick="analyzeScenario(0)">
-                    <i class="fas fa-rocket"></i> Analyze This Scenario
-                </button>
-            </div>
-
-            <!-- Brute Force Scenario -->
-            <div class="scenario-card">
-                <div class="scenario-header">
-                    <div class="scenario-icon"><i class="fas fa-bomb"></i></div>
-                    <div class="scenario-title">
-                        <h3>Brute Force (Hydra)</h3>
-                        <p>Password attack</p>
-                    </div>
-                    <span class="severity-badge badge-critical">CRITICAL</span>
-                </div>
-                <div class="scenario-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Tool:</span>
-                        <span>hydra</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Target Service:</span>
-                        <span>SSH (Port 22)</span>
-                    </div>
-                </div>
-                <button class="btn" onclick="analyzeScenario(1)">
-                    <i class="fas fa-rocket"></i> Analyze This Scenario
-                </button>
-            </div>
-
-            <!-- DoS Attack Scenario -->
-            <div class="scenario-card">
-                <div class="scenario-header">
-                    <div class="scenario-icon"><i class="fas fa-wave-square"></i></div>
-                    <div class="scenario-title">
-                        <h3>DoS Attack (hping3)</h3>
-                        <p>Flood attack</p>
-                    </div>
-                    <span class="severity-badge badge-high">HIGH</span>
-                </div>
-                <div class="scenario-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Tool:</span>
-                        <span>hping3</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Target Service:</span>
-                        <span>HTTP (Port 80)</span>
-                    </div>
-                </div>
-                <button class="btn" onclick="analyzeScenario(2)">
-                    <i class="fas fa-rocket"></i> Analyze This Scenario
-                </button>
-            </div>
-
-            <!-- Normal Traffic Scenario -->
-            <div class="scenario-card">
-                <div class="scenario-header">
-                    <div class="scenario-icon"><i class="fas fa-check-circle"></i></div>
-                    <div class="scenario-title">
-                        <h3>Normal Web Traffic</h3>
-                        <p>Legitimate activity</p>
-                    </div>
-                    <span class="severity-badge badge-low">LOW</span>
-                </div>
-                <div class="scenario-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Activity:</span>
-                        <span>Web Browsing</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Target Service:</span>
-                        <span>HTTP (Port 80)</span>
-                    </div>
-                </div>
-                <button class="btn" onclick="analyzeScenario(3)">
-                    <i class="fas fa-rocket"></i> Analyze This Scenario
-                </button>
+        
+        <div class="menu-user-section">
+            <div class="menu-user-avatar">{{ current_user.username[0]|upper if current_user else 'G' }}</div>
+            <div class="menu-user-info">
+                <div class="menu-user-name">{{ current_user.username if current_user else 'Guest User' }}</div>
+                <div class="menu-user-email">{{ current_user.email if current_user else 'guest@cybershield.ai' }}</div>
             </div>
         </div>
-
-        <div class="loading" id="loadingIndicator">
-            <div class="spinner"></div>
-            <h3>Analyzing Threat Scenario</h3>
-            <p>Multi-Expert AI system is processing...</p>
+        
+        <div class="menu-nav">
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">General</div>
+                <a href="/" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Home</span></a>
+                <a href="/detect-threat" class="menu-nav-item"><i class="fas fa-bug"></i><span>Detect Threat</span></a>
+                <a href="/real-time-dashboard" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
+                <a href="/upload-logs" class="menu-nav-item"><i class="fas fa-upload"></i><span>Upload Logs</span></a>
+                <a href="/sample-threats" class="menu-nav-item active"><i class="fas fa-bullseye"></i><span>Demo Scenarios</span></a>
+            </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Settings</div>
+                <a href="{{ url_for('profile') }}" class="menu-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+                <a href="#" class="menu-nav-item"><i class="fas fa-question-circle"></i><span>Help & Support</span></a>
+            </div>
         </div>
-
-        <div class="result-section" id="resultSection">
-            <h2 style="text-align: center;">Detection Results</h2>
-            <div id="resultContent"></div>
+        
+        <div class="menu-footer">
+            <a href="{{ url_for('profile') }}" class="menu-footer-item"><i class="fas fa-user"></i><span>Profile</span></a>
+            <a href="{{ url_for('logout') }}" class="menu-footer-item"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
         </div>
+    </div>
 
-        <div class="nav-buttons">
-            <a href="/detect-threat" class="btn btn-secondary"><i class="fas fa-search"></i> Custom Detection</a>
-            <a href="/dashboard" class="btn btn-secondary"><i class="fas fa-chart-bar"></i> Live Dashboard</a>
-            <a href="/upload-logs" class="btn btn-secondary"><i class="fas fa-file-upload"></i> Upload Logs</a>
-            <a href="/" class="btn btn-secondary"><i class="fas fa-home"></i> Home</a>
+    <!-- Main Content -->
+    <div class="dashboard">
+        <div class="main-content">
+            <div class="page-header">
+                <h1>
+                    <i class="fas fa-bullseye"></i> Demo Threat Scenarios
+                </h1>
+                <p>Test the detection system with pre-built attack scenarios powered by our Multi-LLM Debate Agent</p>
+            </div>
+
+            <div class="scenarios-grid">
+                <!-- Port Scanning Scenario -->
+                <div class="scenario-card">
+                    <div class="scenario-header">
+                        <div class="scenario-icon"><i class="fas fa-search"></i></div>
+                        <div class="scenario-title">
+                            <h3>Port Scanning (Nmap)</h3>
+                            <p>Reconnaissance activity</p>
+                        </div>
+                        <span class="severity-badge badge-high">HIGH</span>
+                    </div>
+                    <div class="scenario-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Tool:</span>
+                            <span class="detail-value">nmap</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Target Ports:</span>
+                            <span class="detail-value">21, 22, 80, 443, 3389</span>
+                        </div>
+                    </div>
+                    <button class="btn-analyze" onclick="analyzeScenario(0)" id="btnScenario0">
+                        <i class="fas fa-rocket"></i> Analyze This Scenario
+                    </button>
+                </div>
+
+                <!-- Brute Force Scenario -->
+                <div class="scenario-card">
+                    <div class="scenario-header">
+                        <div class="scenario-icon"><i class="fas fa-bomb"></i></div>
+                        <div class="scenario-title">
+                            <h3>Brute Force (Hydra)</h3>
+                            <p>Password attack</p>
+                        </div>
+                        <span class="severity-badge badge-critical">CRITICAL</span>
+                    </div>
+                    <div class="scenario-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Tool:</span>
+                            <span class="detail-value">hydra</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Target Service:</span>
+                            <span class="detail-value">SSH (Port 22)</span>
+                        </div>
+                    </div>
+                    <button class="btn-analyze" onclick="analyzeScenario(1)" id="btnScenario1">
+                        <i class="fas fa-rocket"></i> Analyze This Scenario
+                    </button>
+                </div>
+
+                <!-- DoS Attack Scenario -->
+                <div class="scenario-card">
+                    <div class="scenario-header">
+                        <div class="scenario-icon"><i class="fas fa-wave-square"></i></div>
+                        <div class="scenario-title">
+                            <h3>DoS Attack (hping3)</h3>
+                            <p>Flood attack</p>
+                        </div>
+                        <span class="severity-badge badge-high">HIGH</span>
+                    </div>
+                    <div class="scenario-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Tool:</span>
+                            <span class="detail-value">hping3</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Target Service:</span>
+                            <span class="detail-value">HTTP (Port 80)</span>
+                        </div>
+                    </div>
+                    <button class="btn-analyze" onclick="analyzeScenario(2)" id="btnScenario2">
+                        <i class="fas fa-rocket"></i> Analyze This Scenario
+                    </button>
+                </div>
+
+                <!-- Normal Traffic Scenario -->
+                <div class="scenario-card">
+                    <div class="scenario-header">
+                        <div class="scenario-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="scenario-title">
+                            <h3>Normal Web Traffic</h3>
+                            <p>Legitimate activity</p>
+                        </div>
+                        <span class="severity-badge badge-low">LOW</span>
+                    </div>
+                    <div class="scenario-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Activity:</span>
+                            <span class="detail-value">Web Browsing</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Target Service:</span>
+                            <span class="detail-value">HTTP (Port 80)</span>
+                        </div>
+                    </div>
+                    <button class="btn-analyze" onclick="analyzeScenario(3)" id="btnScenario3">
+                        <i class="fas fa-rocket"></i> Analyze This Scenario
+                    </button>
+                </div>
+            </div>
+
+            <div class="loading-indicator" id="loadingIndicator">
+                <div class="spinner"></div>
+                <h3>Analyzing Threat Scenario</h3>
+                <p>Multi-Expert AI system is processing with debate consensus...</p>
+            </div>
+
+            <div class="result-section" id="resultSection">
+                <h2 style="text-align: center; margin-bottom: 20px;"><i class="fas fa-chart-line"></i> Detection Results</h2>
+                <div id="resultContent"></div>
+            </div>
+
+            <div class="nav-buttons">
+                <a href="/detect-threat" class="nav-btn btn-secondary"><i class="fas fa-search"></i> Custom Detection</a>
+                <a href="/dashboard" class="nav-btn btn-secondary"><i class="fas fa-chart-bar"></i> Live Dashboard</a>
+                <a href="/upload-logs" class="nav-btn btn-secondary"><i class="fas fa-file-upload"></i> Upload Logs</a>
+                <a href="/" class="nav-btn btn-secondary"><i class="fas fa-home"></i> Home</a>
+            </div>
         </div>
     </div>
 
@@ -454,13 +930,15 @@
 
         async function analyzeScenario(scenarioId) {
             const csrfToken = getCSRFToken();
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultSection = document.getElementById('resultSection');
+            const button = document.getElementById(`btnScenario${scenarioId}`);
             
-            document.getElementById('loadingIndicator').style.display = 'block';
-            document.getElementById('resultSection').style.display = 'none';
-            
-            const buttons = document.querySelectorAll('.btn');
-            buttons[scenarioId].classList.add('analyzing');
-            buttons[scenarioId].innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            loadingIndicator.style.display = 'block';
+            resultSection.style.display = 'none';
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            button.classList.add('analyzing');
             
             try {
                 const response = await fetch(`/analyze-sample/${scenarioId}`, {
@@ -473,20 +951,22 @@
                 
                 const data = await response.json();
                 
-                document.getElementById('loadingIndicator').style.display = 'none';
-                buttons[scenarioId].classList.remove('analyzing');
-                buttons[scenarioId].innerHTML = '<i class="fas fa-rocket"></i> Analyze This Scenario';
+                loadingIndicator.style.display = 'none';
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-rocket"></i> Analyze This Scenario';
+                button.classList.remove('analyzing');
                 
                 if (data.success) {
                     displayResult(data.result);
                 } else {
-                    displayError(data.error);
+                    displayError(data.error || 'Analysis failed. Please try again.');
                 }
                 
             } catch (error) {
-                document.getElementById('loadingIndicator').style.display = 'none';
-                buttons[scenarioId].classList.remove('analyzing');
-                buttons[scenarioId].innerHTML = '<i class="fas fa-rocket"></i> Analyze This Scenario';
+                loadingIndicator.style.display = 'none';
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-rocket"></i> Analyze This Scenario';
+                button.classList.remove('analyzing');
                 displayError('Failed to analyze scenario: ' + error.message);
             }
         }
@@ -494,33 +974,36 @@
         function displayResult(result) {
             const resultContent = document.getElementById('resultContent');
             const severityClass = `result-${result.severity}`;
+            const severityColor = result.severity === 'critical' ? 'var(--error)' : 
+                                  result.severity === 'high' ? 'var(--warning)' :
+                                  result.severity === 'medium' ? '#f39c12' : 'var(--success)';
             
             resultContent.innerHTML = `
                 <div class="result-card ${severityClass}">
-                    <h3><i class="fas fa-exclamation-triangle"></i> ${result.attack_type}</h3>
+                    <h3><i class="fas fa-exclamation-triangle" style="color: ${severityColor}"></i> ${result.attack_type}</h3>
                     <div class="scenario-details">
                         <div class="detail-item">
                             <span class="detail-label">Confidence:</span>
-                            <span>${(result.final_confidence * 100).toFixed(1)}%</span>
+                            <span class="detail-value">${(result.final_confidence * 100).toFixed(1)}%</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Source IP:</span>
-                            <span>${result.source_ip}</span>
+                            <span class="detail-value">${result.source_ip}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Target:</span>
-                            <span>${result.target_ip}:${result.target_port}</span>
+                            <span class="detail-value">${result.target_ip}:${result.target_port}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Severity:</span>
-                            <span>${result.severity.toUpperCase()}</span>
+                            <span class="detail-value" style="color: ${severityColor}; font-weight: bold;">${result.severity.toUpperCase()}</span>
                         </div>
                     </div>
                     <div class="explanation">
-                        <h4>AI Explanation:</h4>
+                        <h4><i class="fas fa-brain"></i> AI Explanation (Multi-Expert Consensus)</h4>
                         <p>${result.description}</p>
                     </div>
-                    <div style="margin-top: 15px; opacity: 0.7;">
+                    <div class="result-timestamp">
                         <i class="fas fa-clock"></i> Analyzed at: ${result.timestamp_analyzed}
                     </div>
                 </div>
@@ -535,11 +1018,91 @@
             resultContent.innerHTML = `
                 <div class="result-card result-critical">
                     <h3><i class="fas fa-times-circle"></i> Analysis Failed</h3>
-                    <p>${error}</p>
+                    <div class="explanation">
+                        <p>${error}</p>
+                    </div>
+                    <div class="result-timestamp">
+                        <i class="fas fa-exclamation-triangle"></i> Please try again or contact support
+                    </div>
                 </div>
             `;
             document.getElementById('resultSection').style.display = 'block';
         }
+        
+        // ========== THEME SWITCHER ==========
+        function setTheme(themeName) {
+            document.body.classList.remove('light-theme', 'cyberpunk-theme');
+            if (themeName === 'light') {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('vertexguard_theme', 'light');
+            } else if (themeName === 'cyberpunk') {
+                document.body.classList.add('cyberpunk-theme');
+                localStorage.setItem('vertexguard_theme', 'cyberpunk');
+            } else {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('vertexguard_theme', 'dark');
+            }
+        }
+        
+        const savedTheme = localStorage.getItem('vertexguard_theme') || 'dark';
+        setTheme(savedTheme);
+        
+        const themeBtn = document.getElementById('themeBtn');
+        const themeDropdown = document.getElementById('themeDropdown');
+        
+        if (themeBtn) {
+            themeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themeDropdown.classList.toggle('show');
+            });
+        }
+        
+        document.addEventListener('click', (e) => {
+            if (themeBtn && !themeBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.classList.remove('show');
+            }
+        });
+        
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                setTheme(option.getAttribute('data-theme'));
+                themeDropdown.classList.remove('show');
+            });
+        });
+        
+        // ========== SLIDE-OUT MENU FUNCTIONALITY ==========
+        const menu = document.getElementById('slideMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const menuTrigger = document.getElementById('menuTriggerBtn');
+        const closeBtn = document.getElementById('closeMenuBtn');
+        
+        function openMenu() {
+            menu.classList.add('open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMenu() {
+            menu.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        if (menuTrigger) menuTrigger.addEventListener('click', openMenu);
+        if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+        if (overlay) overlay.addEventListener('click', closeMenu);
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                if (menu.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+            if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+        });
     </script>
 </body>
 </html>

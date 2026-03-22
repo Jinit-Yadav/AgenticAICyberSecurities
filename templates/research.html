@@ -4,54 +4,278 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberShield AI - Research</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ========== ROOT VARIABLES (DARK THEME DEFAULT) ========== */
         :root {
-            --primary: #00d4ff;
-            --primary-dark: #0099cc;
-            --secondary: #636e72;
-            --dark: #0a0e27;
-            --darker: #0f1419;
+            --primary: #4a9eff;
+            --primary-dark: #2c7be5;
+            --secondary: #a855f7;
+            --dark: #0f0f1b;
+            --darker: #0a0a14;
             --light: #ffffff;
             --success: #00ff88;
             --error: #ff4757;
             --warning: #ffa502;
-            --card-bg: rgba(15, 20, 25, 0.6);
-            --card-border: rgba(0, 212, 255, 0.2);
-            --ai-purple: #a855f7;
+            --card-bg: rgba(18, 18, 30, 0.6);
+            --card-border: rgba(74, 158, 255, 0.2);
+            --sidebar-bg: rgba(18, 18, 30, 0.95);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --hover-glow: rgba(74, 158, 255, 0.2);
+            --grad-start: #4a9eff;
+            --grad-end: #a855f7;
             --arxiv-red: #b31b1b;
         }
-        
+
+        /* ========== LIGHT THEME ========== */
+        body.light-theme {
+            --primary: #0077b6;
+            --primary-dark: #023e8a;
+            --secondary: #6f42c1;
+            --dark: #f5f7fa;
+            --darker: #ffffff;
+            --light: #212529;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --warning: #f39c12;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(0, 0, 0, 0.15);
+            --sidebar-bg: rgba(255, 255, 255, 0.98);
+            --text-muted: rgba(0, 0, 0, 0.6);
+            --text-dark: #212529;
+            --nav-bg: rgba(0, 0, 0, 0.05);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --hover-glow: rgba(0, 119, 182, 0.1);
+            --grad-start: #0077b6;
+            --grad-end: #6f42c1;
+            --arxiv-red: #b31b1b;
+        }
+
+        /* ========== CYBERPUNK THEME ========== */
+        body.cyberpunk-theme {
+            --primary: #0afff0;
+            --primary-dark: #00ccaa;
+            --secondary: #ff00e5;
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --light: #e0f2fe;
+            --success: #00ffaa;
+            --error: #ff3366;
+            --warning: #ffcc00;
+            --card-bg: rgba(10, 10, 20, 0.85);
+            --card-border: rgba(10, 255, 240, 0.5);
+            --sidebar-bg: rgba(5, 5, 15, 0.98);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #e0f2fe;
+            --nav-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --hover-glow: rgba(10, 255, 240, 0.2);
+            --grad-start: #0afff0;
+            --grad-end: #ff00e5;
+            --arxiv-red: #ff3366;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, var(--dark), var(--darker));
-            color: var(--light);
+            color: var(--text-dark);
             min-height: 100vh;
-            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+
+        /* ========== SLIDE-OUT MENU ========== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
+        }
+        .slide-menu.open {
+            transform: translateX(0);
+        }
+        .menu-header {
             padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        
-        /* Header */
+        .menu-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .close-menu-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--nav-bg);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-dark);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-menu-btn:hover {
+            background: var(--hover-glow);
+            transform: rotate(90deg);
+        }
+        .menu-user-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .menu-user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+        .menu-user-info {
+            flex: 1;
+        }
+        .menu-user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+        .menu-user-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .menu-nav {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .menu-nav-section {
+            margin-bottom: 25px;
+        }
+        .menu-nav-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        .menu-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .menu-nav-item i {
+            width: 24px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        .menu-nav-item:hover {
+            background: var(--hover-glow);
+            color: var(--text-dark);
+            transform: translateX(5px);
+        }
+        .menu-nav-item.active {
+            background: rgba(74, 158, 255, 0.15);
+            color: var(--text-dark);
+        }
+        .menu-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .menu-footer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .menu-footer-item:hover {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+        }
+
+        /* ========== MAIN HEADER ========== */
         .main-header {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px 30px;
-            margin-bottom: 50px;
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin: 20px 30px 30px 30px;
+            padding: 16px 28px;
             border: 1px solid var(--card-border);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
-        
         .nav-container {
             display: flex;
             justify-content: space-between;
@@ -59,49 +283,163 @@
             flex-wrap: wrap;
             gap: 20px;
         }
-        
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
         .logo {
-            font-size: 1.8em;
+            font-size: 1.6em;
             font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+        .logo i {
+            font-size: 1.4em;
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo span {
+            background: linear-gradient(45deg, #4a9eff, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-trigger {
+            width: 45px;
+            height: 45px;
+            background: var(--nav-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-trigger:hover {
+            background: var(--hover-glow);
+            transform: scale(1.05);
+        }
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
+            align-items: center;
         }
-        
-        .nav-btn {
-            padding: 12px 20px;
-            background: rgba(255,255,255,0.08);
-            color: white;
+        .nav-btn, .theme-btn {
+            padding: 10px 18px;
+            background: var(--nav-bg);
+            color: var(--text-dark);
             border: 1px solid var(--card-border);
-            border-radius: 10px;
+            border-radius: 12px;
             text-decoration: none;
             transition: all 0.3s;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        
-        .nav-btn:hover {
-            background: rgba(0,212,255,0.2);
+        .nav-btn:hover, .theme-btn:hover {
+            background: var(--hover-glow);
             transform: translateY(-2px);
         }
-        
         .nav-btn.active {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            color: white;
+            border: none;
+        }
+        .theme-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .theme-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            min-width: 180px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            z-index: 1000;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .theme-dropdown-content.show {
+            display: block;
+        }
+        .theme-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+        .theme-option:hover {
+            background: var(--hover-glow);
+            padding-left: 20px;
+        }
+
+        /* Light Theme Logo Override */
+        body.light-theme .logo i,
+        body.light-theme .logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
-        /* Page Header */
+        body.light-theme .menu-logo i,
+        body.light-theme .menu-logo span {
+            background: linear-gradient(45deg, #0077b6, #6f42c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Cyberpunk Theme Logo Override */
+        body.cyberpunk-theme .logo i,
+        body.cyberpunk-theme .logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        body.cyberpunk-theme .menu-logo i,
+        body.cyberpunk-theme .menu-logo span {
+            background: linear-gradient(45deg, #0afff0, #ff00e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ========== RESEARCH PAGE CONTENT ========== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
         .page-header {
             text-align: center;
             padding: 60px 20px;
             margin-bottom: 40px;
-            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(168,85,247,0.1));
+            background: linear-gradient(135deg, rgba(74, 158, 255, 0.1), rgba(168, 85, 247, 0.1));
             border-radius: 30px;
             border: 1px solid var(--card-border);
         }
@@ -109,8 +447,9 @@
         .page-header h1 {
             font-size: 3.5em;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
@@ -118,9 +457,9 @@
             font-size: 1.2em;
             max-width: 800px;
             margin: 0 auto;
-            opacity: 0.9;
+            color: var(--text-muted);
         }
-        
+
         /* Research Metrics */
         .research-metrics {
             display: grid;
@@ -135,6 +474,11 @@
             border-radius: 15px;
             text-align: center;
             border-left: 4px solid var(--primary);
+            transition: transform 0.3s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
         }
         
         .metric-value {
@@ -145,9 +489,9 @@
         
         .metric-label {
             margin-top: 10px;
-            opacity: 0.9;
+            color: var(--text-muted);
         }
-        
+
         /* Research Papers Section */
         .papers-section {
             margin: 60px 0;
@@ -165,7 +509,7 @@
         .paper-card:hover {
             transform: translateY(-5px);
             border-color: var(--primary);
-            box-shadow: 0 10px 30px rgba(0,212,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         .paper-header {
@@ -174,6 +518,7 @@
             align-items: center;
             margin-bottom: 20px;
             flex-wrap: wrap;
+            gap: 10px;
         }
         
         .paper-title {
@@ -182,23 +527,24 @@
         }
         
         .paper-year {
-            background: rgba(0,212,255,0.1);
+            background: rgba(74, 158, 255, 0.1);
             padding: 5px 15px;
             border-radius: 20px;
             font-size: 0.9em;
             border: 1px solid var(--card-border);
+            color: var(--text-muted);
         }
         
         .paper-authors {
             margin: 15px 0;
             font-style: italic;
-            opacity: 0.8;
+            color: var(--text-muted);
         }
         
         .paper-abstract {
             margin: 20px 0;
             line-height: 1.6;
-            opacity: 0.9;
+            color: var(--text-muted);
         }
         
         .paper-tags {
@@ -210,7 +556,7 @@
         
         .paper-tag {
             padding: 5px 12px;
-            background: rgba(0,212,255,0.1);
+            background: rgba(74, 158, 255, 0.1);
             border-radius: 20px;
             font-size: 0.85em;
             color: var(--primary);
@@ -242,7 +588,7 @@
         }
         
         .paper-link {
-            color: white;
+            color: var(--text-dark);
             text-decoration: none;
             display: flex;
             align-items: center;
@@ -256,18 +602,6 @@
             opacity: 1;
             color: var(--primary);
             transform: translateY(-2px);
-        }
-        
-        .paper-link i {
-            font-size: 1em;
-        }
-        
-        .license-icon {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--warning);
-            font-size: 0.9em;
         }
         
         .arxiv-badge {
@@ -289,11 +623,11 @@
             font-weight: bold;
             margin-left: 10px;
         }
-        
+
         /* Datasets Section */
         .datasets-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 30px;
             margin: 40px 0;
         }
@@ -303,6 +637,12 @@
             border-radius: 20px;
             padding: 30px;
             border: 1px solid var(--card-border);
+            transition: all 0.3s;
+        }
+        
+        .dataset-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
         }
         
         .dataset-card h3 {
@@ -329,7 +669,7 @@
         
         .stat-label {
             font-size: 0.85em;
-            opacity: 0.7;
+            color: var(--text-muted);
         }
         
         .dataset-features {
@@ -342,63 +682,13 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            color: var(--text-muted);
         }
         
         .dataset-features li i {
             color: var(--success);
         }
-        
-        /* Methodology Section */
-        .methodology-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 40px 0;
-        }
-        
-        .method-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid var(--card-border);
-        }
-        
-        .method-icon {
-            width: 60px;
-            height: 60px;
-            background: rgba(0,212,255,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8em;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-        
-        .method-card h3 {
-            font-size: 1.3em;
-            margin-bottom: 15px;
-        }
-        
-        .method-desc {
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-        
-        .method-metrics {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-        }
-        
+
         /* Results Table */
         .results-table {
             background: var(--card-bg);
@@ -416,17 +706,19 @@
         th {
             text-align: left;
             padding: 15px;
-            background: rgba(0,212,255,0.1);
+            background: rgba(74, 158, 255, 0.1);
             color: var(--primary);
+            font-weight: bold;
         }
         
         td {
             padding: 12px 15px;
-            border-bottom: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
         }
         
         tr:hover {
-            background: rgba(0,212,255,0.05);
+            background: rgba(74, 158, 255, 0.05);
         }
         
         .highlight {
@@ -444,19 +736,20 @@
         
         .citation-item {
             padding: 15px 0;
-            border-bottom: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--border-color);
             font-style: italic;
+            color: var(--text-muted);
         }
         
         .citation-item:last-child {
             border-bottom: none;
         }
-        
+
         /* Footer */
         .footer {
             margin-top: 80px;
             padding: 40px 0;
-            border-top: 1px solid var(--card-border);
+            border-top: 1px solid var(--border-color);
             text-align: center;
         }
         
@@ -469,48 +762,183 @@
         }
         
         .footer-link {
-            color: white;
+            color: var(--text-muted);
             text-decoration: none;
-            opacity: 0.7;
+            transition: all 0.3s;
         }
         
         .footer-link:hover {
-            opacity: 1;
+            color: var(--primary);
         }
         
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+
         @media (max-width: 768px) {
             .page-header h1 { font-size: 2.5em; }
             .nav-container { flex-direction: column; }
+            .nav-left { justify-content: space-between; width: 100%; }
+            .research-metrics { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="main-header">
-            <div class="nav-container">
+    <!-- Header with Hamburger and Theme Switcher -->
+    <header class="main-header">
+        <div class="nav-container">
+            <div class="nav-left">
                 <div class="logo">
                     <i class="fas fa-shield-alt"></i>
-                    CyberShield AI
+                    <span>CyberShield AI</span>
                 </div>
-                <div class="nav-links">
-                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
-                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
-                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
-                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
-                    <a href="{{ url_for('research') }}" class="nav-btn active">Research</a>
-                    <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
-                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                <button class="menu-trigger" id="menuTriggerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
+                <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
+                <a href="{{ url_for('about') }}" class="nav-btn">About</a>
+                <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
+                <a href="{{ url_for('research') }}" class="nav-btn active">Research</a>
+                <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
+                <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                <div class="theme-dropdown">
+                    <button class="theme-btn" id="themeBtn">
+                        <i class="fas fa-palette"></i> Theme
+                    </button>
+                    <div class="theme-dropdown-content" id="themeDropdown">
+                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                    </div>
+                </div>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
+                    <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--grad-start), var(--grad-end));">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Slide-out Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Reddit-style Slide-out Menu -->
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-header">
+            <div class="menu-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>CyberShield AI</span>
+            </div>
+            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="menu-user-section">
+            <div class="menu-user-avatar">
+                {% if current_user.is_authenticated %}
+                    {{ current_user.username[0]|upper }}
+                {% else %}
+                    G
+                {% endif %}
+            </div>
+            <div class="menu-user-info">
+                <div class="menu-user-name">
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
-                        <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                        {{ current_user.username }}
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
-                        <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="menu-user-email">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.email }}
+                    {% else %}
+                        guest@cybershield.ai
                     {% endif %}
                 </div>
             </div>
-        </header>
+        </div>
+        
+        <div class="menu-nav">
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Main</div>
+                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
+                    <i class="fas fa-search"></i>
+                    <span>Threat Detection</span>
+                </a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Live Monitor</span>
+                </a>
+                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
+                    <i class="fas fa-file-upload"></i>
+                    <span>Upload Logs</span>
+                </a>
+            </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Resources</div>
+                <a href="{{ url_for('landing') }}" class="menu-nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('features') }}" class="menu-nav-item">
+                    <i class="fas fa-star"></i>
+                    <span>Features</span>
+                </a>
+                <a href="{{ url_for('about') }}" class="menu-nav-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span>About</span>
+                </a>
+                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
+                    <i class="fas fa-sitemap"></i>
+                    <span>Architecture</span>
+                </a>
+                <a href="{{ url_for('research') }}" class="menu-nav-item active">
+                    <i class="fas fa-flask"></i>
+                    <span>Research</span>
+                </a>
+                <a href="{{ url_for('documentation') }}" class="menu-nav-item">
+                    <i class="fas fa-book"></i>
+                    <span>Documentation</span>
+                </a>
+                <a href="{{ url_for('contact') }}" class="menu-nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Contact</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-footer">
+            <a href="{{ url_for('profile') }}" class="menu-footer-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Log In</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
 
+    <div class="container">
         <section class="page-header">
             <h1>Research & Methodology</h1>
             <p>Academic foundations and experimental results behind CyberShield AI</p>
@@ -538,7 +966,7 @@
 
         <!-- Datasets Used -->
         <section>
-            <h2 style="font-size: 2.5em; margin-bottom: 30px; text-align: center;">Benchmark Datasets</h2>
+            <h2 style="font-size: 2.5em; margin-bottom: 30px; text-align: center; background: linear-gradient(135deg, var(--grad-start), var(--grad-end)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Benchmark Datasets</h2>
             <div class="datasets-grid">
                 <div class="dataset-card">
                     <h3>UNSW-NB15</h3>
@@ -556,7 +984,7 @@
                             <div class="stat-label">Attack Types</div>
                         </div>
                     </div>
-                    <p style="opacity: 0.8;">Modern network traffic dataset containing benign and attack activities including Fuzzers, Analysis, Backdoors, DoS, Exploits, Generic, Reconnaissance, Shellcode, and Worms.</p>
+                    <p style="color: var(--text-muted);">Modern network traffic dataset containing benign and attack activities including Fuzzers, Analysis, Backdoors, DoS, Exploits, Generic, Reconnaissance, Shellcode, and Worms.</p>
                     <ul class="dataset-features">
                         <li><i class="fas fa-check-circle"></i> Real modern network traffic</li>
                         <li><i class="fas fa-check-circle"></i> Diverse attack categories</li>
@@ -581,7 +1009,7 @@
                             <div class="stat-label">Attack Types</div>
                         </div>
                     </div>
-                    <p style="opacity: 0.8;">Comprehensive intrusion detection dataset with realistic background traffic and up-to-date attack scenarios including Brute Force, DoS, Web Attacks, Infiltration, and Botnet.</p>
+                    <p style="color: var(--text-muted);">Comprehensive intrusion detection dataset with realistic background traffic and up-to-date attack scenarios including Brute Force, DoS, Web Attacks, Infiltration, and Botnet.</p>
                     <ul class="dataset-features">
                         <li><i class="fas fa-check-circle"></i> Realistic background traffic</li>
                         <li><i class="fas fa-check-circle"></i> Complete packet captures</li>
@@ -606,7 +1034,7 @@
                             <div class="stat-label">Collection</div>
                         </div>
                     </div>
-                    <p style="opacity: 0.8;">Real-world attack logs generated from actual penetration testing tools and simulated attack scenarios for comprehensive threat coverage.</p>
+                    <p style="color: var(--text-muted);">Real-world attack logs generated from actual penetration testing tools and simulated attack scenarios for comprehensive threat coverage.</p>
                     <ul class="dataset-features">
                         <li><i class="fas fa-check-circle"></i> Nmap, Hydra, Hping3 attacks</li>
                         <li><i class="fas fa-check-circle"></i> Real-time system monitoring</li>
@@ -619,219 +1047,88 @@
 
         <!-- Research Papers -->
         <section class="papers-section">
-            <h2 style="font-size: 2.5em; margin-bottom: 30px; text-align: center;">Related Research</h2>
+            <h2 style="font-size: 2.5em; margin-bottom: 30px; text-align: center; background: linear-gradient(135deg, var(--grad-start), var(--grad-end)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Related Research</h2>
             
-            <!-- Paper 1: arXiv:2408.08902 -->
             <div class="paper-card">
                 <div class="paper-header">
                     <div class="paper-title">A Comprehensive Survey on Cyber Security With Machine Learning<span class="arxiv-badge">arXiv:2408.08902</span></div>
                     <div class="paper-year">2024</div>
                 </div>
                 <div class="paper-authors">K. Zhang, Y. Chen, J. Wang, L. Liu</div>
-                <div class="paper-abstract">
-                    This comprehensive survey examines the intersection of machine learning and cybersecurity, analyzing over 200 recent papers on intrusion detection, malware analysis, and threat intelligence. The study identifies key challenges in real-time detection, adversarial robustness, and model interpretability.
-                </div>
+                <div class="paper-abstract">This comprehensive survey examines the intersection of machine learning and cybersecurity, analyzing over 200 recent papers on intrusion detection, malware analysis, and threat intelligence. The study identifies key challenges in real-time detection, adversarial robustness, and model interpretability.</div>
                 <div class="paper-tags">
                     <span class="paper-tag">Survey</span>
                     <span class="paper-tag">Machine Learning</span>
                     <span class="paper-tag">Intrusion Detection</span>
-                    <span class="paper-tag">Threat Intelligence</span>
                 </div>
-                
-                <!-- Access Links for Paper 1 -->
                 <div class="paper-access">
                     <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
                     <div class="paper-links">
-                        <a href="https://arxiv.org/pdf/2408.08902" target="_blank" class="paper-link"><i class="fas fa-file-pdf" style="color: var(--error);"></i> View PDF</a>
-                        <a href="https://arxiv.org/html/2408.08902v1" target="_blank" class="paper-link"><i class="fas fa-code" style="color: var(--primary);"></i> HTML (experimental)</a>
-                        <a href="https://arxiv.org/src/2408.08902" target="_blank" class="paper-link"><i class="fas fa-file-code" style="color: var(--warning);"></i> TeX Source</a>
-                        <a href="https://arxiv.org/licenses/nonexclusive-distrib/1.0/license.html" target="_blank" class="paper-link"><i class="fas fa-balance-scale"></i> view license</a>
+                        <a href="https://arxiv.org/pdf/2408.08902" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
+                        <a href="https://arxiv.org/abs/2408.08902" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Paper 2: arXiv:2505.04843 -->
             <div class="paper-card">
                 <div class="paper-header">
                     <div class="paper-title">Ensemble Learning for Real-Time Threat Detection in Network Traffic<span class="arxiv-badge">arXiv:2505.04843</span></div>
                     <div class="paper-year">2025</div>
                 </div>
                 <div class="paper-authors">M. Rodriguez, S. Kim, A. Patel, T. Williams</div>
-                <div class="paper-abstract">
-                    This paper introduces a novel ensemble approach combining XGBoost and LightGBM with sequential majority voting for real-time network intrusion detection. The system achieves 87% detection rate with minimal latency, making it suitable for production environments.
-                </div>
+                <div class="paper-abstract">This paper introduces a novel ensemble approach combining XGBoost and LightGBM with sequential majority voting for real-time network intrusion detection. The system achieves 87% detection rate with minimal latency, making it suitable for production environments.</div>
                 <div class="paper-tags">
                     <span class="paper-tag">Ensemble Learning</span>
                     <span class="paper-tag">XGBoost</span>
                     <span class="paper-tag">LightGBM</span>
-                    <span class="paper-tag">Real-Time</span>
                 </div>
-                
-                <!-- Access Links for Paper 2 -->
                 <div class="paper-access">
                     <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
                     <div class="paper-links">
-                        <a href="https://arxiv.org/pdf/2505.04843" target="_blank" class="paper-link"><i class="fas fa-file-pdf" style="color: var(--error);"></i> View PDF</a>
-                        <a href="https://arxiv.org/html/2505.04843v2" target="_blank" class="paper-link"><i class="fas fa-code" style="color: var(--primary);"></i> HTML (experimental)</a>
-                        <a href="https://arxiv.org/src/2505.04843" target="_blank" class="paper-link"><i class="fas fa-file-code" style="color: var(--warning);"></i> TeX Source</a>
-                        <span class="license-icon"><i class="fas fa-certificate"></i> license icon</span>
-                        <a href="https://arxiv.org/licenses/nonexclusive-distrib/1.0/license.html" target="_blank" class="paper-link"><i class="fas fa-balance-scale"></i> view license</a>
+                        <a href="https://arxiv.org/pdf/2505.04843" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
+                        <a href="https://arxiv.org/abs/2505.04843" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Paper 3: Springer Link -->
             <div class="paper-card">
                 <div class="paper-header">
                     <div class="paper-title">When LLMs meet cybersecurity: a systematic literature review<span class="springer-badge">Springer</span></div>
                     <div class="paper-year">2025</div>
                 </div>
                 <div class="paper-authors">H. Chen, M. Johnson, L. Zhang, R. Gupta</div>
-                <div class="paper-abstract">
-                    This systematic literature review examines the intersection of Large Language Models (LLMs) and cybersecurity, analyzing 150+ papers on applications in threat intelligence, vulnerability detection, and security automation. The review identifies key challenges and future research directions.
-                </div>
+                <div class="paper-abstract">This systematic literature review examines the intersection of Large Language Models (LLMs) and cybersecurity, analyzing 150+ papers on applications in threat intelligence, vulnerability detection, and security automation.</div>
                 <div class="paper-tags">
                     <span class="paper-tag">LLM</span>
                     <span class="paper-tag">Systematic Review</span>
                     <span class="paper-tag">Security Automation</span>
-                    <span class="paper-tag">Threat Intelligence</span>
                 </div>
-                
-                <!-- Direct PDF Link for Paper 3 -->
                 <div class="paper-access">
                     <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
                     <div class="paper-links">
-                        <a href="https://link.springer.com/content/pdf/10.1186/s42400-025-00361-w.pdf" target="_blank" class="paper-link"><i class="fas fa-file-pdf" style="color: var(--error);"></i> View PDF</a>
-                        <span class="license-icon"><i class="fas fa-lock-open"></i> Open Access</span>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 0.95em; opacity: 0.9;">
-                        <i class="fas fa-quote-right"></i> Citation: Chen, H., Johnson, M., Zhang, L. et al. When LLMs meet cybersecurity: a systematic literature review. Cybersecurity 8, 45 (2025).
+                        <a href="https://link.springer.com/content/pdf/10.1186/s42400-025-00361-w.pdf" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
+                        <a href="https://link.springer.com/article/10.1186/s42400-025-00361-w" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> Springer Link</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Paper 4: arXiv:2405.03446 -->
             <div class="paper-card">
                 <div class="paper-header">
                     <div class="paper-title">Multi-Expert AI Systems for Cybersecurity: A Debate-Based Consensus Framework<span class="arxiv-badge">arXiv:2405.03446</span></div>
                     <div class="paper-year">2024</div>
                 </div>
                 <div class="paper-authors">S. Nakamura, A. Kumar, F. Schmidt, E. Brown</div>
-                <div class="paper-abstract">
-                    This research presents a novel multi-expert framework where specialized AI models (Network Security, Threat Intelligence, Incident Response) analyze security events and reach consensus through structured debate. The system reduces false positives by 34% compared to single-model approaches.
-                </div>
+                <div class="paper-abstract">This research presents a novel multi-expert framework where specialized AI models analyze security events and reach consensus through structured debate. The system reduces false positives by 34% compared to single-model approaches.</div>
                 <div class="paper-tags">
                     <span class="paper-tag">Multi-Agent Systems</span>
                     <span class="paper-tag">Consensus</span>
-                    <span class="paper-tag">False Positive Reduction</span>
                     <span class="paper-tag">LLM Debate</span>
                 </div>
-                
-                <!-- Access Links for Paper 4 -->
                 <div class="paper-access">
                     <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
                     <div class="paper-links">
-                        <a href="https://arxiv.org/pdf/2405.03446" target="_blank" class="paper-link"><i class="fas fa-file-pdf" style="color: var(--error);"></i> View PDF</a>
-                        <a href="https://arxiv.org/html/2405.03446v2" target="_blank" class="paper-link"><i class="fas fa-code" style="color: var(--primary);"></i> HTML (experimental)</a>
-                        <a href="https://arxiv.org/src/2405.03446" target="_blank" class="paper-link"><i class="fas fa-file-code" style="color: var(--warning);"></i> TeX Source</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Methodology -->
-        <section>
-            <h2 style="font-size: 2.5em; margin-bottom: 30px; text-align: center;">Methodology</h2>
-            <div class="methodology-grid">
-                <div class="method-card">
-                    <div class="method-icon"><i class="fas fa-chart-bar"></i></div>
-                    <h3>Feature Engineering</h3>
-                    <p class="method-desc">Extraction of 40+ network flow features including duration, packet counts, byte counts, protocol types, and statistical measures.</p>
-                    <div class="method-metrics">
-                        <div class="metric-row">
-                            <span>Duration (dur)</span>
-                            <span>0.001-10s</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Packet Counts</span>
-                            <span>spkts, dpkts</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Byte Counts</span>
-                            <span>sbytes, dbytes</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Rate Features</span>
-                            <span>packet_rate, byte_rate</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="method-card">
-                    <div class="method-icon"><i class="fas fa-microchip"></i></div>
-                    <h3>Ensemble Learning</h3>
-                    <p class="method-desc">XGBoost and LightGBM models trained separately and combined through weighted voting for optimal performance.</p>
-                    <div class="method-metrics">
-                        <div class="metric-row">
-                            <span>XGBoost Parameters</span>
-                            <span>n_estimators=100, max_depth=6</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>LightGBM Parameters</span>
-                            <span>n_estimators=100, learning_rate=0.1</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Ensemble Weight</span>
-                            <span>60% XGB / 40% LGB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="method-card">
-                    <div class="method-icon"><i class="fas fa-vote-yea"></i></div>
-                    <h3>Sequential Majority Voting</h3>
-                    <p class="method-desc">Multi-stage voting process: primary ML detection, followed by secondary methods if confidence is low.</p>
-                    <div class="method-metrics">
-                        <div class="metric-row">
-                            <span>Stage 1</span>
-                            <span>ML Model (conf > 0.8)</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Stage 2</span>
-                            <span>Rule-Based</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Stage 3</span>
-                            <span>Behavioral Analysis</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Stage 4</span>
-                            <span>Threat Intelligence</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="method-card">
-                    <div class="method-icon"><i class="fas fa-robot"></i></div>
-                    <h3>Multi-Expert RAG System</h3>
-                    <p class="method-desc">Retrieval-Augmented Generation with FAISS vector search and 3 specialized LLM experts for comprehensive analysis.</p>
-                    <div class="method-metrics">
-                        <div class="metric-row">
-                            <span>Knowledge Base</span>
-                            <span>1180 documents</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Embedding Model</span>
-                            <span>all-MiniLM-L6-v2</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Expert Models</span>
-                            <span>3 specialists</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>Response Cache</span>
-                            <span>1000 items</span>
-                        </div>
+                        <a href="https://arxiv.org/pdf/2405.03446" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
+                        <a href="https://arxiv.org/abs/2405.03446" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a>
                     </div>
                 </div>
             </div>
@@ -852,49 +1149,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>XGBoost (Individual)</td>
-                        <td>82.4%</td>
-                        <td>81.2%</td>
-                        <td>83.1%</td>
-                        <td>82.1%</td>
-                        <td>84.3%</td>
-                    </tr>
-                    <tr>
-                        <td>LightGBM (Individual)</td>
-                        <td>81.7%</td>
-                        <td>80.5%</td>
-                        <td>82.8%</td>
-                        <td>81.6%</td>
-                        <td>83.7%</td>
-                    </tr>
-                    <tr class="highlight-row">
-                        <td><strong>Ensemble (XGB+LGB)</strong></td>
-                        <td><span class="highlight">85.6%</span></td>
-                        <td><span class="highlight">84.9%</span></td>
-                        <td><span class="highlight">86.2%</span></td>
-                        <td><span class="highlight">85.5%</span></td>
-                        <td><span class="highlight">87.0%</span></td>
-                    </tr>
-                    <tr>
-                        <td>Ensemble + Voting System</td>
-                        <td>86.8%</td>
-                        <td>86.1%</td>
-                        <td>87.4%</td>
-                        <td>86.7%</td>
-                        <td>88.2%</td>
-                    </tr>
-                    <tr>
-                        <td>Full System (with RAG)</td>
-                        <td>87.5%</td>
-                        <td>86.9%</td>
-                        <td>88.1%</td>
-                        <td>87.5%</td>
-                        <td>89.1%</td>
-                    </tr>
+                    <tr><td>XGBoost (Individual)</td><td>82.4%</td><td>81.2%</td><td>83.1%</td><td>82.1%</td><td>84.3%</td></tr>
+                    <tr><td>LightGBM (Individual)</td><td>81.7%</td><td>80.5%</td><td>82.8%</td><td>81.6%</td><td>83.7%</td></tr>
+                    <tr><td><strong>Ensemble (XGB+LGB)</strong></td><td><span class="highlight">85.6%</span></td><td><span class="highlight">84.9%</span></td><td><span class="highlight">86.2%</span></td><td><span class="highlight">85.5%</span></td><td><span class="highlight">87.0%</span></td></tr>
+                    <tr><td>Ensemble + Voting System</td><td>86.8%</td><td>86.1%</td><td>87.4%</td><td>86.7%</td><td>88.2%</td></tr>
+                    <tr><td>Full System (with RAG)</td><td>87.5%</td><td>86.9%</td><td>88.1%</td><td>87.5%</td><td>89.1%</td></tr>
                 </tbody>
             </table>
-            <p style="margin-top: 20px; opacity: 0.8;"><i class="fas fa-chart-line"></i> Results based on testing with UNSW-NB15 and CIC-IDS2017 datasets</p>
+            <p style="margin-top: 20px; color: var(--text-muted);"><i class="fas fa-chart-line"></i> Results based on testing with UNSW-NB15 and CIC-IDS2017 datasets</p>
         </div>
 
         <!-- Attack Type Performance -->
@@ -902,12 +1164,7 @@
             <div class="results-table" style="margin: 0;">
                 <h3 style="margin-bottom: 20px;">Detection Rate by Attack Type</h3>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Attack Category</th>
-                            <th>Detection Rate</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Attack Category</th><th>Detection Rate</th></tr></thead>
                     <tbody>
                         <tr><td>Port Scanning</td><td>94.2%</td></tr>
                         <tr><td>Brute Force</td><td>96.8%</td></tr>
@@ -922,12 +1179,7 @@
             <div class="results-table" style="margin: 0;">
                 <h3 style="margin-bottom: 20px;">False Positive Analysis</h3>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Method</th>
-                            <th>False Positive Rate</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Method</th><th>False Positive Rate</th></tr></thead>
                     <tbody>
                         <tr><td>XGBoost Only</td><td>7.2%</td></tr>
                         <tr><td>LightGBM Only</td><td>7.8%</td></tr>
@@ -942,13 +1194,11 @@
         <!-- Key Contributions -->
         <div class="citations">
             <h2 style="font-size: 2em; margin-bottom: 20px;">Key Research Contributions</h2>
-            <ul style="list-style: none;">
-                <li class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Novel Ensemble Architecture:</strong> First implementation of XGBoost + LightGBM ensemble with weighted voting specifically optimized for network intrusion detection.</li>
-                <li class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Sequential Majority Voting System:</strong> Multi-stage voting mechanism that reduces false positives by 43% compared to single-model approaches.</li>
-                <li class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Multi-Expert RAG Framework:</strong> Novel application of Retrieval-Augmented Generation with 3 specialized LLM experts for comprehensive threat analysis.</li>
-                <li class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Automated Response System:</strong> Integration of ML detection with automated countermeasures including firewall rules and process termination.</li>
-                <li class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Comprehensive Feature Set:</strong> Extraction and validation of 40+ network features optimized for real-time threat detection.</li>
-            </ul>
+            <div class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Novel Ensemble Architecture:</strong> First implementation of XGBoost + LightGBM ensemble with weighted voting specifically optimized for network intrusion detection.</div>
+            <div class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Sequential Majority Voting System:</strong> Multi-stage voting mechanism that reduces false positives by 43% compared to single-model approaches.</div>
+            <div class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Multi-Expert RAG Framework:</strong> Novel application of Retrieval-Augmented Generation with 3 specialized LLM experts for comprehensive threat analysis.</div>
+            <div class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Automated Response System:</strong> Integration of ML detection with automated countermeasures including firewall rules and process termination.</div>
+            <div class="citation-item"><i class="fas fa-star" style="color: var(--primary); margin-right: 10px;"></i> <strong>Comprehensive Feature Set:</strong> Extraction and validation of 40+ network features optimized for real-time threat detection.</div>
         </div>
 
         <!-- References -->
@@ -976,5 +1226,80 @@
             </div>
         </footer>
     </div>
+
+    <script>
+        // ========== THEME SWITCHER ==========
+        function setTheme(themeName) {
+            document.body.classList.remove('light-theme', 'cyberpunk-theme');
+            if (themeName === 'light') {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('cybershield_theme', 'light');
+            } else if (themeName === 'cyberpunk') {
+                document.body.classList.add('cyberpunk-theme');
+                localStorage.setItem('cybershield_theme', 'cyberpunk');
+            } else {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('cybershield_theme', 'dark');
+            }
+        }
+        
+        const savedTheme = localStorage.getItem('cybershield_theme') || 'dark';
+        setTheme(savedTheme);
+        
+        const themeBtn = document.getElementById('themeBtn');
+        const themeDropdown = document.getElementById('themeDropdown');
+        
+        themeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeDropdown.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!themeBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.classList.remove('show');
+            }
+        });
+        
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                setTheme(option.getAttribute('data-theme'));
+                themeDropdown.classList.remove('show');
+            });
+        });
+        
+        // ========== SLIDE-OUT MENU FUNCTIONALITY ==========
+        const menu = document.getElementById('slideMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const menuTrigger = document.getElementById('menuTriggerBtn');
+        const closeBtn = document.getElementById('closeMenuBtn');
+        
+        function openMenu() {
+            menu.classList.add('open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMenu() {
+            menu.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        menuTrigger.addEventListener('click', openMenu);
+        closeBtn.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                if (menu.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+            if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+        });
+    </script>
 </body>
 </html>
