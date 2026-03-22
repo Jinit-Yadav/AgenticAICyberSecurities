@@ -3,25 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time System Monitor - Cyber Security AI</title>
+    <title>CyberShield AI - Real-Time System Monitor | Multi-Expert AI</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* Your existing CSS styles remain the same */
         :root {
-            --primary: #00b4db;
-            --primary-dark: #0083b0;
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
             --secondary: #636e72;
-            --dark: #0c0c0c;
-            --darker: #1a1a2e;
+            --dark: #0a0e27;
+            --darker: #0f1419;
             --light: #ffffff;
-            --success: #2ecc71;
-            --error: #e74c3c;
-            --warning: #f1c40f;
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --card-border: rgba(255, 255, 255, 0.15);
-            --ai-purple: #8e44ad;
-            --ai-pink: #9b59b6;
+            --success: #00ff88;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --card-bg: rgba(15, 20, 25, 0.6);
+            --card-border: rgba(0, 212, 255, 0.2);
+            --ai-purple: #a855f7;
+            --ai-pink: #c084fc;
+            --critical: #c0392b;
+            --sidebar-bg: rgba(10, 14, 25, 0.98);
         }
         
         * {
@@ -35,13 +37,280 @@
             background: linear-gradient(135deg, var(--dark), var(--darker));
             color: var(--light);
             min-height: 100vh;
-            padding: 20px;
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
+        /* ========== REDDIT-STYLE SLIDE-OUT MENU ========== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .slide-menu.open {
+            transform: translateX(0);
+        }
+        
+        /* Menu Header */
+        .menu-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .menu-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .menu-logo i {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+        
+        .menu-logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), var(--ai-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .close-menu-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-menu-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        /* User Section in Menu */
+        .menu-user-section {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .menu-user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--ai-purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .menu-user-info {
+            flex: 1;
+        }
+        
+        .menu-user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .menu-user-email {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Menu Navigation */
+        .menu-nav {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .menu-nav-section {
+            margin-bottom: 25px;
+        }
+        
+        .menu-nav-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        
+        .menu-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        
+        .menu-nav-item i {
+            width: 24px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        
+        .menu-nav-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .menu-nav-item.active {
+            background: rgba(0, 212, 255, 0.15);
+            color: white;
+        }
+        
+        .menu-nav-item.active i {
+            color: var(--primary);
+        }
+        
+        /* Menu Footer */
+        .menu-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .menu-footer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        
+        .menu-footer-item:hover {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+        }
+        
+        /* Menu Trigger Button (Hamburger) - Reddit Style */
+        .menu-trigger {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 52px;
+            height: 52px;
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            color: var(--primary);
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .menu-trigger:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+        
+        .menu-trigger::after {
+            content: "Ctrl + B";
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            border: 1px solid var(--card-border);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 2200;
+        }
+        
+        .menu-trigger:hover::after {
+            opacity: 1;
+            visibility: visible;
+            top: 70px;
+        }
+        
+        /* Hide menu trigger when menu is open (like Reddit) */
+        .menu-trigger.hidden {
+            display: none;
+        }
+        
+        /* Main content adjustment */
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
+        }
+        
+        @media (min-width: 769px) {
+            .container {
+                margin-left: 100px;
+            }
         }
         
         /* Header Navigation Styles */
@@ -65,7 +334,7 @@
         .logo {
             font-size: 1.6em;
             font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(45deg, var(--primary), #fff);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
@@ -73,38 +342,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-btn {
-            padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .nav-btn:hover {
-            background: rgba(0, 180, 219, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .nav-btn.active {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
         }
         
         .header {
@@ -116,7 +353,7 @@
         .header h1 {
             font-size: 2.8em;
             margin-bottom: 15px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(45deg, var(--primary), var(--ai-purple));
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
@@ -198,7 +435,7 @@
         
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 180, 219, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.3);
         }
         
         .monitoring-active { 
@@ -232,12 +469,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
         }
         
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 180, 219, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
         }
         
         .btn:active {
@@ -252,6 +489,16 @@
         .stop-btn { 
             background: linear-gradient(45deg, var(--error), #c0392b);
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(45deg, var(--ai-purple), var(--ai-pink));
+            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.3);
+        }
+        
+        .analyze-btn:hover {
+            background: linear-gradient(45deg, #7d3c98, #8e44ad);
+            box-shadow: 0 8px 20px rgba(142, 68, 173, 0.4);
         }
         
         .status-indicator {
@@ -303,7 +550,7 @@
             font-size: 2.2em;
             color: var(--primary);
             margin-bottom: 5px;
-            text-shadow: 0 2px 10px rgba(0, 180, 219, 0.3);
+            text-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
         }
         
         .stat-card p {
@@ -335,6 +582,7 @@
         .connection-item.malicious {
             border-left-color: var(--error);
             background: rgba(231, 76, 60, 0.1);
+            animation: pulse-critical 2s infinite;
         }
         
         .connection-item.safe {
@@ -350,6 +598,7 @@
         .process-item.malicious {
             border-left-color: var(--error);
             background: rgba(231, 76, 60, 0.1);
+            animation: pulse-critical 2s infinite;
         }
         
         .process-item.safe {
@@ -410,7 +659,7 @@
         
         .section-header h2 {
             font-size: 1.8em;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(45deg, var(--primary), var(--ai-purple));
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
@@ -537,16 +786,6 @@
             margin-bottom: 3px;
         }
         
-        .analyze-btn {
-            background: linear-gradient(45deg, var(--ai-purple), var(--ai-pink));
-            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.3);
-        }
-        
-        .analyze-btn:hover {
-            background: linear-gradient(45deg, #7d3c98, #8e44ad);
-            box-shadow: 0 8px 20px rgba(142, 68, 173, 0.4);
-        }
-        
         /* Scrollbar Styling */
         .data-list::-webkit-scrollbar {
             width: 6px;
@@ -664,27 +903,49 @@
             font-size: 2.5em;
             font-weight: bold;
             margin: 10px 0;
-            text-shadow: 0 2px 10px rgba(0, 180, 219, 0.3);
+            text-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
         }
         
         .threat-card.safe .count { color: var(--success); }
         .threat-card.warning .count { color: var(--warning); }
         .threat-card.danger .count { color: var(--error); }
         
+        /* Animation for critical threats */
+        @keyframes pulse-critical {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+        
+        /* Animation for monitoring status */
+        @keyframes pulse-active {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .monitoring-active {
+            animation: pulse-active 3s infinite;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
+            .menu-trigger {
+                top: 15px;
+                left: 15px;
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+            
+            .container {
+                margin-left: 20px;
+                padding: 20px 15px;
+            }
+            
             .nav-container {
                 flex-direction: column;
                 gap: 20px;
-            }
-            
-            .nav-links {
-                justify-content: center;
-            }
-            
-            .nav-btn {
-                padding: 10px 15px;
-                font-size: 0.9em;
             }
             
             .stats-grid {
@@ -712,52 +973,144 @@
                 flex-direction: column;
                 text-align: center;
             }
-        }
-        
-        /* Animation for critical threats */
-        @keyframes pulse-critical {
-            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-        }
-        
-        .connection-item.malicious, .process-item.malicious {
-            animation: pulse-critical 2s infinite;
-        }
-        
-        /* Animation for monitoring status */
-        @keyframes pulse-active {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .monitoring-active {
-            animation: pulse-active 3s infinite;
+            
+            .slide-menu {
+                width: 280px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header Navigation -->
     <header class="main-header">
-        <div class="nav-container">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                CyberShield AI
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    CyberShield AI
+                </div>
+                <div class="nav-links">
+                    <a href="{{ url_for('landing') }}" class="nav-btn active">Home</a>
+                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
+                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
+                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
+                    <a href="{{ url_for('research') }}" class="nav-btn">Research</a>
+                    <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
+                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
+                        <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                        <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">Sign Up</a>
+                    {% endif %}
+                </div>
             </div>
-            <div class="nav-links">
-                <a href="{{ url_for('dashboard_home') }}" class="nav-btn"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                <a href="{{ url_for('detect_threat') }}" class="nav-btn"><i class="fas fa-search"></i> Custom Detection</a>
-                <a href="{{ url_for('upload_logs') }}" class="nav-btn"><i class="fas fa-file-upload"></i> Upload Logs</a>
-                <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn active"><i class="fas fa-chart-line"></i> Real-Time Monitor</a>
+        </header>
+    <!-- Reddit-style Menu Trigger Button -->
+    <button class="menu-trigger" id="menuTriggerBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Reddit-style Slide-out Menu -->
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-header">
+            <div class="menu-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>CyberShield AI</span>
+            </div>
+            <button class="close-menu-btn" id="closeMenuBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="menu-user-section">
+            <div class="menu-user-avatar">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    {{ current_user.username[0]|upper }}
                 {% else %}
-                    <a href="{{ url_for('login') }}" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    G
                 {% endif %}
             </div>
+            <div class="menu-user-info">
+                <div class="menu-user-name">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.username }}
+                    {% else %}
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="menu-user-email">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.email }}
+                    {% else %}
+                        guest@cybershield.ai
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    </header>
+        
+        <div class="menu-nav">
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Main</div>
+                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
+                    <i class="fas fa-search"></i>
+                    <span>Threat Detection</span>
+                </a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Live Monitor</span>
+                </a>
+                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
+                    <i class="fas fa-file-upload"></i>
+                    <span>Upload Logs</span>
+                </a>
+            </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Resources</div>
+                <a href="{{ url_for('landing') }}" class="menu-nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('features') }}" class="menu-nav-item">
+                    <i class="fas fa-star"></i>
+                    <span>Features</span>
+                </a>
+                <a href="{{ url_for('about') }}" class="menu-nav-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span>About</span>
+                </a>
+                <a href="{{ url_for('documentation') }}" class="menu-nav-item">
+                    <i class="fas fa-book"></i>
+                    <span>Documentation</span>
+                </a>
+                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Demo Scenarios</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-footer">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Log In</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
 
     <div class="container">
         <div class="header">
@@ -910,7 +1263,7 @@
             </div>
         </div>
 
-        <!-- CORRECTED BOTTOM NAVIGATION BUTTONS -->
+        <!-- BOTTOM NAVIGATION BUTTONS -->
         <div class="nav-buttons">
             <a href="{{ url_for('dashboard_home') }}" class="btn btn-secondary"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a>
             <a href="{{ url_for('detect_threat') }}" class="btn btn-secondary"><i class="fas fa-search"></i> Threat Detection</a>
@@ -928,6 +1281,43 @@
     </script>
 
     <script>
+        // Reddit-style menu toggle functionality
+        const menu = document.getElementById('slideMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const menuTrigger = document.getElementById('menuTriggerBtn');
+        const closeBtn = document.getElementById('closeMenuBtn');
+        
+        function openMenu() {
+            menu.classList.add('open');
+            overlay.classList.add('active');
+            menuTrigger.classList.add('hidden'); // Hide hamburger button (like Reddit)
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+        
+        function closeMenu() {
+            menu.classList.remove('open');
+            overlay.classList.remove('active');
+            menuTrigger.classList.remove('hidden'); // Show hamburger button
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+        
+        menuTrigger.addEventListener('click', openMenu);
+        closeBtn.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+        
+        // Ctrl+B shortcut (keeping the original shortcut)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                if (menu.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+            if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+        });
+
         // Parse configuration from JSON script tag
         let serverConfig;
         try {
@@ -940,24 +1330,19 @@
             }
         } catch (error) {
             console.error('Failed to load server config:', error);
-            // Fallback values
             serverConfig = {
                 isMonitoring: false,
                 aiEnabled: false
             };
         }
         
-        // Make config globally available
         window.serverConfig = serverConfig;
-    </script>
-
-    <script>
+        
         let updateInterval;
         let currentThreats = [];
         
         // Clear all activity from the UI
         function clearAllActivity() {
-            // Clear network connections
             const networkList = document.getElementById('network-list');
             if (networkList) {
                 networkList.innerHTML = `
@@ -969,7 +1354,6 @@
                 `;
             }
             
-            // Clear process list
             const processList = document.getElementById('process-list');
             if (processList) {
                 processList.innerHTML = `
@@ -981,7 +1365,6 @@
                 `;
             }
             
-            // Reset network statistics
             const networkTotal = document.getElementById('networkTotal');
             const networkSuspicious = document.getElementById('networkSuspicious');
             const networkMalicious = document.getElementById('networkMalicious');
@@ -989,7 +1372,6 @@
             if (networkSuspicious) networkSuspicious.textContent = '0';
             if (networkMalicious) networkMalicious.textContent = '0';
             
-            // Reset process statistics
             const processTotal = document.getElementById('processTotal');
             const processSuspicious = document.getElementById('processSuspicious');
             const processMalicious = document.getElementById('processMalicious');
@@ -997,7 +1379,6 @@
             if (processSuspicious) processSuspicious.textContent = '0';
             if (processMalicious) processMalicious.textContent = '0';
             
-            // Reset threat summary
             const safeCount = document.getElementById('safeCount');
             const suspiciousCount = document.getElementById('suspiciousCount');
             const maliciousCount = document.getElementById('maliciousCount');
@@ -1005,7 +1386,6 @@
             if (suspiciousCount) suspiciousCount.textContent = '0';
             if (maliciousCount) maliciousCount.textContent = '0';
             
-            // Reset threat level indicators
             const networkThreatLevel = document.getElementById('networkThreatLevel');
             const processThreatLevel = document.getElementById('processThreatLevel');
             if (networkThreatLevel) {
@@ -1017,7 +1397,6 @@
                 processThreatLevel.className = 'threat-badge badge-safe';
             }
             
-            // Reset security status to "All Clear"
             const securityStatus = document.getElementById('securityStatus');
             if (securityStatus) {
                 securityStatus.className = 'security-status security-safe';
@@ -1029,15 +1408,12 @@
                 if (securityDesc) securityDesc.textContent = 'No suspicious activities detected. All processes and connections appear normal.';
             }
             
-            // Clear expert analysis
             const expertAnalysis = document.getElementById('expertAnalysis');
             const expertContent = document.getElementById('expertAnalysisContent');
             if (expertAnalysis) expertAnalysis.classList.remove('active');
             if (expertContent) expertContent.innerHTML = '';
             
-            // Clear current threats array
             currentThreats = [];
-            
             console.log('✅ All activity cleared - Monitoring stopped');
         }
         
@@ -1049,7 +1425,6 @@
             const securityTitle = securityStatus.querySelector('h3');
             const securityDesc = securityStatus.querySelector('p');
             
-            // Update threat counts
             const safeCountEl = document.getElementById('safeCount');
             const suspiciousCountEl = document.getElementById('suspiciousCount');
             const maliciousCountEl = document.getElementById('maliciousCount');
@@ -1058,7 +1433,6 @@
             if (suspiciousCountEl) suspiciousCountEl.textContent = suspiciousCount;
             if (maliciousCountEl) maliciousCountEl.textContent = maliciousCount;
             
-            // Determine overall security status
             if (maliciousCount > 0) {
                 securityStatus.className = 'security-status security-danger';
                 if (securityIcon) securityIcon.innerHTML = '<i class="fas fa-skull-crossbones"></i>';
@@ -1100,11 +1474,9 @@
             
             if (!analyzeBtn || !expertAnalysis || !expertContent) return;
             
-            // Show loading state
             analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
             analyzeBtn.disabled = true;
             
-            // Call the actual backend API
             fetch('/api/analyze-current-threats', {
                 method: 'POST',
                 headers: {
@@ -1117,7 +1489,6 @@
                     let expertsHTML = '';
                     
                     if (data.multi_expert_analysis_used && data.analysis && data.analysis.experts) {
-                        // Use multi-expert analysis results
                         expertsHTML += `<div style="margin-bottom: 15px; padding: 12px; background: rgba(142, 68, 173, 0.2); border-radius: 8px; border-left: 4px solid var(--ai-purple);">
                             <strong><i class="fas fa-robot"></i> MULTI-EXPERT AI ANALYSIS ACTIVE</strong><br>
                             <small>${data.analysis.experts.length} security experts consulted</small>
@@ -1153,7 +1524,6 @@
                             `;
                         });
                     } else if (data.analysis && data.analysis.experts) {
-                        // Fallback analysis
                         data.analysis.experts.forEach(expert => {
                             let keyPointsHTML = '';
                             if (expert.key_points && expert.key_points.length > 0) {
@@ -1176,7 +1546,6 @@
                         });
                     }
                     
-                    // Add summary if available
                     if (data.analysis && data.analysis.summary) {
                         expertsHTML += `
                             <div style="margin-top: 15px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-radius: 8px; border-left: 3px solid var(--success);">
@@ -1187,17 +1556,12 @@
                                 ${data.multi_expert_analysis_used ? 
                                     '<br><small><i class="fas fa-robot"></i> Multi-Expert AI Analysis Used</small>' : 
                                     '<br><small><i class="fas fa-user"></i> Enhanced Security Analysis</small>'}
-                                ${data.analysis.threat_specific ? 
-                                    `<br><small><i class="fas fa-bullseye"></i> Threat-specific: ${escapeHtml(data.analysis.threat_type)} via ${escapeHtml(data.analysis.threat_tool)}</small>` : 
-                                    ''}
                             </div>
                         `;
                     }
                     
                     expertContent.innerHTML = expertsHTML || '<div class="expert-item">No analysis results available</div>';
                     expertAnalysis.classList.add('active');
-                    
-                    // Scroll to expert analysis
                     expertAnalysis.scrollIntoView({ behavior: 'smooth' });
                 } else {
                     expertContent.innerHTML = `
@@ -1241,7 +1605,6 @@
             });
         }
         
-        // Helper function to escape HTML special characters
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -1282,7 +1645,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update UI status
                         const statusSpan = document.getElementById('status');
                         const monitoringCard = document.getElementById('monitoringCard');
                         
@@ -1296,15 +1658,12 @@
                             monitoringCard.classList.add('monitoring-inactive');
                         }
                         
-                        // Clear the update interval
                         if (updateInterval) {
                             clearInterval(updateInterval);
                             updateInterval = null;
                         }
                         
-                        // Clear all activity from the UI
                         clearAllActivity();
-                        
                         console.log('🛑 Monitoring stopped - All activity cleared');
                     } else {
                         console.error('Failed to stop monitoring:', data.message);
@@ -1316,30 +1675,24 @@
         }
         
         function startAutoUpdate() {
-            // Clear any existing interval
             if (updateInterval) {
                 clearInterval(updateInterval);
             }
-            
-            // Start new interval
             updateInterval = setInterval(updateData, 3000);
-            updateData(); // Immediate first update
+            updateData();
         }
         
         function updateData() {
-            // Update network data
             fetch('/api/real-time/network-data')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         const networkList = document.getElementById('network-list');
                         let safeCount = 0, suspiciousCount = 0, maliciousCount = 0;
-                        currentThreats = [];
                         
                         if (networkList && data.data && data.data.length > 0) {
                             networkList.innerHTML = '';
                             data.data.forEach(conn => {
-                                // Use the threat_level from the backend
                                 const threatLevel = conn.threat_level || 'safe';
                                 const threatClass = threatLevel;
                                 
@@ -1347,14 +1700,10 @@
                                 else if (threatLevel === 'suspicious') suspiciousCount++;
                                 else if (threatLevel === 'malicious') maliciousCount++;
                                 
-                                // Parse local and remote addresses
                                 const localAddr = conn.local_address || 'N/A';
                                 const remoteAddr = conn.remote_address || 'N/A';
-                                
-                                // Get process name
                                 const processName = conn.process_name || 'Unknown Process';
                                 
-                                // Store threat for potential analysis
                                 currentThreats.push({
                                     type: 'network',
                                     name: processName,
@@ -1379,7 +1728,6 @@
                                 networkList.appendChild(item);
                             });
                             
-                            // Update network stats
                             const networkTotal = document.getElementById('networkTotal');
                             const networkSuspicious = document.getElementById('networkSuspicious');
                             const networkMalicious = document.getElementById('networkMalicious');
@@ -1390,7 +1738,6 @@
                             
                             updateThreatLevel('networkThreatLevel', safeCount, suspiciousCount, maliciousCount);
                         } else if (networkList) {
-                            // Show empty state
                             networkList.innerHTML = `
                                 <div class="empty-state">
                                     <div class="icon"><i class="fas fa-wifi"></i></div>
@@ -1405,7 +1752,6 @@
                     return { safe: 0, suspicious: 0, malicious: 0 };
                 })
                 .then(networkThreats => {
-                    // Update process data
                     return fetch('/api/real-time/process-data')
                         .then(response => response.json())
                         .then(data => {
@@ -1416,7 +1762,6 @@
                                 if (processList && data.data && data.data.length > 0) {
                                     processList.innerHTML = '';
                                     data.data.forEach(proc => {
-                                        // Use the threat_level from the backend
                                         const threatLevel = proc.threat_level || 'safe';
                                         const threatClass = threatLevel;
                                         
@@ -1424,7 +1769,6 @@
                                         else if (threatLevel === 'suspicious') suspiciousCount++;
                                         else if (threatLevel === 'malicious') maliciousCount++;
                                         
-                                        // Store threat for potential analysis
                                         currentThreats.push({
                                             type: 'process',
                                             name: proc.name,
@@ -1450,7 +1794,6 @@
                                         processList.appendChild(item);
                                     });
                                     
-                                    // Update process stats
                                     const processTotal = document.getElementById('processTotal');
                                     const processSuspicious = document.getElementById('processSuspicious');
                                     const processMalicious = document.getElementById('processMalicious');
@@ -1461,7 +1804,6 @@
                                     
                                     updateThreatLevel('processThreatLevel', safeCount, suspiciousCount, maliciousCount);
                                 } else if (processList) {
-                                    // Show empty state
                                     processList.innerHTML = `
                                         <div class="empty-state">
                                             <div class="icon"><i class="fas fa-cogs"></i></div>
@@ -1471,7 +1813,6 @@
                                     `;
                                 }
                                 
-                                // Combine threats from network and processes
                                 const totalSafe = (networkThreats?.safe || 0) + safeCount;
                                 const totalSuspicious = (networkThreats?.suspicious || 0) + suspiciousCount;
                                 const totalMalicious = (networkThreats?.malicious || 0) + maliciousCount;
@@ -1482,7 +1823,6 @@
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
-                    // Show error states
                     const networkList = document.getElementById('network-list');
                     const processList = document.getElementById('process-list');
                     
@@ -1507,11 +1847,9 @@
                 });
         }
         
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded, server monitoring state:', window.serverConfig.isMonitoring);
             
-            // Auto-start monitoring if enabled by the server
             if (window.serverConfig.isMonitoring) {
                 console.log('Auto-starting monitoring (server state: active)');
                 startMonitoring();
