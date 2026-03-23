@@ -988,7 +988,9 @@
                 <i class="fas fa-shield-alt"></i>
                 <span>CyberShield AI</span>
             </div>
-            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+            <button class="close-menu-btn" id="closeMenuBtn">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
         <div class="menu-user-section">
@@ -1019,11 +1021,11 @@
         
         <div class="menu-nav">
             <div class="menu-nav-section">
-                <div class="menu-nav-title">Main</div>
+                <div class="menu-nav-title">General</div>
                 <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
-                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                    <i class="fas fa-chart-pie"></i><span>Home</span>
                 </a>
-                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item active">
                     <i class="fas fa-search"></i><span>Detect Threat</span>
                 </a>
                 <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
@@ -1072,15 +1074,18 @@
         
         <div class="menu-footer">
             <a href="{{ url_for('profile') }}" class="menu-footer-item">
-                <i class="fas fa-user"></i><span>Profile</span>
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
             </a>
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('logout') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-out-alt"></i><span>Log Out</span>
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
                 </a>
             {% else %}
                 <a href="{{ url_for('login') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-in-alt"></i><span>Log In</span>
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Log In</span>
                 </a>
             {% endif %}
         </div>

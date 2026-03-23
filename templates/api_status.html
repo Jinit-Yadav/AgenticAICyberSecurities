@@ -722,37 +722,108 @@
         <div class="menu-header">
             <div class="menu-logo">
                 <i class="fas fa-shield-alt"></i>
-                <span>Cybershield AI</span>
+                <span>CyberShield AI</span>
             </div>
-            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+            <button class="close-menu-btn" id="closeMenuBtn">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
         <div class="menu-user-section">
-            <div class="menu-user-avatar">{{ current_user.username[0]|upper if current_user else 'G' }}</div>
+            <div class="menu-user-avatar">
+                {% if current_user.is_authenticated %}
+                    {{ current_user.username[0]|upper }}
+                {% else %}
+                    G
+                {% endif %}
+            </div>
             <div class="menu-user-info">
-                <div class="menu-user-name">{{ current_user.username if current_user else 'Guest User' }}</div>
-                <div class="menu-user-email">{{ current_user.email if current_user else 'guest@cybershield.ai' }}</div>
+                <div class="menu-user-name">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.username }}
+                    {% else %}
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="menu-user-email">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.email }}
+                    {% else %}
+                        guest@cybershield.ai
+                    {% endif %}
+                </div>
             </div>
         </div>
         
         <div class="menu-nav">
             <div class="menu-nav-section">
                 <div class="menu-nav-title">General</div>
-                <a href="/" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Home</span></a>
-                <a href="/detect-threat" class="menu-nav-item"><i class="fas fa-bug"></i><span>Detect Threat</span></a>
-                <a href="/real-time-dashboard" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
-                <a href="/upload-logs" class="menu-nav-item"><i class="fas fa-upload"></i><span>Upload Logs</span></a>
+                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-pie"></i><span>Home</span>
+                </a>
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item active">
+                    <i class="fas fa-search"></i><span>Detect Threat</span>
+                </a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
+                    <i class="fas fa-chart-line"></i><span>Live Monitor</span>
+                </a>
+                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
+                    <i class="fas fa-upload"></i><span>Upload Logs</span>
+                </a>
+                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item">
+                    <i class="fas fa-bullseye"></i><span>Demo Scenarios</span>
+                </a>
             </div>
+            
+            <div class="menu-nav-section">
+                <div class="menu-nav-title">Resources</div>
+                <a href="{{ url_for('landing') }}" class="menu-nav-item">
+                    <i class="fas fa-home"></i><span>Home</span>
+                </a>
+                <a href="{{ url_for('features') }}" class="menu-nav-item">
+                    <i class="fas fa-star"></i><span>Features</span>
+                </a>
+                <a href="{{ url_for('about') }}" class="menu-nav-item">
+                    <i class="fas fa-info-circle"></i><span>About</span>
+                </a>
+                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
+                    <i class="fas fa-sitemap"></i><span>Architecture</span>
+                </a>
+                <a href="{{ url_for('documentation') }}" class="menu-nav-item">
+                    <i class="fas fa-book"></i><span>Documentation</span>
+                </a>
+                <a href="{{ url_for('contact') }}" class="menu-nav-item">
+                    <i class="fas fa-envelope"></i><span>Contact</span>
+                </a>
+            </div>
+            
             <div class="menu-nav-section">
                 <div class="menu-nav-title">Settings</div>
-                <a href="{{ url_for('profile') }}" class="menu-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
-                <a href="#" class="menu-nav-item"><i class="fas fa-question-circle"></i><span>Help & Support</span></a>
+                <a href="{{ url_for('profile') }}" class="menu-nav-item">
+                    <i class="fas fa-user"></i><span>Profile</span>
+                </a>
+                <a href="{{ url_for('help_support') }}" class="menu-nav-item">
+                    <i class="fas fa-question-circle"></i><span>Help & Support</span>
+                </a>
             </div>
         </div>
         
         <div class="menu-footer">
-            <a href="{{ url_for('profile') }}" class="menu-footer-item"><i class="fas fa-user"></i><span>Profile</span></a>
-            <a href="{{ url_for('logout') }}" class="menu-footer-item"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+            <a href="{{ url_for('profile') }}" class="menu-footer-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Log In</span>
+                </a>
+            {% endif %}
         </div>
     </div>
 

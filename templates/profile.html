@@ -373,6 +373,110 @@
         .theme-dropdown-content.show {
             display: block;
         }
+        /* Add to your existing CSS, right after the theme-dropdown styles */   
+        .theme-dropdown {
+            position: relative;
+            display: inline-block;
+            z-index: 1000;
+        }
+
+        .theme-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            min-width: 200px;
+            max-width: 250px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            z-index: 1001;
+            margin-top: 8px;
+            overflow: visible;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        .theme-dropdown-content.show {
+            display: block;
+        }
+
+        .theme-option {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+            min-width: 180px;
+            white-space: nowrap;
+        }
+
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+
+        .theme-option:hover {
+            background: var(--hover-glow);
+            padding-left: 25px;
+        }
+
+        .theme-option i {
+            width: 20px;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .theme-option span {
+            flex: 1;
+            white-space: nowrap;
+        }
+
+        /* Ensure dropdown doesn't get hidden on smaller screens */
+        @media (max-width: 768px) {
+            .theme-dropdown-content {
+                right: auto;
+                left: 0;
+                min-width: 180px;
+            }
+            
+            .theme-option {
+                padding: 10px 16px;
+            }
+            
+            .theme-option span {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Fix for the header nav links to prevent overflow */
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Ensure the theme button doesn't cause layout issues */
+        .theme-btn {
+            padding: 10px 18px;
+            background: var(--nav-bg);
+            color: var(--text-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
         .theme-option {
             padding: 12px 16px;
             cursor: pointer;
@@ -731,14 +835,24 @@
                 <a href="{{ url_for('upload_logs') }}" class="nav-btn">Upload Logs</a>
                 <a href="{{ url_for('sample_threats') }}" class="nav-btn">Demo Scenarios</a>
                 <a href="{{ url_for('profile') }}" class="nav-btn active">Profile</a>
+                <!-- Update the theme dropdown section in the header -->
                 <div class="theme-dropdown">
                     <button class="theme-btn" id="themeBtn">
                         <i class="fas fa-palette"></i> Theme
                     </button>
                     <div class="theme-dropdown-content" id="themeDropdown">
-                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
-                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
-                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                        <div class="theme-option" data-theme="dark">
+                            <i class="fas fa-moon"></i> 
+                            <span>Dark Theme</span>
+                        </div>
+                        <div class="theme-option" data-theme="light">
+                            <i class="fas fa-sun"></i> 
+                            <span>Light Theme</span>
+                        </div>
+                        <div class="theme-option" data-theme="cyberpunk">
+                            <i class="fas fa-microchip"></i> 
+                            <span>Cyberpunk Tech</span>
+                        </div>
                     </div>
                 </div>
                 <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -754,16 +868,36 @@
         <div class="menu-header">
             <div class="menu-logo">
                 <i class="fas fa-shield-alt"></i>
-                <span>Cybershield AI</span>
+                <span>CyberShield AI</span>
             </div>
-            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+            <button class="close-menu-btn" id="closeMenuBtn">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
         <div class="menu-user-section">
-            <div class="menu-user-avatar">{{ current_user.username[0]|upper }}</div>
+            <div class="menu-user-avatar">
+                {% if current_user.is_authenticated %}
+                    {{ current_user.username[0]|upper }}
+                {% else %}
+                    G
+                {% endif %}
+            </div>
             <div class="menu-user-info">
-                <div class="menu-user-name">{{ current_user.username }}</div>
-                <div class="menu-user-email">{{ current_user.email }}</div>
+                <div class="menu-user-name">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.username }}
+                    {% else %}
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="menu-user-email">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.email }}
+                    {% else %}
+                        guest@cybershield.ai
+                    {% endif %}
+                </div>
             </div>
         </div>
         
@@ -773,7 +907,7 @@
                 <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
                     <i class="fas fa-chart-pie"></i><span>Home</span>
                 </a>
-                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
+                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item active">
                     <i class="fas fa-search"></i><span>Detect Threat</span>
                 </a>
                 <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
@@ -798,6 +932,9 @@
                 <a href="{{ url_for('about') }}" class="menu-nav-item">
                     <i class="fas fa-info-circle"></i><span>About</span>
                 </a>
+                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
+                    <i class="fas fa-sitemap"></i><span>Architecture</span>
+                </a>
                 <a href="{{ url_for('documentation') }}" class="menu-nav-item">
                     <i class="fas fa-book"></i><span>Documentation</span>
                 </a>
@@ -808,7 +945,7 @@
             
             <div class="menu-nav-section">
                 <div class="menu-nav-title">Settings</div>
-                <a href="{{ url_for('profile') }}" class="menu-nav-item active">
+                <a href="{{ url_for('profile') }}" class="menu-nav-item">
                     <i class="fas fa-user"></i><span>Profile</span>
                 </a>
                 <a href="{{ url_for('help_support') }}" class="menu-nav-item">
@@ -819,11 +956,20 @@
         
         <div class="menu-footer">
             <a href="{{ url_for('profile') }}" class="menu-footer-item">
-                <i class="fas fa-user"></i><span>Profile</span>
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
             </a>
-            <a href="{{ url_for('logout') }}" class="menu-footer-item">
-                <i class="fas fa-sign-out-alt"></i><span>Log Out</span>
-            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Log In</span>
+                </a>
+            {% endif %}
         </div>
     </div>
 
@@ -863,7 +1009,7 @@
                     <div class="stat-label">High Risk</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">{{ "%.1f"|format(stats.avg_confidence|default(0) * 100) }}%</div>
+                    <div class="stat-number">{{ "%.1f"|format((stats.avg_confidence|default(0)|float) * 100) }}%</div>
                     <div class="stat-label">Avg Confidence</div>
                 </div>
             </div>
@@ -943,7 +1089,7 @@
                         <tbody>
                             {% for detection in detections[:10] %}
                             <tr>
-                                <td>{{ detection.timestamp_analyzed|default('N/A')[:10] }}</td>
+                                <td>{{ detection.timestamp_analyzed|default('N/A')|truncate(10, True, '') }}</td>
                                 <td>{{ detection.attack_type|default('Unknown') }}</td>
                                 <td>
                                     <span class="severity-badge severity-{{ detection.severity|default('low') }}">

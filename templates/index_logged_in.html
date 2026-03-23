@@ -890,16 +890,36 @@
         <div class="menu-header">
             <div class="menu-logo">
                 <i class="fas fa-shield-alt"></i>
-                <span>Cybershield AI</span>
+                <span>CyberShield AI</span>
             </div>
-            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+            <button class="close-menu-btn" id="closeMenuBtn">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
         <div class="menu-user-section">
-            <div class="menu-user-avatar">{{ current_user.username[0]|upper }}</div>
+            <div class="menu-user-avatar">
+                {% if current_user.is_authenticated %}
+                    {{ current_user.username[0]|upper }}
+                {% else %}
+                    G
+                {% endif %}
+            </div>
             <div class="menu-user-info">
-                <div class="menu-user-name">{{ current_user.username }}</div>
-                <div class="menu-user-email">{{ current_user.email }}</div>
+                <div class="menu-user-name">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.username }}
+                    {% else %}
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="menu-user-email">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.email }}
+                    {% else %}
+                        guest@cybershield.ai
+                    {% endif %}
+                </div>
             </div>
         </div>
         
@@ -958,14 +978,22 @@
         
         <div class="menu-footer">
             <a href="{{ url_for('profile') }}" class="menu-footer-item">
-                <i class="fas fa-user"></i><span>Profile</span>
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
             </a>
-            <a href="{{ url_for('logout') }}" class="menu-footer-item">
-                <i class="fas fa-sign-out-alt"></i><span>Log Out</span>
-            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="menu-footer-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Log In</span>
+                </a>
+            {% endif %}
         </div>
     </div>
-
     <!-- Main Dashboard Content -->
     <div class="dashboard">
         <div class="main-content">
@@ -1033,6 +1061,7 @@
             </div>
 
             <!-- Risk Score Section -->
+            <!-- Risk Score Section -->
             <div class="risk-score-grid">
                 <div class="risk-score-card">
                     <div class="risk-score-header">
@@ -1047,17 +1076,66 @@
                         </span>
                     </div>
                     <div class="risk-score-value">{{ "%.1f"|format(stats.user_risk_score|default(0)) }}</div>
+                    <div class="risk-unit">personal score</div>
                 </div>
                 
                 <div class="risk-score-card">
                     <div class="risk-score-header">
-                        <span class="risk-score-label">Global Risk Score</span>
-                        <span class="risk-badge high">High</span>
+                        <span class="risk-score-label">Your Detection Accuracy</span>
+                        <span class="risk-badge 
+                            {% if stats.user_avg_confidence|default(0) > 80 %}high
+                            {% elif stats.user_avg_confidence|default(0) > 50 %}medium
+                            {% else %}low{% endif %}">
+                            {% if stats.user_avg_confidence|default(0) > 80 %}Excellent
+                            {% elif stats.user_avg_confidence|default(0) > 50 %}Good
+                            {% else %}Needs Improvement{% endif %}
+                        </span>
                     </div>
-                    <div class="risk-score-value">{{ stats.global_risk_score|default('741') }}</div>
+                    <div class="risk-score-value">{{ stats.user_avg_confidence|default('0') }}<span style="font-size: 1rem;">%</span></div>
+                    <div class="risk-unit">detection confidence</div>
                 </div>
             </div>
 
+            <!-- Add a new row for additional dynamic stats -->
+            <div class="risk-grid" style="margin-top: 20px;">
+                <div class="risk-card total-threats">
+                    <div class="risk-label">Total System Threats</div>
+                    <div class="risk-value">{{ stats.total_detections_global|default(stats.total_threats|default('0')) }}</div>
+                    <div class="risk-unit">detected globally</div>
+                </div>
+                
+                <div class="risk-card">
+                    <div class="risk-label">Active Threats Today</div>
+                    <div class="risk-value">{{ stats.active_threats_today|default('0') }}</div>
+                    <div class="risk-progress">
+                        <div class="risk-progress-bar" style="width: {{ (stats.active_threats_today|default(0) / 100 * 100)|default('0') }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="risk-card">
+                    <div class="risk-label">Critical Severity</div>
+                    <div class="risk-value">{{ stats.critical_percentage|default('0') }}%</div>
+                    <div class="risk-progress">
+                        <div class="risk-progress-bar" style="width: {{ stats.critical_percentage|default('0') }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="risk-card">
+                    <div class="risk-label">System Health Score</div>
+                    <div class="risk-value">{{ stats.system_health|default('98') }}%</div>
+                    <div class="risk-progress">
+                        <div class="risk-progress-bar" style="width: {{ stats.system_health|default('98') }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="risk-card">
+                    <div class="risk-label">Threat Detection Rate</div>
+                    <div class="risk-value">{{ stats.detection_rate|default('94') }}%</div>
+                    <div class="risk-progress">
+                        <div class="risk-progress-bar" style="width: {{ stats.detection_rate|default('94') }}%"></div>
+                    </div>
+                </div>
+            </div>
             <!-- Charts Section -->
             <div class="two-column">
                 <!-- Threat Summary Chart -->

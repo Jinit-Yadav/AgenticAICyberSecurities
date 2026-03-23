@@ -957,38 +957,7 @@
             </div>
         </div>
         
-        <div class="menu-nav">
-            <div class="menu-nav-section">
-                <div class="menu-nav-title">Main</div>
-                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
-                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
-                </a>
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
-                    <i class="fas fa-search"></i><span>Detect Threat</span>
-                </a>
-                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
-                    <i class="fas fa-chart-line"></i><span>Live Monitor</span>
-                </a>
-                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
-                    <i class="fas fa-upload"></i><span>Upload Logs</span>
-                </a>
-                <a href="{{ url_for('sample_threats') }}" class="menu-nav-item">
-                    <i class="fas fa-bullseye"></i><span>Demo Scenarios</span>
-                </a>
-                {% else %}
-                <a href="{{ url_for('landing') }}" class="menu-nav-item">
-                    <i class="fas fa-home"></i><span>Home</span>
-                </a>
-                <a href="{{ url_for('features') }}" class="menu-nav-item">
-                    <i class="fas fa-star"></i><span>Features</span>
-                </a>
-                <a href="{{ url_for('about') }}" class="menu-nav-item">
-                    <i class="fas fa-info-circle"></i><span>About</span>
-                </a>
-                {% endif %}
-            </div>
-            
+        <div class="menu-nav">      
             <div class="menu-nav-section">
                 <div class="menu-nav-title">Resources</div>
                 <a href="{{ url_for('landing') }}" class="menu-nav-item">
@@ -1013,31 +982,24 @@
                     <i class="fas fa-envelope"></i><span>Contact</span>
                 </a>
             </div>
-            
-            <div class="menu-nav-section">
-                <div class="menu-nav-title">Settings</div>
-                <a href="{{ url_for('profile') }}" class="menu-nav-item">
-                    <i class="fas fa-user"></i><span>Profile</span>
-                </a>
-                <a href="#" class="menu-nav-item">
-                    <i class="fas fa-question-circle"></i><span>Help & Support</span>
-                </a>
-            </div>
         </div>
         
-        <div class="menu-footer">
-            <a href="{{ url_for('profile') }}" class="menu-footer-item">
-                <i class="fas fa-user"></i><span>Profile</span>
-            </a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('logout') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-out-alt"></i><span>Log Out</span>
-                </a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-in-alt"></i><span>Log In</span>
-                </a>
-            {% endif %}
+        <div class="menu-nav-title">Account</div>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
+                        <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="menu-nav-item">
+                        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="menu-nav-item">
+                        <i class="fas fa-sign-in-alt"></i><span>Login</span>
+                    </a>
+                    <a href="{{ url_for('register') }}" class="menu-nav-item">
+                        <i class="fas fa-user-plus"></i><span>Sign Up</span>
+                    </a>
+                {% endif %}
         </div>
     </div>
 
