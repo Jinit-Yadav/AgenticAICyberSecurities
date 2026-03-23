@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberShield AI - Contact</title>
+    <title>CyberShield AI - Help & Support</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         /* ========== ROOT VARIABLES (DARK THEME DEFAULT) ========== */
         :root {
@@ -392,48 +391,30 @@
             padding-left: 20px;
         }
 
-        /* Light Theme Logo Override */
-        body.light-theme .logo i,
-        body.light-theme .logo span {
+        /* Theme Logo Overrides */
+        body.light-theme .logo i, body.light-theme .logo span,
+        body.light-theme .menu-logo i, body.light-theme .menu-logo span {
             background: linear-gradient(45deg, #0077b6, #6f42c1);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        body.light-theme .menu-logo i,
-        body.light-theme .menu-logo span {
-            background: linear-gradient(45deg, #0077b6, #6f42c1);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Cyberpunk Theme Logo Override */
-        body.cyberpunk-theme .logo i,
-        body.cyberpunk-theme .logo span {
-            background: linear-gradient(45deg, #0afff0, #ff00e5);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        body.cyberpunk-theme .menu-logo i,
-        body.cyberpunk-theme .menu-logo span {
+        body.cyberpunk-theme .logo i, body.cyberpunk-theme .logo span,
+        body.cyberpunk-theme .menu-logo i, body.cyberpunk-theme .menu-logo span {
             background: linear-gradient(45deg, #0afff0, #ff00e5);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* ========== MAIN CONTENT ========== */
+        /* ========== HELP & SUPPORT PAGE STYLES ========== */
         .main-content {
             max-width: 1400px;
             margin: 30px auto 40px;
             padding: 20px 25px;
         }
 
-        /* Page Header */
         .page-header {
             text-align: center;
             padding: 20px 0;
@@ -448,11 +429,6 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
         }
         
         .page-header p {
@@ -463,207 +439,121 @@
             color: var(--text-muted);
         }
 
-        /* Contact Grid */
-        .contact-grid {
+        /* Support Grid */
+        .support-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 30px;
             margin-bottom: 40px;
         }
         
         @media (max-width: 968px) {
-            .contact-grid {
+            .support-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        /* Cards */
-        .card {
+        .support-card {
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid var(--card-border);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease;
         }
         
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            transition: 0.5s;
-        }
-        
-        .card:hover::before {
-            left: 100%;
-        }
-        
-        .card:hover {
+        .support-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.3);
+        }
+        
+        .support-card i {
+            font-size: 3em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .support-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .support-card p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .support-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: gap 0.3s;
+        }
+        
+        .support-link:hover {
+            gap: 12px;
         }
 
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
+        /* FAQ Section */
+        .faq-section {
+            margin: 40px 0;
         }
         
-        .section-header h2 {
-            font-size: 1.8em;
+        .faq-title {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 30px;
             background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+        
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .faq-item {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .faq-question {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
-        /* Map Container */
-        .map-wrapper {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid var(--card-border);
-        }
         
-        .map-container {
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            height: 250px;
-            position: relative;
-        }
-        
-        .map-container iframe {
-            width: 100%;
-            height: 100%;
-            filter: grayscale(0.3) contrast(1.1) opacity(0.8);
-            border: none;
-        }
-        
-        .map-info-card {
-            background: rgba(0,0,0,0.3);
-            border-radius: 15px;
-            padding: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .map-info-item {
-            flex: 1 1 200px;
-        }
-        
-        .map-info-item h3 {
-            color: var(--primary);
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            opacity: 0.8;
-        }
-        
-        .map-info-item p, .map-info-item a {
-            color: var(--text-dark);
-            text-decoration: none;
-            font-size: 0.9em;
-            line-height: 1.5;
-        }
-        
-        .map-info-item a:hover {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-
-        /* Contact Info */
-        .contact-info {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid var(--card-border);
-        }
-        
-        .info-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-        
-        .info-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(74, 158, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            color: var(--primary);
-        }
-        
-        .info-content h3 {
-            font-size: 1.1em;
-            margin-bottom: 5px;
-            color: var(--primary);
-        }
-        
-        .info-content p, .info-content a {
+        .faq-answer {
             color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95em;
-        }
-        
-        .info-content a:hover {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-        
-        /* Social Links */
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .social-link {
-            width: 45px;
-            height: 45px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-dark);
-            text-decoration: none;
-            transition: all 0.3s;
-            border: 1px solid var(--border-color);
-        }
-        
-        .social-link:hover {
-            background: var(--primary);
-            transform: translateY(-3px);
-            color: white;
+            line-height: 1.5;
         }
 
         /* Feedback Form */
         .feedback-container {
             background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
             border-radius: 20px;
             padding: 30px;
-            border: 1px solid var(--card-border);
+            margin-bottom: 40px;
         }
         
         .feedback-container h2 {
@@ -733,7 +623,7 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(74, 158, 255, 0.3);
         }
-        
+
         /* Alert Messages */
         .alert {
             padding: 15px 20px;
@@ -756,6 +646,12 @@
             color: var(--error);
         }
         
+        .alert-info {
+            background: rgba(74, 158, 255, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
         .alert i {
             font-size: 1.2em;
         }
@@ -764,53 +660,76 @@
             margin-top: 15px;
             font-size: 0.9em;
         }
-        
-        /* FAQ Section */
-        .faq-section {
-            margin: 40px 0;
-        }
-        
-        .faq-title {
-            text-align: center;
-            font-size: 2em;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .faq-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-        }
-        
-        .faq-item {
+
+        /* Detection History Section */
+        .history-section {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 15px;
+            backdrop-filter: blur(10px);
             border: 1px solid var(--card-border);
-            transition: transform 0.3s ease;
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
         }
         
-        .faq-item:hover {
-            transform: translateY(-5px);
-        }
-        
-        .faq-question {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 10px;
+        .history-section h3 {
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 1.3rem;
         }
         
-        .faq-answer {
+        .history-table {
+            overflow-x: auto;
+        }
+        
+        .history-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .history-table th,
+        .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .history-table th {
             color: var(--text-muted);
-            line-height: 1.5;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .history-table td {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+        
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .severity-critical { background: rgba(255, 71, 87, 0.2); color: #ff4757; }
+        .severity-high { background: rgba(255, 165, 2, 0.2); color: #ffa502; }
+        .severity-medium { background: rgba(255, 255, 0, 0.2); color: #ffd700; }
+        .severity-low { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+        
+        .empty-state i {
+            font-size: 3em;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: block;
         }
         
         /* Footer */
@@ -844,17 +763,19 @@
             .main-header {
                 margin: 15px;
             }
-            
             .main-content {
                 padding: 20px;
             }
-            
             .page-header h1 {
                 font-size: 2em;
             }
-            
             .faq-grid {
                 grid-template-columns: 1fr;
+            }
+            .history-table th,
+            .history-table td {
+                padding: 8px;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -868,52 +789,29 @@
                     <i class="fas fa-shield-alt"></i>
                     <span>CyberShield AI</span>
                 </div>
-                <button class="menu-trigger" id="menuTriggerBtn" aria-label="Open menu" aria-expanded="false">
+                <button class="menu-trigger" id="menuTriggerBtn" aria-label="Open menu">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
-            <!-- DYNAMIC NAVIGATION LINKS: Based on login status -->
             <div class="nav-links">
-                {% if current_user.is_authenticated %}
-                    <!-- LOGGED IN: Full dashboard navigation -->
-                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
-                    <a href="{{ url_for('detect_threat') }}" class="nav-btn">Threat Detection</a>
-                    <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn">Live Monitor</a>
-                    <a href="{{ url_for('upload_logs') }}" class="nav-btn">Upload Logs</a>
-                    <a href="{{ url_for('sample_threats') }}" class="nav-btn">Demo Scenarios</a>
-                    <div class="theme-dropdown">
-                        <button class="theme-btn" id="themeBtn">
-                            <i class="fas fa-palette"></i> Theme
-                        </button>
-                        <div class="theme-dropdown-content" id="themeDropdown">
-                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
-                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
-                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
-                        </div>
+                <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Home</a>
+                <a href="{{ url_for('detect_threat') }}" class="nav-btn">Detect Threat</a>
+                <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn">Live Monitor</a>
+                <a href="{{ url_for('upload_logs') }}" class="nav-btn">Upload Logs</a>
+                <a href="{{ url_for('sample_threats') }}" class="nav-btn">Demo Scenarios</a>
+                <a href="{{ url_for('profile') }}" class="nav-btn">Profile</a>
+                <a href="{{ url_for('help_support') }}" class="nav-btn active">Help & Support</a>
+                <div class="theme-dropdown">
+                    <button class="theme-btn" id="themeBtn">
+                        <i class="fas fa-palette"></i> Theme
+                    </button>
+                    <div class="theme-dropdown-content" id="themeDropdown">
+                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
                     </div>
-                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                {% else %}
-                    <!-- LOGGED OUT: Public navigation -->
-                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
-                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
-                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
-                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
-                    <a href="{{ url_for('research') }}" class="nav-btn">Research</a>
-                    <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
-                    <a href="{{ url_for('contact') }}" class="nav-btn active">Contact</a>
-                    <div class="theme-dropdown">
-                        <button class="theme-btn" id="themeBtn">
-                            <i class="fas fa-palette"></i> Theme
-                        </button>
-                        <div class="theme-dropdown-content" id="themeDropdown">
-                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
-                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
-                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
-                        </div>
-                    </div>
-                    <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
-                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--grad-start), var(--grad-end)); border: none;">Sign Up</a>
-                {% endif %}
+                </div>
+                <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
@@ -921,14 +819,14 @@
     <!-- Slide-out Menu Overlay -->
     <div class="menu-overlay" id="menuOverlay"></div>
     
-    <!-- Reddit-style Slide-out Menu (remains consistent) -->
+    <!-- Slide-out Menu -->
     <div class="slide-menu" id="slideMenu">
         <div class="menu-header">
             <div class="menu-logo">
                 <i class="fas fa-shield-alt"></i>
                 <span>CyberShield AI</span>
             </div>
-            <button class="close-menu-btn" id="closeMenuBtn" aria-label="Close menu"><i class="fas fa-times"></i></button>
+            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
         </div>
         
         <div class="menu-user-section">
@@ -963,7 +861,6 @@
                 <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
                     <i class="fas fa-chart-pie"></i><span>Dashboard</span>
                 </a>
-                {% if current_user.is_authenticated %}
                 <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
                     <i class="fas fa-search"></i><span>Detect Threat</span>
                 </a>
@@ -976,17 +873,6 @@
                 <a href="{{ url_for('sample_threats') }}" class="menu-nav-item">
                     <i class="fas fa-bullseye"></i><span>Demo Scenarios</span>
                 </a>
-                {% else %}
-                <a href="{{ url_for('landing') }}" class="menu-nav-item">
-                    <i class="fas fa-home"></i><span>Home</span>
-                </a>
-                <a href="{{ url_for('features') }}" class="menu-nav-item">
-                    <i class="fas fa-star"></i><span>Features</span>
-                </a>
-                <a href="{{ url_for('about') }}" class="menu-nav-item">
-                    <i class="fas fa-info-circle"></i><span>About</span>
-                </a>
-                {% endif %}
             </div>
             
             <div class="menu-nav-section">
@@ -1003,13 +889,10 @@
                 <a href="{{ url_for('architecture') }}" class="menu-nav-item">
                     <i class="fas fa-sitemap"></i><span>Architecture</span>
                 </a>
-                <a href="{{ url_for('research') }}" class="menu-nav-item">
-                    <i class="fas fa-flask"></i><span>Research</span>
-                </a>
                 <a href="{{ url_for('documentation') }}" class="menu-nav-item">
                     <i class="fas fa-book"></i><span>Documentation</span>
                 </a>
-                <a href="{{ url_for('contact') }}" class="menu-nav-item active">
+                <a href="{{ url_for('contact') }}" class="menu-nav-item">
                     <i class="fas fa-envelope"></i><span>Contact</span>
                 </a>
             </div>
@@ -1019,7 +902,7 @@
                 <a href="{{ url_for('profile') }}" class="menu-nav-item">
                     <i class="fas fa-user"></i><span>Profile</span>
                 </a>
-                <a href="#" class="menu-nav-item">
+                <a href="{{ url_for('help_support') }}" class="menu-nav-item active">
                     <i class="fas fa-question-circle"></i><span>Help & Support</span>
                 </a>
             </div>
@@ -1029,124 +912,174 @@
             <a href="{{ url_for('profile') }}" class="menu-footer-item">
                 <i class="fas fa-user"></i><span>Profile</span>
             </a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('logout') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-out-alt"></i><span>Log Out</span>
-                </a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-in-alt"></i><span>Log In</span>
-                </a>
-            {% endif %}
+            <a href="{{ url_for('logout') }}" class="menu-footer-item">
+                <i class="fas fa-sign-out-alt"></i><span>Log Out</span>
+            </a>
         </div>
     </div>
 
-    <!-- MAIN CONTENT (Contact page remains untouched) -->
+    <!-- Main Content -->
     <div class="main-content">
         <div class="page-header">
-            <h1>Get in Touch</h1>
-            <p>Have questions about CyberShield AI? We're here to help</p>
+            <h1>Help & Support Center</h1>
+            <p>Get assistance with CyberShield AI and find answers to your questions</p>
         </div>
 
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }}">
-                        <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                        <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
                         {{ message }}
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
-        <div class="contact-grid">
-            <div class="map-wrapper">
-                <div class="map-container">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3770.374012176329!2d72.99319561538902!3d19.160241918901087!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7bf4b7a73c0ab%3A0xcfeb8b94503749f3!2sDatta%20Meghe%20College%20Of%20Engineering%2C%20Sector%203%2C%20Airoli%2C%20Navi%20Mumbai%2C%20Maharashtra%20400708!5e0!3m2!1sen!2sin!4v1649698109040!5m2!1sen!2sin" 
-                        allowfullscreen="" 
-                        loading="lazy"
-                        title="Office Location Map">
-                    </iframe>
-                </div>
-                <div class="map-info-card">
-                    <div class="map-info-item">
-                        <h3><i class="fas fa-map-marker-alt"></i> ADDRESS</h3>
-                        <p>Datta Meghe College of Engineering, Sector-3, Airoli, Navi Mumbai, Maharashtra 400708</p>
-                    </div>
-                    <div class="map-info-item">
-                        <h3><i class="fas fa-envelope"></i> EMAIL</h3>
-                        <p>
-                            <a href="https://mail.google.com/mail/u/0/?fs=1&to=principal@dmce.ac.in&su=SUBJECT&body=BODY&tf=cm">principal@dmce.ac.in</a><br>
-                            <a href="https://mail.google.com/mail/u/0/?fs=1&to=principaldmce@yahoo.com&su=SUBJECT&body=BODY&tf=cm">principaldmce@yahoo.com</a>
-                        </p>
-                    </div>
-                    <div class="map-info-item">
-                        <h3><i class="fas fa-phone-alt"></i> PHONE</h3>
-                        <p>(022) 27797130 / 27791665</p>
-                    </div>
-                </div>
+        <!-- Support Options Grid -->
+        <div class="support-grid">
+            <div class="support-card">
+                <i class="fas fa-book"></i>
+                <h3>Documentation</h3>
+                <p>Browse our comprehensive documentation to learn about features, API integration, and best practices.</p>
+                <a href="{{ url_for('documentation') }}" class="support-link">View Documentation <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="contact-info">
-                <div class="section-header">
-                    <h2><i class="fas fa-address-card"></i> Contact Information</h2>
-                </div>
-                <div class="info-item">
-                    <div class="info-icon"><i class="fas fa-map-pin"></i></div>
-                    <div class="info-content"><h3>Visit Us</h3><p>Datta Meghe College of Engineering<br>Sector-3, Airoli, Navi Mumbai<br>Maharashtra 400708, India</p></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-icon"><i class="fas fa-envelope"></i></div>
-                    <div class="info-content"><h3>Email Us</h3><p><a href="mailto:principal@dmce.ac.in">principal@dmce.ac.in</a></p><p><a href="mailto:principaldmce@yahoo.com">principaldmce@yahoo.com</a></p></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-icon"><i class="fas fa-phone-alt"></i></div>
-                    <div class="info-content"><h3>Call Us</h3><p>(022) 27797130</p><p>(022) 27791665</p></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-icon"><i class="fas fa-clock"></i></div>
-                    <div class="info-content"><h3>Working Hours</h3><p>Monday - Friday: 9:00 AM - 6:00 PM<br>Saturday: 9:00 AM - 2:00 PM<br>Sunday: Closed</p></div>
-                </div>
-                <div class="social-links">
-                    <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" class="social-link" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                    <a href="#" class="social-link" aria-label="Discord"><i class="fab fa-discord"></i></a>
-                </div>
+            
+            <div class="support-card">
+                <i class="fas fa-question-circle"></i>
+                <h3>FAQ</h3>
+                <p>Find quick answers to commonly asked questions about CyberShield AI.</p>
+                <a href="#faq" class="support-link scroll-link">View FAQs <i class="fas fa-arrow-right"></i></a>
+            </div>
+            
+            <div class="support-card">
+                <i class="fas fa-envelope"></i>
+                <h3>Contact Support</h3>
+                <p>Need personalized help? Our support team is here to assist you.</p>
+                <a href="{{ url_for('contact') }}" class="support-link">Contact Us <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
 
+        <!-- Feedback Form -->
         <div class="feedback-container">
             <h2><i class="fas fa-comment-dots"></i> Send Us Feedback</h2>
             <p class="feedback-description">Help us improve! Share your thoughts on your experience with CyberShield AI. Your feedback helps us enhance the accuracy of threat detection and overall system performance.</p>
             <form id="feedbackForm">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="form-group"><label for="name"><i class="fas fa-user"></i> Name *</label><input type="text" class="form-control" id="name" name="name" required placeholder="Your full name"></div>
-                <div class="form-group"><label for="email"><i class="fas fa-envelope"></i> Email *</label><input type="email" class="form-control" id="email" name="email" required placeholder="your.email@example.com"></div>
-                <div class="form-group"><label for="feedbackText"><i class="fas fa-pencil-alt"></i> Feedback *</label><textarea class="form-control" id="feedbackText" name="feedbackText" required placeholder="Tell us about your experience..."></textarea></div>
+                <div class="form-group">
+                    <label for="name"><i class="fas fa-user"></i> Name *</label>
+                    <input type="text" class="form-control" id="name" name="name" required placeholder="Your full name" value="{{ current_user.username if current_user.is_authenticated else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email *</label>
+                    <input type="email" class="form-control" id="email" name="email" required placeholder="your.email@example.com" value="{{ current_user.email if current_user.is_authenticated else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="feedbackText"><i class="fas fa-pencil-alt"></i> Feedback *</label>
+                    <textarea class="form-control" id="feedbackText" name="feedbackText" required placeholder="Tell us about your experience..."></textarea>
+                </div>
                 <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Feedback</button>
             </form>
-            <div id="feedbackMessage" style="margin-top: 15px;"></div>
+            <div id="feedbackMessage"></div>
         </div>
 
-        <section class="faq-section">
+        <!-- FAQ Section -->
+        <div class="faq-section" id="faq">
             <h2 class="faq-title">Frequently Asked Questions</h2>
             <div class="faq-grid">
-                <div class="faq-item"><div class="faq-question"><i class="fas fa-question-circle"></i> Is CyberShield AI free to use?</div><div class="faq-answer">Yes! This is a major project demonstration. All features are freely available for testing and evaluation.</div></div>
-                <div class="faq-item"><div class="faq-question"><i class="fas fa-question-circle"></i> What datasets are used for training?</div><div class="faq-answer">Our models are trained on UNSW-NB15 and CIC-IDS2017 datasets, along with real attack logs.</div></div>
-                <div class="faq-item"><div class="faq-question"><i class="fas fa-question-circle"></i> Can I integrate this with my existing system?</div><div class="faq-answer">Yes! We provide RESTful APIs for programmatic integration with your security infrastructure.</div></div>
-                <div class="faq-item"><div class="faq-question"><i class="fas fa-question-circle"></i> How accurate is the threat detection?</div><div class="faq-answer">Our ensemble model achieves 82.4% accuracy with 87% threat detection rate using XGBoost + LightGBM.</div></div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-question-circle"></i> Is CyberShield AI free to use?</div>
+                    <div class="faq-answer">Yes! This is a major project demonstration. All features are freely available for testing and evaluation.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-question-circle"></i> What datasets are used for training?</div>
+                    <div class="faq-answer">Our models are trained on UNSW-NB15 and CIC-IDS2017 datasets, along with real attack logs.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-question-circle"></i> Can I integrate this with my existing system?</div>
+                    <div class="faq-answer">Yes! We provide RESTful APIs for programmatic integration with your security infrastructure.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-question-circle"></i> How accurate is the threat detection?</div>
+                    <div class="faq-answer">Our ensemble model achieves 82.4% accuracy with 87% threat detection rate using XGBoost + LightGBM.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-question-circle"></i> How do I upload logs for analysis?</div>
+                    <div class="faq-answer">Navigate to the "Upload Logs" section and upload your log files in CSV, JSON, or plain text format.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-question-circle"></i> What types of threats can be detected?</div>
+                    <div class="faq-answer">Our system detects various threats including port scanning, brute force attacks, DoS attacks, SQL injection, and malware activity.</div>
+                </div>
             </div>
-        </section>
+        </div>
 
+        <!-- Detection History Section -->
+        <div class="history-section">
+            <h3><i class="fas fa-history"></i> Your Recent Detection History</h3>
+            <div class="history-table">
+                {% if detections and detections|length > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Attack Type</th>
+                            <th>Severity</th>
+                            <th>Confidence</th>
+                            <th>Source IP</th>
+                            <th>Tool</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detection in detections[:10] %}
+                        <tr>
+                            <!-- FIXED: Proper string slicing without causing template syntax error -->
+                            <td>{% if detection.timestamp_analyzed %}{{ detection.timestamp_analyzed[:10] }}{% else %}N/A{% endif %}</td>
+                            <td>{{ detection.attack_type|default('Unknown') }}</td>
+                            <td>
+                                <span class="severity-badge severity-{{ detection.severity|default('low') }}">
+                                    {{ detection.severity|default('low')|upper }}
+                                </span>
+                            </td>
+                            <td>{{ "%.1f"|format(detection.final_confidence|default(0)) }}%</td>
+                            <td>{{ detection.source_ip|default('N/A') }}</td>
+                            <td>{{ detection.tool|default('unknown') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>No detection history found for your account.</p>
+                    <p style="margin-top: 10px;">
+                        <a href="{{ url_for('detect_threat') }}" style="color: var(--primary);">Test a threat</a> or 
+                        <a href="{{ url_for('upload_logs') }}" style="color: var(--primary);">upload logs</a> to see results here
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Footer -->
         <footer class="footer">
-            <div class="footer-links"><a href="{{ url_for('about') }}" class="footer-link">About</a><a href="{{ url_for('features') }}" class="footer-link">Features</a><a href="{{ url_for('architecture') }}" class="footer-link">Architecture</a><a href="{{ url_for('research') }}" class="footer-link">Research</a><a href="{{ url_for('documentation') }}" class="footer-link">Documentation</a><a href="{{ url_for('contact') }}" class="footer-link">Contact</a></div>
-            <div class="copyright"><i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration</div>
+            <div class="footer-links">
+                <a href="{{ url_for('about') }}" class="footer-link">About</a>
+                <a href="{{ url_for('features') }}" class="footer-link">Features</a>
+                <a href="{{ url_for('architecture') }}" class="footer-link">Architecture</a>
+                <a href="{{ url_for('research') }}" class="footer-link">Research</a>
+                <a href="{{ url_for('documentation') }}" class="footer-link">Documentation</a>
+                <a href="{{ url_for('contact') }}" class="footer-link">Contact</a>
+            </div>
+            <div class="copyright">
+                <i class="far fa-copyright"></i> 2024 CyberShield AI - Major Project Demonstration
+            </div>
         </footer>
     </div>
 
     <script>
-        // FIXED: Correct theme setter without non-existent dark-theme class
+        // ========== FIXED: CORRECT THEME SETTER ==========
         function setTheme(themeName) {
             // Remove all theme classes
             document.body.classList.remove('light-theme', 'cyberpunk-theme');
@@ -1163,7 +1096,7 @@
             }
         }
         
-        // FIXED: Validate saved theme before applying
+        // Validate saved theme before applying
         const savedTheme = localStorage.getItem('cybershield_theme');
         if (savedTheme && (savedTheme === 'light' || savedTheme === 'cyberpunk' || savedTheme === 'dark')) {
             setTheme(savedTheme);
@@ -1179,7 +1112,6 @@
             themeBtn.addEventListener('click', (e) => { 
                 e.stopPropagation(); 
                 themeDropdown.classList.toggle('show');
-                // Update ARIA attribute for accessibility
                 const expanded = themeDropdown.classList.contains('show');
                 themeBtn.setAttribute('aria-expanded', expanded);
             });
@@ -1200,24 +1132,28 @@
             });
         }
         
-        // Menu functionality
+        // ========== SLIDE-OUT MENU FUNCTIONALITY ==========
         const menu = document.getElementById('slideMenu');
         const overlay = document.getElementById('menuOverlay');
         const menuTrigger = document.getElementById('menuTriggerBtn');
         const closeBtn = document.getElementById('closeMenuBtn');
         
         function openMenu() { 
-            menu.classList.add('open'); 
-            overlay.classList.add('active'); 
-            document.body.style.overflow = 'hidden';
-            if (menuTrigger) menuTrigger.setAttribute('aria-expanded', 'true');
+            if (menu && overlay) {
+                menu.classList.add('open'); 
+                overlay.classList.add('active'); 
+                document.body.style.overflow = 'hidden';
+                if (menuTrigger) menuTrigger.setAttribute('aria-expanded', 'true');
+            }
         }
         
         function closeMenu() { 
-            menu.classList.remove('open'); 
-            overlay.classList.remove('active'); 
-            document.body.style.overflow = '';
-            if (menuTrigger) menuTrigger.setAttribute('aria-expanded', 'false');
+            if (menu && overlay) {
+                menu.classList.remove('open'); 
+                overlay.classList.remove('active'); 
+                document.body.style.overflow = '';
+                if (menuTrigger) menuTrigger.setAttribute('aria-expanded', 'false');
+            }
         }
         
         if (menuTrigger) menuTrigger.addEventListener('click', openMenu);
@@ -1228,12 +1164,28 @@
         document.addEventListener('keydown', function(e) { 
             if (e.ctrlKey && e.key === 'b') { 
                 e.preventDefault(); 
-                menu.classList.contains('open') ? closeMenu() : openMenu(); 
+                if (menu && menu.classList.contains('open')) {
+                    closeMenu(); 
+                } else {
+                    openMenu(); 
+                }
             } 
             if (e.key === 'Escape' && menu && menu.classList.contains('open')) closeMenu(); 
         });
         
-        // Feedback form submission
+        // Smooth scroll for anchor links
+        document.querySelectorAll('.scroll-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // ========== FEEDBACK FORM SUBMISSION ==========
         const feedbackForm = document.getElementById('feedbackForm');
         if (feedbackForm) {
             feedbackForm.addEventListener('submit', function(event) {
@@ -1242,6 +1194,13 @@
                 const email = document.getElementById('email').value;
                 const feedbackText = document.getElementById('feedbackText').value;
                 const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+                
+                const messageElement = document.getElementById('feedbackMessage');
+                messageElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting feedback...';
+                messageElement.style.color = 'var(--primary)';
+                messageElement.style.padding = '12px';
+                messageElement.style.borderRadius = '8px';
+                messageElement.style.backgroundColor = 'rgba(74, 158, 255, 0.1)';
                 
                 fetch('/submit-feedback', {
                     method: 'POST',
@@ -1254,33 +1213,26 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    const messageElement = document.getElementById('feedbackMessage');
                     if (data.success) { 
                         messageElement.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message; 
-                        messageElement.style.color = 'var(--success)'; 
+                        messageElement.style.color = 'var(--success)';
                         messageElement.style.backgroundColor = 'rgba(0,255,136,0.1)';
-                        messageElement.style.padding = '12px';
-                        messageElement.style.borderRadius = '8px';
                         feedbackForm.reset(); 
                         setTimeout(() => {
                             messageElement.innerHTML = '';
                             messageElement.style.padding = '0';
+                            messageElement.style.backgroundColor = 'transparent';
                         }, 5000);
                     } else { 
                         messageElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message; 
                         messageElement.style.color = 'var(--error)';
                         messageElement.style.backgroundColor = 'rgba(255,71,87,0.1)';
-                        messageElement.style.padding = '12px';
-                        messageElement.style.borderRadius = '8px';
                     }
                 })
                 .catch(error => { 
-                    const messageElement = document.getElementById('feedbackMessage'); 
                     messageElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error submitting feedback. Please try again.'; 
                     messageElement.style.color = 'var(--error)';
                     messageElement.style.backgroundColor = 'rgba(255,71,87,0.1)';
-                    messageElement.style.padding = '12px';
-                    messageElement.style.borderRadius = '8px';
                 });
             });
         }

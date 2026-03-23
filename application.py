@@ -1768,6 +1768,89 @@ def documentation():
     """Documentation page"""
     return render_template('documentation.html', ai_enabled=AI_ANALYSIS_ENABLED)
 
+@app.route('/help-support')
+@login_required
+def help_support():
+    """Help and support page with feedback and account settings"""
+    return render_template('help_support.html', ai_enabled=AI_ANALYSIS_ENABLED)
+
+@app.route('/profile/change-email', methods=['POST'])
+@login_required
+def change_email():
+    """Change user's email address"""
+    try:
+        data = request.get_json()
+        new_email = data.get('new_email')
+        password = data.get('password')
+        
+        # Validate input
+        if not new_email or not password:
+            return jsonify({'success': False, 'message': 'All fields are required'}), 400
+        
+        # Validate email format
+        import re
+        email_regex = r'^[^\s@]+@([^\s@]+\.)+[^\s@]+$'
+        if not re.match(email_regex, new_email):
+            return jsonify({'success': False, 'message': 'Invalid email format'}), 400
+        
+        with get_db_connection() as conn:
+            # Verify password
+            user = conn.execute('SELECT password_hash FROM users WHERE id = ?', (current_user.id,)).fetchone()
+            if not user or not check_password_hash(user['password_hash'], password):
+                return jsonify({'success': False, 'message': 'Invalid password'}), 401
+            
+            # Check if email is already taken
+            existing = conn.execute('SELECT id FROM users WHERE email = ? AND id != ?', (new_email, current_user.id)).fetchone()
+            if existing:
+                return jsonify({'success': False, 'message': 'Email already registered'}), 400
+            
+            # Update email
+            conn.execute('UPDATE users SET email = ? WHERE id = ?', (new_email, current_user.id))
+            conn.commit()
+        
+        logger.info(f"User {current_user.username} changed email to {new_email}")
+        return jsonify({'success': True, 'message': 'Email updated successfully!'})
+        
+    except Exception as e:
+        logger.error(f"Email change error: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred'}), 500
+
+
+@app.route('/profile/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Change user's password"""
+    try:
+        data = request.get_json()
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        
+        # Validate input
+        if not current_password or not new_password:
+            return jsonify({'success': False, 'message': 'All fields are required'}), 400
+        
+        # Validate password length
+        if len(new_password) < 8:
+            return jsonify({'success': False, 'message': 'Password must be at least 8 characters'}), 400
+        
+        with get_db_connection() as conn:
+            # Verify current password
+            user = conn.execute('SELECT password_hash FROM users WHERE id = ?', (current_user.id,)).fetchone()
+            if not user or not check_password_hash(user['password_hash'], current_password):
+                return jsonify({'success': False, 'message': 'Current password is incorrect'}), 401
+            
+            # Update password
+            new_password_hash = generate_password_hash(new_password)
+            conn.execute('UPDATE users SET password_hash = ? WHERE id = ?', (new_password_hash, current_user.id))
+            conn.commit()
+        
+        logger.info(f"User {current_user.username} changed password")
+        return jsonify({'success': True, 'message': 'Password updated successfully!'})
+        
+    except Exception as e:
+        logger.error(f"Password change error: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred'}), 500
+
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     """Contact page with form handling"""

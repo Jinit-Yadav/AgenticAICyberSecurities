@@ -785,7 +785,7 @@
     </style>
 </head>
 <body>
-    <!-- Header with Hamburger and Theme Switcher -->
+    <!-- Header with Hamburger and Theme Switcher - Conditional based on login status -->
     <header class="main-header">
         <div class="nav-container">
             <div class="nav-left">
@@ -798,29 +798,45 @@
                 </button>
             </div>
             <div class="nav-links">
-                <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
-                <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
-                <a href="{{ url_for('about') }}" class="nav-btn">About</a>
-                <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
-                <a href="{{ url_for('research') }}" class="nav-btn active">Research</a>
-                <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
-                <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
-                <div class="theme-dropdown">
-                    <button class="theme-btn" id="themeBtn">
-                        <i class="fas fa-palette"></i> Theme
-                    </button>
-                    <div class="theme-dropdown-content" id="themeDropdown">
-                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
-                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
-                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
-                    </div>
-                </div>
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+                    <!-- LOGGED IN NAVIGATION -->
+                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
+                    <a href="{{ url_for('detect_threat') }}" class="nav-btn">Threat Detection</a>
+                    <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn">Live Monitor</a>
+                    <a href="{{ url_for('upload_logs') }}" class="nav-btn">Upload Logs</a>
+                    <a href="{{ url_for('sample_threats') }}" class="nav-btn">Demo Scenarios</a>
+                    <div class="theme-dropdown">
+                        <button class="theme-btn" id="themeBtn">
+                            <i class="fas fa-palette"></i> Theme
+                        </button>
+                        <div class="theme-dropdown-content" id="themeDropdown">
+                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 {% else %}
+                    <!-- LOGGED OUT NAVIGATION -->
+                    <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
+                    <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
+                    <a href="{{ url_for('about') }}" class="nav-btn">About</a>
+                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
+                    <a href="{{ url_for('research') }}" class="nav-btn active">Research</a>
+                    <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
+                    <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
+                    <div class="theme-dropdown">
+                        <button class="theme-btn" id="themeBtn">
+                            <i class="fas fa-palette"></i> Theme
+                        </button>
+                        <div class="theme-dropdown-content" id="themeDropdown">
+                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                        </div>
+                    </div>
                     <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
-                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--grad-start), var(--grad-end));">Sign Up</a>
+                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--grad-start), var(--grad-end)); border: none;">Sign Up</a>
                 {% endif %}
             </div>
         </div>
@@ -866,74 +882,55 @@
         </div>
         
         <div class="menu-nav">
-            <div class="menu-nav-section">
-                <div class="menu-nav-title">Main</div>
-                <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="{{ url_for('detect_threat') }}" class="menu-nav-item">
-                    <i class="fas fa-search"></i>
-                    <span>Threat Detection</span>
-                </a>
-                <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Live Monitor</span>
-                </a>
-                <a href="{{ url_for('upload_logs') }}" class="menu-nav-item">
-                    <i class="fas fa-file-upload"></i>
-                    <span>Upload Logs</span>
-                </a>
-            </div>
-            
-            <div class="menu-nav-section">
-                <div class="menu-nav-title">Resources</div>
-                <a href="{{ url_for('landing') }}" class="menu-nav-item">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="{{ url_for('features') }}" class="menu-nav-item">
-                    <i class="fas fa-star"></i>
-                    <span>Features</span>
-                </a>
-                <a href="{{ url_for('about') }}" class="menu-nav-item">
-                    <i class="fas fa-info-circle"></i>
-                    <span>About</span>
-                </a>
-                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
-                    <i class="fas fa-sitemap"></i>
-                    <span>Architecture</span>
-                </a>
-                <a href="{{ url_for('research') }}" class="menu-nav-item active">
-                    <i class="fas fa-flask"></i>
-                    <span>Research</span>
-                </a>
-                <a href="{{ url_for('documentation') }}" class="menu-nav-item">
-                    <i class="fas fa-book"></i>
-                    <span>Documentation</span>
-                </a>
-                <a href="{{ url_for('contact') }}" class="menu-nav-item">
-                    <i class="fas fa-envelope"></i>
-                    <span>Contact</span>
-                </a>
-            </div>
+            {% if current_user.is_authenticated %}
+                <!-- LOGGED IN MENU -->
+                <div class="menu-nav-section">
+                    <div class="menu-nav-title">Main</div>
+                    <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+                    <a href="{{ url_for('detect_threat') }}" class="menu-nav-item"><i class="fas fa-search"></i><span>Threat Detection</span></a>
+                    <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
+                    <a href="{{ url_for('upload_logs') }}" class="menu-nav-item"><i class="fas fa-file-upload"></i><span>Upload Logs</span></a>
+                    <a href="{{ url_for('sample_threats') }}" class="menu-nav-item"><i class="fas fa-bullseye"></i><span>Demo Scenarios</span></a>
+                </div>
+                <div class="menu-nav-section">
+                    <div class="menu-nav-title">Resources</div>
+                    <a href="{{ url_for('landing') }}" class="menu-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+                    <a href="{{ url_for('features') }}" class="menu-nav-item"><i class="fas fa-star"></i><span>Features</span></a>
+                    <a href="{{ url_for('about') }}" class="menu-nav-item"><i class="fas fa-info-circle"></i><span>About</span></a>
+                    <a href="{{ url_for('architecture') }}" class="menu-nav-item"><i class="fas fa-sitemap"></i><span>Architecture</span></a>
+                    <a href="{{ url_for('research') }}" class="menu-nav-item active"><i class="fas fa-flask"></i><span>Research</span></a>
+                    <a href="{{ url_for('documentation') }}" class="menu-nav-item"><i class="fas fa-book"></i><span>Documentation</span></a>
+                    <a href="{{ url_for('contact') }}" class="menu-nav-item"><i class="fas fa-envelope"></i><span>Contact</span></a>
+                </div>
+            {% else %}
+                <!-- LOGGED OUT MENU -->
+                <div class="menu-nav-section">
+                    <div class="menu-nav-title">Main</div>
+                    <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+                    <a href="{{ url_for('detect_threat') }}" class="menu-nav-item"><i class="fas fa-search"></i><span>Threat Detection</span></a>
+                    <a href="{{ url_for('real_time_dashboard') }}" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
+                    <a href="{{ url_for('upload_logs') }}" class="menu-nav-item"><i class="fas fa-file-upload"></i><span>Upload Logs</span></a>
+                </div>
+                <div class="menu-nav-section">
+                    <div class="menu-nav-title">Resources</div>
+                    <a href="{{ url_for('landing') }}" class="menu-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+                    <a href="{{ url_for('features') }}" class="menu-nav-item"><i class="fas fa-star"></i><span>Features</span></a>
+                    <a href="{{ url_for('about') }}" class="menu-nav-item"><i class="fas fa-info-circle"></i><span>About</span></a>
+                    <a href="{{ url_for('architecture') }}" class="menu-nav-item"><i class="fas fa-sitemap"></i><span>Architecture</span></a>
+                    <a href="{{ url_for('research') }}" class="menu-nav-item active"><i class="fas fa-flask"></i><span>Research</span></a>
+                    <a href="{{ url_for('documentation') }}" class="menu-nav-item"><i class="fas fa-book"></i><span>Documentation</span></a>
+                    <a href="{{ url_for('contact') }}" class="menu-nav-item"><i class="fas fa-envelope"></i><span>Contact</span></a>
+                </div>
+            {% endif %}
         </div>
         
         <div class="menu-footer">
-            <a href="{{ url_for('profile') }}" class="menu-footer-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
+            <a href="{{ url_for('profile') }}" class="menu-footer-item"><i class="fas fa-user"></i><span>Profile</span></a>
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('logout') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Log Out</span>
-                </a>
+                <a href="{{ url_for('logout') }}" class="menu-footer-item"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
             {% else %}
-                <a href="{{ url_for('login') }}" class="menu-footer-item">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Log In</span>
-                </a>
+                <a href="{{ url_for('login') }}" class="menu-footer-item"><i class="fas fa-sign-in-alt"></i><span>Log In</span></a>
+                <a href="{{ url_for('register') }}" class="menu-footer-item"><i class="fas fa-user-plus"></i><span>Sign Up</span></a>
             {% endif %}
         </div>
     </div>
@@ -971,18 +968,9 @@
                 <div class="dataset-card">
                     <h3>UNSW-NB15</h3>
                     <div class="dataset-stats">
-                        <div class="stat">
-                            <div class="stat-value">2.5M</div>
-                            <div class="stat-label">Records</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">49</div>
-                            <div class="stat-label">Features</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">9</div>
-                            <div class="stat-label">Attack Types</div>
-                        </div>
+                        <div class="stat"><div class="stat-value">2.5M</div><div class="stat-label">Records</div></div>
+                        <div class="stat"><div class="stat-value">49</div><div class="stat-label">Features</div></div>
+                        <div class="stat"><div class="stat-value">9</div><div class="stat-label">Attack Types</div></div>
                     </div>
                     <p style="color: var(--text-muted);">Modern network traffic dataset containing benign and attack activities including Fuzzers, Analysis, Backdoors, DoS, Exploits, Generic, Reconnaissance, Shellcode, and Worms.</p>
                     <ul class="dataset-features">
@@ -996,18 +984,9 @@
                 <div class="dataset-card">
                     <h3>CIC-IDS2017</h3>
                     <div class="dataset-stats">
-                        <div class="stat">
-                            <div class="stat-value">3.1M</div>
-                            <div class="stat-label">Records</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">80+</div>
-                            <div class="stat-label">Features</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">14</div>
-                            <div class="stat-label">Attack Types</div>
-                        </div>
+                        <div class="stat"><div class="stat-value">3.1M</div><div class="stat-label">Records</div></div>
+                        <div class="stat"><div class="stat-value">80+</div><div class="stat-label">Features</div></div>
+                        <div class="stat"><div class="stat-value">14</div><div class="stat-label">Attack Types</div></div>
                     </div>
                     <p style="color: var(--text-muted);">Comprehensive intrusion detection dataset with realistic background traffic and up-to-date attack scenarios including Brute Force, DoS, Web Attacks, Infiltration, and Botnet.</p>
                     <ul class="dataset-features">
@@ -1021,18 +1000,9 @@
                 <div class="dataset-card">
                     <h3>Custom Attack Logs</h3>
                     <div class="dataset-stats">
-                        <div class="stat">
-                            <div class="stat-value">10k+</div>
-                            <div class="stat-label">Samples</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">6</div>
-                            <div class="stat-label">Tool Types</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">24/7</div>
-                            <div class="stat-label">Collection</div>
-                        </div>
+                        <div class="stat"><div class="stat-value">10k+</div><div class="stat-label">Samples</div></div>
+                        <div class="stat"><div class="stat-value">6</div><div class="stat-label">Tool Types</div></div>
+                        <div class="stat"><div class="stat-value">24/7</div><div class="stat-label">Collection</div></div>
                     </div>
                     <p style="color: var(--text-muted);">Real-world attack logs generated from actual penetration testing tools and simulated attack scenarios for comprehensive threat coverage.</p>
                     <ul class="dataset-features">
@@ -1056,18 +1026,8 @@
                 </div>
                 <div class="paper-authors">K. Zhang, Y. Chen, J. Wang, L. Liu</div>
                 <div class="paper-abstract">This comprehensive survey examines the intersection of machine learning and cybersecurity, analyzing over 200 recent papers on intrusion detection, malware analysis, and threat intelligence. The study identifies key challenges in real-time detection, adversarial robustness, and model interpretability.</div>
-                <div class="paper-tags">
-                    <span class="paper-tag">Survey</span>
-                    <span class="paper-tag">Machine Learning</span>
-                    <span class="paper-tag">Intrusion Detection</span>
-                </div>
-                <div class="paper-access">
-                    <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
-                    <div class="paper-links">
-                        <a href="https://arxiv.org/pdf/2408.08902" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
-                        <a href="https://arxiv.org/abs/2408.08902" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a>
-                    </div>
-                </div>
+                <div class="paper-tags"><span class="paper-tag">Survey</span><span class="paper-tag">Machine Learning</span><span class="paper-tag">Intrusion Detection</span></div>
+                <div class="paper-access"><div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div><div class="paper-links"><a href="https://arxiv.org/pdf/2408.08902" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a><a href="https://arxiv.org/abs/2408.08902" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a></div></div>
             </div>
 
             <div class="paper-card">
@@ -1077,18 +1037,8 @@
                 </div>
                 <div class="paper-authors">M. Rodriguez, S. Kim, A. Patel, T. Williams</div>
                 <div class="paper-abstract">This paper introduces a novel ensemble approach combining XGBoost and LightGBM with sequential majority voting for real-time network intrusion detection. The system achieves 87% detection rate with minimal latency, making it suitable for production environments.</div>
-                <div class="paper-tags">
-                    <span class="paper-tag">Ensemble Learning</span>
-                    <span class="paper-tag">XGBoost</span>
-                    <span class="paper-tag">LightGBM</span>
-                </div>
-                <div class="paper-access">
-                    <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
-                    <div class="paper-links">
-                        <a href="https://arxiv.org/pdf/2505.04843" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
-                        <a href="https://arxiv.org/abs/2505.04843" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a>
-                    </div>
-                </div>
+                <div class="paper-tags"><span class="paper-tag">Ensemble Learning</span><span class="paper-tag">XGBoost</span><span class="paper-tag">LightGBM</span></div>
+                <div class="paper-access"><div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div><div class="paper-links"><a href="https://arxiv.org/pdf/2505.04843" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a><a href="https://arxiv.org/abs/2505.04843" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a></div></div>
             </div>
 
             <div class="paper-card">
@@ -1098,18 +1048,8 @@
                 </div>
                 <div class="paper-authors">H. Chen, M. Johnson, L. Zhang, R. Gupta</div>
                 <div class="paper-abstract">This systematic literature review examines the intersection of Large Language Models (LLMs) and cybersecurity, analyzing 150+ papers on applications in threat intelligence, vulnerability detection, and security automation.</div>
-                <div class="paper-tags">
-                    <span class="paper-tag">LLM</span>
-                    <span class="paper-tag">Systematic Review</span>
-                    <span class="paper-tag">Security Automation</span>
-                </div>
-                <div class="paper-access">
-                    <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
-                    <div class="paper-links">
-                        <a href="https://link.springer.com/content/pdf/10.1186/s42400-025-00361-w.pdf" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
-                        <a href="https://link.springer.com/article/10.1186/s42400-025-00361-w" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> Springer Link</a>
-                    </div>
-                </div>
+                <div class="paper-tags"><span class="paper-tag">LLM</span><span class="paper-tag">Systematic Review</span><span class="paper-tag">Security Automation</span></div>
+                <div class="paper-access"><div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div><div class="paper-links"><a href="https://link.springer.com/content/pdf/10.1186/s42400-025-00361-w.pdf" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a><a href="https://link.springer.com/article/10.1186/s42400-025-00361-w" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> Springer Link</a></div></div>
             </div>
 
             <div class="paper-card">
@@ -1119,18 +1059,8 @@
                 </div>
                 <div class="paper-authors">S. Nakamura, A. Kumar, F. Schmidt, E. Brown</div>
                 <div class="paper-abstract">This research presents a novel multi-expert framework where specialized AI models analyze security events and reach consensus through structured debate. The system reduces false positives by 34% compared to single-model approaches.</div>
-                <div class="paper-tags">
-                    <span class="paper-tag">Multi-Agent Systems</span>
-                    <span class="paper-tag">Consensus</span>
-                    <span class="paper-tag">LLM Debate</span>
-                </div>
-                <div class="paper-access">
-                    <div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div>
-                    <div class="paper-links">
-                        <a href="https://arxiv.org/pdf/2405.03446" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a>
-                        <a href="https://arxiv.org/abs/2405.03446" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a>
-                    </div>
-                </div>
+                <div class="paper-tags"><span class="paper-tag">Multi-Agent Systems</span><span class="paper-tag">Consensus</span><span class="paper-tag">LLM Debate</span></div>
+                <div class="paper-access"><div class="paper-access-title"><i class="fas fa-file-pdf"></i> Access Paper:</div><div class="paper-links"><a href="https://arxiv.org/pdf/2405.03446" target="_blank" class="paper-link"><i class="fas fa-file-pdf"></i> View PDF</a><a href="https://arxiv.org/abs/2405.03446" target="_blank" class="paper-link"><i class="fas fa-external-link-alt"></i> arXiv Abstract</a></div></div>
             </div>
         </section>
 
@@ -1138,16 +1068,7 @@
         <div class="results-table">
             <h2 style="font-size: 2em; margin-bottom: 20px;">Experimental Results</h2>
             <table>
-                <thead>
-                    <tr>
-                        <th>Model</th>
-                        <th>Accuracy</th>
-                        <th>Precision</th>
-                        <th>Recall</th>
-                        <th>F1-Score</th>
-                        <th>Detection Rate</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Detection Rate</th></tr></thead>
                 <tbody>
                     <tr><td>XGBoost (Individual)</td><td>82.4%</td><td>81.2%</td><td>83.1%</td><td>82.1%</td><td>84.3%</td></tr>
                     <tr><td>LightGBM (Individual)</td><td>81.7%</td><td>80.5%</td><td>82.8%</td><td>81.6%</td><td>83.7%</td></tr>
@@ -1163,31 +1084,14 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 40px 0;">
             <div class="results-table" style="margin: 0;">
                 <h3 style="margin-bottom: 20px;">Detection Rate by Attack Type</h3>
-                <table>
-                    <thead><tr><th>Attack Category</th><th>Detection Rate</th></tr></thead>
-                    <tbody>
-                        <tr><td>Port Scanning</td><td>94.2%</td></tr>
-                        <tr><td>Brute Force</td><td>96.8%</td></tr>
-                        <tr><td>DoS/DDoS</td><td>92.5%</td></tr>
-                        <tr><td>SQL Injection</td><td>89.7%</td></tr>
-                        <tr><td>Resource Consumption</td><td>88.3%</td></tr>
-                        <tr><td>Reconnaissance</td><td>91.4%</td></tr>
-                    </tbody>
-                </table>
+                <table><thead><tr><th>Attack Category</th><th>Detection Rate</th></tr></thead>
+                <tbody><tr><td>Port Scanning</td><td>94.2%</td></tr><tr><td>Brute Force</td><td>96.8%</td></tr><tr><td>DoS/DDoS</td><td>92.5%</td></tr><tr><td>SQL Injection</td><td>89.7%</td></tr><tr><td>Resource Consumption</td><td>88.3%</td></tr><tr><td>Reconnaissance</td><td>91.4%</td></tr></tbody></table>
             </div>
 
             <div class="results-table" style="margin: 0;">
                 <h3 style="margin-bottom: 20px;">False Positive Analysis</h3>
-                <table>
-                    <thead><tr><th>Method</th><th>False Positive Rate</th></tr></thead>
-                    <tbody>
-                        <tr><td>XGBoost Only</td><td>7.2%</td></tr>
-                        <tr><td>LightGBM Only</td><td>7.8%</td></tr>
-                        <tr><td>Ensemble</td><td>5.4%</td></tr>
-                        <tr><td>Ensemble + Voting</td><td>4.1%</td></tr>
-                        <tr><td>Full System</td><td>3.2%</td></tr>
-                    </tbody>
-                </table>
+                <table><thead><tr><th>Method</th><th>False Positive Rate</th></tr></thead>
+                <tbody><tr><td>XGBoost Only</td><td>7.2%</td></tr><tr><td>LightGBM Only</td><td>7.8%</td></tr><tr><td>Ensemble</td><td>5.4%</td></tr><tr><td>Ensemble + Voting</td><td>4.1%</td></tr><tr><td>Full System</td><td>3.2%</td></tr></tbody></table>
             </div>
         </div>
 
@@ -1249,23 +1153,25 @@
         const themeBtn = document.getElementById('themeBtn');
         const themeDropdown = document.getElementById('themeDropdown');
         
-        themeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            themeDropdown.classList.toggle('show');
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!themeBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
-                themeDropdown.classList.remove('show');
-            }
-        });
-        
-        document.querySelectorAll('.theme-option').forEach(option => {
-            option.addEventListener('click', () => {
-                setTheme(option.getAttribute('data-theme'));
-                themeDropdown.classList.remove('show');
+        if(themeBtn && themeDropdown) {
+            themeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themeDropdown.classList.toggle('show');
             });
-        });
+            
+            document.addEventListener('click', (e) => {
+                if (!themeBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                    themeDropdown.classList.remove('show');
+                }
+            });
+            
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    setTheme(option.getAttribute('data-theme'));
+                    themeDropdown.classList.remove('show');
+                });
+            });
+        }
         
         // ========== SLIDE-OUT MENU FUNCTIONALITY ==========
         const menu = document.getElementById('slideMenu');
@@ -1285,9 +1191,9 @@
             document.body.style.overflow = '';
         }
         
-        menuTrigger.addEventListener('click', openMenu);
-        closeBtn.addEventListener('click', closeMenu);
-        overlay.addEventListener('click', closeMenu);
+        if(menuTrigger) menuTrigger.addEventListener('click', openMenu);
+        if(closeBtn) closeBtn.addEventListener('click', closeMenu);
+        if(overlay) overlay.addEventListener('click', closeMenu);
         
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'b') {

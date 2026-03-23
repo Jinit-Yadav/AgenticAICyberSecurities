@@ -788,6 +788,9 @@
                     <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
                     <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
                     <a href="{{ url_for('about') }}" class="nav-btn active">About</a>
+                    <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
+                    <a href="{{ url_for('research') }}" class="nav-btn">Research</a>
+                    <a href="{{ url_for('documentation') }}" class="nav-btn">Docs</a>
                     <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
                     <div class="theme-dropdown">
                         <button class="theme-btn" id="themeBtn">
@@ -799,8 +802,8 @@
                             <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
                         </div>
                     </div>
-                    <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
+                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--grad-start), var(--grad-end)); border: none;">Sign Up</a>
                 {% endif %}
             </div>
         </div>
