@@ -16,6 +16,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Dict, List, Optional
 from contextlib import contextmanager
+from dataclasses import dataclass, field
 
 # =============================================================================
 # CONFIGURATION
@@ -26,17 +27,17 @@ class AlertConfig:
     smtp_port: int = int(os.getenv('SMTP_PORT', '587'))
     email_sender: str = os.getenv('EMAIL_SENDER', '')
     email_password: str = os.getenv('EMAIL_PASSWORD', '')
-    email_recipients: List[str] = os.getenv('EMAIL_RECIPIENTS', '').split(',') if os.getenv('EMAIL_RECIPIENTS') else []
+    email_recipients: List[str] = field(default_factory=lambda: os.getenv('EMAIL_RECIPIENTS', '').split(',') if os.getenv('EMAIL_RECIPIENTS') else [])
     slack_webhook: str = os.getenv('SLACK_WEBHOOK', '')
     discord_webhook: str = os.getenv('DISCORD_WEBHOOK', '')
-    min_severity_for_alert: str = 'medium'   # low, medium, high, critical
-    min_confidence_for_alert: float = 0.6
+    min_severity_for_alert: str = os.getenv('MIN_SEVERITY_FOR_ALERT', 'medium')
+    min_confidence_for_alert: float = float(os.getenv('MIN_CONFIDENCE_FOR_ALERT', '0.6'))
 
 # =============================================================================
 # DATABASE SETUP
 # =============================================================================
 @contextmanager
-def get_db_connection():
+def get_alert_db_connection():
     conn = sqlite3.connect('alerts.db')
     conn.row_factory = sqlite3.Row
     try:
@@ -45,7 +46,7 @@ def get_db_connection():
         conn.close()
 
 def init_alert_db():
-    with get_db_connection() as conn:
+    with get_alert_db_connection() as conn:
         conn.execute('''
             CREATE TABLE IF NOT EXISTS alerts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,6 +69,7 @@ def init_alert_db():
             )
         ''')
         conn.commit()
+        logging.getLogger(__name__).info("Alert database initialized")
 
 # =============================================================================
 # ALERT AGENT CLASS
@@ -81,17 +83,17 @@ class AlertAgent:
         self.logger = logging.getLogger(__name__)
         self.severity_scores = {'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
         init_alert_db()
-        self.logger.info("Alert Agent initialized")
+        self.logger.info(f"Alert Agent initialized (email: {bool(self.config.email_sender)}, slack: {bool(self.config.slack_webhook)})")
 
     def generate_alert(self, detection_result: Dict, multi_expert_analysis: Dict = None) -> Optional[Dict]:
-        """Create an alert from detection result (and optional expert analysis)."""
+        """Create an alert from detection result."""
         severity = detection_result.get('severity', 'medium')
         confidence = detection_result.get('final_confidence', 0.5)
 
         # Threshold check
-        if (self.severity_scores.get(severity, 0) < self.severity_scores.get(self.config.min_severity_for_alert, 2)
-                or confidence < self.config.min_confidence_for_alert):
-            self.logger.info(f"Alert suppressed (severity={severity}, confidence={confidence})")
+        min_severity_score = self.severity_scores.get(self.config.min_severity_for_alert, 2)
+        if (self.severity_scores.get(severity, 0) < min_severity_score or confidence < self.config.min_confidence_for_alert):
+            self.logger.debug(f"Alert suppressed (severity={severity}, confidence={confidence})")
             return None
 
         alert_id = self._generate_alert_id(detection_result)
@@ -123,12 +125,14 @@ class AlertAgent:
             }
 
         self._store_alert(alert)
-        self.logger.info(f"Alert generated: {alert_id} ({severity})")
+        self.logger.info(f"Alert generated: {alert_id} ({severity}) - {alert['attack_type']}")
         return alert
 
     def queue_alert(self, alert: Dict):
         """Add alert to background processing queue."""
-        self.alert_queue.put(alert)
+        if alert:
+            self.alert_queue.put(alert)
+            self.logger.debug(f"Alert {alert['alert_id']} queued")
 
     def start(self):
         """Start background alert processor thread."""
@@ -145,10 +149,10 @@ class AlertAgent:
         self.logger.info("Alert processor stopped")
 
     def deliver_alert(self, alert: Dict, channels: List[str] = None) -> Dict:
-        """Deliver alert via specified channels. Runs in background thread."""
+        """Deliver alert via specified channels."""
         if not channels:
             channels = ['log']
-            if self.config.email_recipients:
+            if self.config.email_recipients and self.config.email_sender and self.config.email_password:
                 channels.append('email')
             if self.config.slack_webhook:
                 channels.append('slack')
@@ -166,9 +170,10 @@ class AlertAgent:
                     results['discord'] = self._send_discord(alert)
                 elif ch == 'log':
                     results['log'] = self._log_alert(alert)
-                # Add channel to used list
                 if ch not in alert['channels_used']:
                     alert['channels_used'].append(ch)
+                if results.get(ch):
+                    self.logger.info(f"Alert {alert['alert_id']} delivered via {ch}")
             except Exception as e:
                 self.logger.error(f"Failed to deliver via {ch}: {e}")
                 results[ch] = False
@@ -192,7 +197,7 @@ class AlertAgent:
         return f"ALT-{hashlib.md5(base.encode()).hexdigest()[:8].upper()}"
 
     def _store_alert(self, alert: Dict):
-        with get_db_connection() as conn:
+        with get_alert_db_connection() as conn:
             conn.execute('''
                 INSERT INTO alerts
                 (alert_id, timestamp, severity, alert_type, source_ip, target_ip,
@@ -207,7 +212,7 @@ class AlertAgent:
             conn.commit()
 
     def _update_alert_channels(self, alert: Dict):
-        with get_db_connection() as conn:
+        with get_alert_db_connection() as conn:
             conn.execute('UPDATE alerts SET channels_used = ? WHERE alert_id = ?',
                          (json.dumps(alert.get('channels_used', [])), alert['alert_id']))
             conn.commit()
@@ -244,20 +249,19 @@ class AlertAgent:
             <h2>{alert['severity'].upper()} THREAT</h2>
         </div>
         <div style="padding:20px;">
-            <table>
-                <tr><td>Alert ID:</td><td>{alert['alert_id']}</td></tr>
-                <tr><td>Time:</td><td>{alert['timestamp']}</td></tr>
-                <tr><td>Attack:</td><td>{alert['attack_type']}</td></tr>
-                <tr><td>Tool:</td><td>{alert['tool']}</td></tr>
-                <tr><td>Source IP:</td><td>{alert['source_ip']}</td></tr>
-                <tr><td>Target:</td><td>{alert['target_ip']}:{alert['target_port']}</td></tr>
-                <tr><td>Confidence:</td><td>{alert['confidence']*100:.1f}%</td></tr>
-                <tr><td>Risk Score:</td><td>{alert['risk_score']}</td></tr>
+            <table style="width:100%">
+                <tr><td><strong>Alert ID:</strong></td><td>{alert['alert_id']}</td></tr>
+                <tr><td><strong>Time:</strong></td><td>{alert['timestamp']}</td></tr>
+                <tr><td><strong>Attack:</strong></td><td>{alert['attack_type']}</td></tr>
+                <tr><td><strong>Tool:</strong></td><td>{alert['tool']}</td></tr>
+                <tr><td><strong>Source IP:</strong></td><td>{alert['source_ip']}</td></tr>
+                <tr><td><strong>Target:</strong></td><td>{alert['target_ip']}:{alert.get('target_port', 'unknown')}</td></tr>
+                <tr><td><strong>Confidence:</strong></td><td>{alert['confidence']*100:.1f}%</td></tr>
+                <tr><td><strong>Risk Score:</strong></td><td>{alert['risk_score']}</td></tr>
             </table>
             <p>{alert['description']}</p>
             <h3>Recommendations</h3>
             <ul>{recs}</ul>
-            <p><small>Alert ID: {alert['alert_id']}</small></p>
         </div>
         </body></html>
         '''
@@ -278,7 +282,7 @@ class AlertAgent:
                         {"title": "Attack", "value": alert['attack_type'], "short": True},
                         {"title": "Tool", "value": alert['tool'], "short": True},
                         {"title": "Source", "value": alert['source_ip'], "short": True},
-                        {"title": "Target", "value": f"{alert['target_ip']}:{alert['target_port']}", "short": True},
+                        {"title": "Target", "value": f"{alert['target_ip']}:{alert.get('target_port', 'unknown')}", "short": True},
                         {"title": "Confidence", "value": f"{alert['confidence']*100:.1f}%", "short": True},
                         {"title": "Risk", "value": alert['risk_score'], "short": True}
                     ],
@@ -306,7 +310,7 @@ class AlertAgent:
                         {"name": "Attack", "value": alert['attack_type'], "inline": True},
                         {"name": "Tool", "value": alert['tool'], "inline": True},
                         {"name": "Source", "value": alert['source_ip'], "inline": True},
-                        {"name": "Target", "value": f"{alert['target_ip']}:{alert['target_port']}", "inline": True},
+                        {"name": "Target", "value": f"{alert['target_ip']}:{alert.get('target_port', 'unknown')}", "inline": True},
                         {"name": "Confidence", "value": f"{alert['confidence']*100:.1f}%", "inline": True},
                         {"name": "Risk", "value": str(alert['risk_score']), "inline": True}
                     ],
@@ -330,23 +334,22 @@ class AlertAgent:
             'source_ip': alert['source_ip'],
             'description': alert['description'][:100]
         }
-        self.logger.warning(f"[ALERT] {log_entry}")
+        self.logger.warning(f"[ALERT] {json.dumps(log_entry)}")
         with open('alerts.log', 'a') as f:
             f.write(json.dumps(log_entry) + '\n')
         return True
 
     def get_alert_history(self, limit: int = 100, severity: str = None) -> List[Dict]:
-        with get_db_connection() as conn:
-            query = "SELECT * FROM alerts ORDER BY created_at DESC LIMIT ?"
-            params = [limit]
+        with get_alert_db_connection() as conn:
             if severity:
-                query = "SELECT * FROM alerts WHERE severity = ? ORDER BY created_at DESC LIMIT ?"
-                params = [severity, limit]
-            rows = conn.execute(query, params).fetchall()
+                rows = conn.execute('SELECT * FROM alerts WHERE severity = ? ORDER BY created_at DESC LIMIT ?',
+                                   (severity, limit)).fetchall()
+            else:
+                rows = conn.execute('SELECT * FROM alerts ORDER BY created_at DESC LIMIT ?', (limit,)).fetchall()
             return [dict(row) for row in rows]
 
     def acknowledge_alert(self, alert_id: str, acknowledged_by: str = 'system') -> bool:
-        with get_db_connection() as conn:
+        with get_alert_db_connection() as conn:
             conn.execute('''
                 UPDATE alerts SET acknowledged = 1, acknowledged_by = ?, acknowledged_at = ?
                 WHERE alert_id = ?

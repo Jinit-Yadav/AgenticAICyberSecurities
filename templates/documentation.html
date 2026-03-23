@@ -629,7 +629,6 @@
     </style>
 </head>
 <body>
-    <!-- Header with Conditional Navigation based on Login State (Frontend Demo) -->
     <header class="main-header">
         <div class="nav-container">
             <div class="nav-left">
@@ -641,42 +640,19 @@
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
-            <!-- DYNAMIC NAVIGATION LINKS: Changes based on isLoggedIn state -->
             <div class="nav-links" id="dynamicNavLinks"></div>
         </div>
     </header>
 
-    <!-- Slide-out Menu Overlay -->
     <div class="menu-overlay" id="menuOverlay"></div>
-    
-    <!-- Slide-out Menu - Content dynamically updated via JS -->
-    <div class="slide-menu" id="slideMenu">
-        <div class="menu-header">
-            <div class="menu-logo">
-                <i class="fas fa-shield-alt"></i>
-                <span>CyberShield AI</span>
-            </div>
-            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="menu-user-section" id="menuUserSection">
-            <div class="menu-user-avatar" id="menuUserAvatar">G</div>
-            <div class="menu-user-info">
-                <div class="menu-user-name" id="menuUserName">Guest User</div>
-                <div class="menu-user-email" id="menuUserEmail">guest@cybershield.ai</div>
-            </div>
-        </div>
-        <div class="menu-nav" id="dynamicMenuNav"></div>
-        <div class="menu-footer" id="dynamicMenuFooter"></div>
-    </div>
+    <div class="slide-menu" id="slideMenu"></div>
 
-    <!-- Documentation Content -->
     <div class="container">
         <div class="page-header">
             <h1>Documentation</h1>
             <p>Complete guide to installing, configuring, and using CyberShield AI</p>
             <button class="demo-toggle" id="demoAuthToggle">🔐 Simulate Login</button>
         </div>
-
         <div class="docs-wrapper">
             <div class="docs-sidebar">
                 <div class="sidebar-title">Documentation</div>
@@ -694,7 +670,6 @@
                     <li class="sidebar-nav-item"><a href="#faq" class="sidebar-nav-link"><i class="fas fa-question-circle"></i> FAQ</a></li>
                 </ul>
             </div>
-
             <div class="docs-content">
                 <section id="getting-started" class="content-section"><h2 class="section-title">Getting Started</h2><p>CyberShield AI is a comprehensive cybersecurity threat detection system using ensemble machine learning and multi-expert AI analysis.</p><h3 class="subsection-title"><i class="fas fa-check-circle"></i> Prerequisites</h3><ul style="margin-left: 20px;"><li>Python 3.9+</li><li>pip package manager</li><li>Git</li><li>8GB RAM minimum</li></ul><div class="info-box"><i class="fas fa-info-circle"></i> Quick Start: Run `python application.py` after installation to start the server at http://localhost:5000</div></section>
                 <section id="installation" class="content-section"><h2 class="section-title">Installation</h2><div class="code-block"><pre>git clone https://github.com/yourusername/CyberShield-AI.git<br>cd CyberShield-AI<br>python -m venv venv<br>source venv/bin/activate  # or venv\Scripts\activate<br>pip install -r requirements.txt<br>python application.py</pre></div></section>
@@ -707,7 +682,6 @@
                 <section id="faq" class="content-section"><h2 class="section-title">FAQ</h2><div><h4 style="color: var(--primary);">Is CyberShield AI free?</h4><p>Yes! All features are freely available.</p></div><div><h4 style="color: var(--primary);">How accurate is detection?</h4><p>Ensemble model achieves 87% threat detection rate.</p></div></section>
             </div>
         </div>
-
         <footer class="footer">
             <div class="footer-links">
                 <a href="#" class="footer-link" id="footerAbout">About</a>
@@ -720,172 +694,205 @@
     </div>
 
     <script>
-        // Simulated authentication state (frontend demo)
+        // Simulated authentication state
         let isLoggedIn = false;
+        let currentUser = { username: "John Doe", email: "john.doe@cybershield.ai", initial: "J" };
+        let guestUser = { username: "Guest User", email: "guest@cybershield.ai", initial: "G" };
 
-        // Helper to rebuild entire UI: header, slide menu, theme dropdowns
-        function renderUI() {
-            // --- Main Header Navigation ---
+        // Function to build slide menu based on auth state - EXACT structure as requested
+        function buildSlideMenu() {
+            const menuContainer = document.getElementById('slideMenu');
+            if (!menuContainer) return;
+            
+            if (isLoggedIn) {
+                // LOGGED IN MENU - structure per requirement (first design)
+                menuContainer.innerHTML = `
+                    <div class="menu-header">
+                        <div class="menu-logo">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>CyberShield AI</span>
+                        </div>
+                        <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="menu-user-section">
+                        <div class="menu-user-avatar">${currentUser.initial}</div>
+                        <div class="menu-user-info">
+                            <div class="menu-user-name">${currentUser.username}</div>
+                            <div class="menu-user-email">${currentUser.email}</div>
+                        </div>
+                    </div>
+                    <div class="menu-nav">
+                        <div class="menu-nav-section">
+                            <div class="menu-nav-title">General</div>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Home</span></a>
+                            <a href="#" class="menu-nav-item active"><i class="fas fa-search"></i><span>Detect Threat</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-upload"></i><span>Upload Logs</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-bullseye"></i><span>Demo Scenarios</span></a>
+                        </div>
+                        <div class="menu-nav-section">
+                            <div class="menu-nav-title">Resources</div>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-star"></i><span>Features</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-info-circle"></i><span>About</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-sitemap"></i><span>Architecture</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-book"></i><span>Documentation</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-envelope"></i><span>Contact</span></a>
+                        </div>
+                        <div class="menu-nav-section">
+                            <div class="menu-nav-title">Settings</div>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-question-circle"></i><span>Help & Support</span></a>
+                        </div>
+                    </div>
+                    <div class="menu-footer">
+                        <a href="#" class="menu-footer-item" id="slideProfileBtn"><i class="fas fa-user"></i><span>Profile</span></a>
+                        <a href="#" class="menu-footer-item" id="slideLogoutBtn"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+                    </div>
+                `;
+            } else {
+                // LOGGED OUT MENU - structure per requirement (second design)
+                menuContainer.innerHTML = `
+                    <div class="menu-header">
+                        <div class="menu-logo">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>CyberShield AI</span>
+                        </div>
+                        <button class="close-menu-btn" id="closeMenuBtn" aria-label="Close menu"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="menu-user-section">
+                        <div class="menu-user-avatar">${guestUser.initial}</div>
+                        <div class="menu-user-info">
+                            <div class="menu-user-name">${guestUser.username}</div>
+                            <div class="menu-user-email">${guestUser.email}</div>
+                        </div>
+                    </div>
+                    <div class="menu-nav">      
+                        <div class="menu-nav-section">
+                            <div class="menu-nav-title">Resources</div>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-star"></i><span>Features</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-info-circle"></i><span>About</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-sitemap"></i><span>Architecture</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-flask"></i><span>Research</span></a>
+                            <a href="#" class="menu-nav-item"><i class="fas fa-book"></i><span>Documentation</span></a>
+                            <a href="#" class="menu-nav-item active"><i class="fas fa-envelope"></i><span>Contact</span></a>
+                        </div>
+                    </div>
+                    <div class="menu-nav-title" style="padding: 0 20px 10px 20px; font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">Account</div>
+                    <div style="padding:0 20px 20px 20px;">
+                        <a href="#" class="menu-nav-item" id="slideLoginBtn"><i class="fas fa-sign-in-alt"></i><span>Login</span></a>
+                        <a href="#" class="menu-nav-item" id="slideSignupBtn"><i class="fas fa-user-plus"></i><span>Sign Up</span></a>
+                    </div>
+                `;
+            }
+            
+            // Re-attach close menu button event after dynamic render
+            const closeBtn = document.getElementById('closeMenuBtn');
+            if (closeBtn) {
+                closeBtn.removeEventListener('click', closeMenuHandler);
+                closeBtn.addEventListener('click', closeMenuHandler);
+            }
+            
+            // Attach logout/login events if present
+            if (isLoggedIn) {
+                const logoutSlide = document.getElementById('slideLogoutBtn');
+                if (logoutSlide) {
+                    logoutSlide.removeEventListener('click', handleLogout);
+                    logoutSlide.addEventListener('click', handleLogout);
+                }
+                const profileSlide = document.getElementById('slideProfileBtn');
+                if (profileSlide) profileSlide.addEventListener('click', (e) => { e.preventDefault(); alert("Profile page (demo)"); closeMenu(); });
+            } else {
+                const loginSlide = document.getElementById('slideLoginBtn');
+                const signupSlide = document.getElementById('slideSignupBtn');
+                if (loginSlide) loginSlide.addEventListener('click', (e) => { e.preventDefault(); alert("Login page (demo)"); closeMenu(); });
+                if (signupSlide) signupSlide.addEventListener('click', (e) => { e.preventDefault(); alert("Sign up page (demo)"); closeMenu(); });
+            }
+        }
+        
+        // Rebuild header navigation (consistent with earlier design but simplified)
+        function buildHeaderNav() {
             const navContainer = document.getElementById('dynamicNavLinks');
             if (!navContainer) return;
-
             if (isLoggedIn) {
-                // LOGGED IN NAVIGATION (Matches reference style)
                 navContainer.innerHTML = `
-                    <a href="{{ url_for('dashboard_home') }}" class="nav-btn active">Home</a>
-                <a href="{{ url_for('detect_threat') }}" class="nav-btn">Detect Threat</a>
-                <a href="{{ url_for('real_time_dashboard') }}" class="nav-btn">Live Monitor</a>
-                <a href="{{ url_for('upload_logs') }}" class="nav-btn">Upload Logs</a>
-                <a href="{{ url_for('sample_threats') }}" class="nav-btn">Demo Scenarios</a>
-                <a href="{{ url_for('profile') }}" class="nav-btn">Profile</a>
-                <div class="theme-dropdown">
-                    <button class="theme-btn" id="themeBtn">
-                        <i class="fas fa-palette"></i> Theme
-                    </button>
-                    <div class="theme-dropdown-content" id="themeDropdown">
-                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
-                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
-                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                    <a href="#" class="nav-btn active">Home</a>
+                    <a href="#" class="nav-btn">Detect Threat</a>
+                    <a href="#" class="nav-btn">Live Monitor</a>
+                    <a href="#" class="nav-btn">Upload Logs</a>
+                    <a href="#" class="nav-btn">Demo Scenarios</a>
+                    <a href="#" class="nav-btn">Profile</a>
+                    <div class="theme-dropdown">
+                        <button class="theme-btn" id="themeBtn"><i class="fas fa-palette"></i> Theme</button>
+                        <div class="theme-dropdown-content" id="themeDropdown">
+                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                        </div>
                     </div>
-                </div>
-                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>`
-            } else {
-                // LOGGED OUT NAVIGATION (Home, Features, About, Architecture, Research, Docs, Contact, Theme, Dashboard, Logout)
-                navContainer.innerHTML = `
-                <a href="{{ url_for('landing') }}" class="nav-btn">Home</a>
-                <a href="{{ url_for('features') }}" class="nav-btn">Features</a>
-                <a href="{{ url_for('about') }}" class="nav-btn">About</a>
-                <a href="{{ url_for('architecture') }}" class="nav-btn">Architecture</a>
-                <a href="{{ url_for('research') }}" class="nav-btn">Research</a>
-                <a href="{{ url_for('documentation') }}" class="nav-btn active">Docs</a>
-                <a href="{{ url_for('contact') }}" class="nav-btn">Contact</a>
-                <div class="theme-dropdown">
-                    <button class="theme-btn" id="themeBtn">
-                        <i class="fas fa-palette"></i> Theme
-                    </button>
-                    <div class="theme-dropdown-content" id="themeDropdown">
-                        <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
-                        <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
-                        <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
-                    </div>
-                </div>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('dashboard_home') }}" class="nav-btn">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="nav-btn">Login</a>
-                    <a href="{{ url_for('register') }}" class="nav-btn" style="background: linear-gradient(135deg, var(--grad-start), var(--grad-end)); border: none;">Sign Up</a>
-                {% endif %}
-            </div>
-                `;
-            }
-
-            // --- Slide-out Menu User & Navigation ---
-            const menuUserAvatar = document.getElementById('menuUserAvatar');
-            const menuUserName = document.getElementById('menuUserName');
-            const menuUserEmail = document.getElementById('menuUserEmail');
-            const menuNavContainer = document.getElementById('dynamicMenuNav');
-            const menuFooterContainer = document.getElementById('dynamicMenuFooter');
-
-            if (isLoggedIn) {
-                menuUserAvatar.innerText = 'JD';
-                menuUserName.innerText = 'John Doe';
-                menuUserEmail.innerText = 'john.doe@cybershield.ai';
-                // LOGGED IN MENU STRUCTURE (Rich)
-                menuNavContainer.innerHTML = `
-                    <div class="menu-nav-section">
-                        <div class="menu-nav-title">Main</div>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-search"></i><span>Threat Detection</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-upload"></i><span>Upload Logs</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-bullseye"></i><span>Demo Scenarios</span></a>
-                    </div>
-                    <div class="menu-nav-section">
-                        <div class="menu-nav-title">Resources</div>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-star"></i><span>Features</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-info-circle"></i><span>About</span></a>
-                        <a href="#" class="menu-nav-item active"><i class="fas fa-sitemap"></i><span>Architecture</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-book"></i><span>Documentation</span></a>
-                    </div>
-                `;
-                menuFooterContainer.innerHTML = `
-                    <a href="#" class="menu-footer-item"><i class="fas fa-user"></i><span>Profile</span></a>
-                    <a href="#" class="menu-footer-item" id="slideLogoutBtn"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+                    <a href="#" class="nav-btn" id="logoutHeaderBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 `;
             } else {
-                menuUserAvatar.innerText = 'GU';
-                menuUserName.innerText = 'Guest User';
-                menuUserEmail.innerText = 'guest@cybershield.ai';
-                // LOGGED OUT MENU (Matching reference style)
-                menuNavContainer.innerHTML = `
-                    <div class="menu-nav-section">
-                        <div class="menu-nav-title">General</div>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-star"></i><span>Features</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-info-circle"></i><span>About</span></a>
-                        <a href="#" class="menu-nav-item active"><i class="fas fa-sitemap"></i><span>Architecture</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-book"></i><span>Documentation</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-envelope"></i><span>Contact</span></a>
+                navContainer.innerHTML = `
+                    <a href="#" class="nav-btn">Home</a>
+                    <a href="#" class="nav-btn">Features</a>
+                    <a href="#" class="nav-btn">About</a>
+                    <a href="#" class="nav-btn">Architecture</a>
+                    <a href="#" class="nav-btn">Research</a>
+                    <a href="#" class="nav-btn active">Docs</a>
+                    <a href="#" class="nav-btn">Contact</a>
+                    <div class="theme-dropdown">
+                        <button class="theme-btn" id="themeBtn"><i class="fas fa-palette"></i> Theme</button>
+                        <div class="theme-dropdown-content" id="themeDropdown">
+                            <div class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Theme</div>
+                            <div class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Theme</div>
+                            <div class="theme-option" data-theme="cyberpunk"><i class="fas fa-microchip"></i> Cyberpunk Tech</div>
+                        </div>
                     </div>
-                    <div class="menu-nav-section">
-                        <div class="menu-nav-title">Security</div>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-bug"></i><span>Threat Detection</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-chart-line"></i><span>Live Monitor</span></a>
-                        <a href="#" class="menu-nav-item"><i class="fas fa-upload"></i><span>Upload Logs</span></a>
-                    </div>
-                `;
-                menuFooterContainer.innerHTML = `
-                    <a href="#" class="menu-footer-item"><i class="fas fa-user"></i><span>Profile</span></a>
-                    <a href="#" class="menu-footer-item" id="slideLogoutBtn"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+                    <a href="#" class="nav-btn" id="loginHeaderBtn">Login</a>
+                    <a href="#" class="nav-btn" style="background: linear-gradient(135deg, var(--grad-start), var(--grad-end)); border: none;">Sign Up</a>
                 `;
             }
-
-            // Attach theme dropdown events after DOM update
-            attachThemeEvents();
-            // Attach logout handlers for both header and slide menu
-            attachLogoutHandlers();
-            // Update demo toggle button text
-            const toggleBtn = document.getElementById('demoAuthToggle');
-            if (toggleBtn) toggleBtn.textContent = isLoggedIn ? "🔐 Logout (Simulate)" : "🔐 Simulate Login";
-        }
-
-        function attachThemeEvents() {
-            // Theme dropdown can appear in two possible containers (logged in/out)
-            const themeBtn = document.getElementById('themeBtn') || document.getElementById('themeBtnOut');
-            const themeDropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
+            
+            const themeBtn = document.getElementById('themeBtn');
+            const themeDropdown = document.getElementById('themeDropdown');
             if (themeBtn && themeDropdown) {
-                // Remove old listeners to avoid duplicates by cloning
-                const newBtn = themeBtn.cloneNode(true);
-                themeBtn.parentNode.replaceChild(newBtn, themeBtn);
-                const newDropdown = themeDropdown.cloneNode(true);
-                themeDropdown.parentNode.replaceChild(newDropdown, themeDropdown);
-                const finalBtn = document.getElementById('themeBtn') || document.getElementById('themeBtnOut');
-                const finalDropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
-                if (finalBtn && finalDropdown) {
-                    finalBtn.addEventListener('click', (e) => { e.stopPropagation(); finalDropdown.classList.toggle('show'); });
-                    document.addEventListener('click', (e) => {
-                        if (finalBtn && !finalBtn.contains(e.target) && finalDropdown && !finalDropdown.contains(e.target))
-                            finalDropdown.classList.remove('show');
-                    });
-                }
+                themeBtn.removeEventListener('click', themeToggleHandler);
+                themeBtn.addEventListener('click', themeToggleHandler);
             }
-            // Theme options handler
+            
+            if (isLoggedIn) {
+                const logoutHeader = document.getElementById('logoutHeaderBtn');
+                if (logoutHeader) {
+                    logoutHeader.removeEventListener('click', handleLogout);
+                    logoutHeader.addEventListener('click', handleLogout);
+                }
+            } else {
+                const loginHeader = document.getElementById('loginHeaderBtn');
+                if (loginHeader) loginHeader.addEventListener('click', (e) => { e.preventDefault(); alert("Login page (demo)"); });
+            }
+            
+            // Reattach theme options globally
             document.querySelectorAll('.theme-option').forEach(opt => {
                 opt.removeEventListener('click', themeClickHandler);
                 opt.addEventListener('click', themeClickHandler);
             });
         }
-
+        
+        function themeToggleHandler(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('themeDropdown');
+            if (dropdown) dropdown.classList.toggle('show');
+        }
+        
         function themeClickHandler(e) {
             const theme = this.getAttribute('data-theme');
             setTheme(theme);
-            const dropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
+            const dropdown = document.getElementById('themeDropdown');
             if (dropdown) dropdown.classList.remove('show');
         }
-
+        
         function setTheme(themeName) {
             document.body.classList.remove('light-theme', 'cyberpunk-theme');
             if (themeName === 'light') {
@@ -899,53 +906,70 @@
                 localStorage.setItem('cybershield_theme', 'dark');
             }
         }
-
-        function attachLogoutHandlers() {
-            const logoutHeader = document.getElementById('logoutNavBtn') || document.getElementById('logoutNavBtnOut');
-            const slideLogout = document.getElementById('slideLogoutBtn');
-            if (logoutHeader) {
-                logoutHeader.removeEventListener('click', handleLogout);
-                logoutHeader.addEventListener('click', handleLogout);
-            }
-            if (slideLogout) {
-                slideLogout.removeEventListener('click', handleLogout);
-                slideLogout.addEventListener('click', handleLogout);
-            }
-        }
-
+        
         function handleLogout(e) {
             e.preventDefault();
             if (isLoggedIn) {
                 isLoggedIn = false;
-                renderUI();
+                rebuildEntireUI();
                 closeMenu();
             } else {
-                alert("Already logged out (demo).");
+                alert("Already logged out.");
             }
         }
-
-        // Simulate Login/Logout Toggle
+        
         function toggleAuth() {
             isLoggedIn = !isLoggedIn;
-            renderUI();
-            const anyDropdown = document.getElementById('themeDropdown') || document.getElementById('themeDropdownOut');
-            if (anyDropdown) anyDropdown.classList.remove('show');
+            if (isLoggedIn) {
+                // Simulate logged-in user data
+                currentUser = { username: "Alex Morgan", email: "alex@cybershield.ai", initial: "A" };
+            }
+            rebuildEntireUI();
         }
-
-        // Slide-out menu logic
-        const menu = document.getElementById('slideMenu');
-        const overlay = document.getElementById('menuOverlay');
-        const menuTrigger = document.getElementById('menuTriggerBtn');
-        const closeBtn = document.getElementById('closeMenuBtn');
-        function openMenu() { menu.classList.add('open'); overlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        function closeMenu() { menu.classList.remove('open'); overlay.classList.remove('active'); document.body.style.overflow = ''; }
-        if (menuTrigger) menuTrigger.addEventListener('click', openMenu);
-        if (closeBtn) closeBtn.addEventListener('click', closeMenu);
-        if (overlay) overlay.addEventListener('click', closeMenu);
-        document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.key === 'b') { e.preventDefault(); menu.classList.contains('open') ? closeMenu() : openMenu(); } if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu(); });
-
+        
+        function rebuildEntireUI() {
+            buildHeaderNav();
+            buildSlideMenu();
+            attachGlobalEvents();
+            const toggleBtn = document.getElementById('demoAuthToggle');
+            if (toggleBtn) toggleBtn.textContent = isLoggedIn ? "🔐 Logout (Simulate)" : "🔐 Simulate Login";
+        }
+        
+        function closeMenuHandler() { closeMenu(); }
+        function closeMenu() { 
+            const menu = document.getElementById('slideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            if (menu) menu.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        function openMenu() {
+            const menu = document.getElementById('slideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            if (menu) menu.classList.add('open');
+            if (overlay) overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function attachGlobalEvents() {
+            const menuTrigger = document.getElementById('menuTriggerBtn');
+            const overlay = document.getElementById('menuOverlay');
+            if (menuTrigger) {
+                menuTrigger.removeEventListener('click', openMenu);
+                menuTrigger.addEventListener('click', openMenu);
+            }
+            if (overlay) {
+                overlay.removeEventListener('click', closeMenu);
+                overlay.addEventListener('click', closeMenu);
+            }
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'b') { e.preventDefault(); const menu = document.getElementById('slideMenu'); menu?.classList.contains('open') ? closeMenu() : openMenu(); }
+                if (e.key === 'Escape') closeMenu();
+            });
+        }
+        
         // Smooth scroll sidebar
-        document.querySelectorAll('.sidebar-nav-link, .toc a').forEach(link => {
+        document.querySelectorAll('.sidebar-nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const targetId = this.getAttribute('href');
@@ -957,15 +981,15 @@
                 }
             });
         });
-
+        
         // Initial load
         const savedTheme = localStorage.getItem('cybershield_theme') || 'dark';
         setTheme(savedTheme);
-        renderUI();
-
-        const authToggle = document.getElementById('demoAuthToggle');
-        if (authToggle) authToggle.addEventListener('click', toggleAuth);
-
+        rebuildEntireUI();
+        
+        const authToggleBtn = document.getElementById('demoAuthToggle');
+        if (authToggleBtn) authToggleBtn.addEventListener('click', toggleAuth);
+        
         document.getElementById('footerAbout')?.addEventListener('click', (e) => { e.preventDefault(); alert('About page (demo).'); });
         document.getElementById('footerFeatures')?.addEventListener('click', (e) => { e.preventDefault(); alert('Features page (demo).'); });
     </script>

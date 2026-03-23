@@ -18,8 +18,8 @@ from contextlib import contextmanager
 # DATABASE SETUP
 # =============================================================================
 @contextmanager
-def get_db_connection():
-    conn = sqlite3.connect('alerts.db')
+def get_response_db_connection():
+    conn = sqlite3.connect('responses.db')
     conn.row_factory = sqlite3.Row
     try:
         yield conn
@@ -27,8 +27,7 @@ def get_db_connection():
         conn.close()
 
 def init_response_db():
-    with get_db_connection() as conn:
-        # Responses table
+    with get_response_db_connection() as conn:
         conn.execute('''
             CREATE TABLE IF NOT EXISTS responses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,11 +39,9 @@ def init_response_db():
                 details TEXT,
                 success INTEGER,
                 error_message TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (alert_id) REFERENCES alerts (alert_id)
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        # Blocked IPs table
         conn.execute('''
             CREATE TABLE IF NOT EXISTS blocked_ips (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,7 +57,6 @@ def init_response_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        # Blocked processes table
         conn.execute('''
             CREATE TABLE IF NOT EXISTS blocked_processes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,19 +70,25 @@ def init_response_db():
             )
         ''')
         conn.commit()
+        logging.getLogger(__name__).info("Response database initialized")
 
 # =============================================================================
 # RESPONSE AGENT CLASS
 # =============================================================================
 class ResponseAgent:
-    def __init__(self, alert_agent, config: dict = None):
-        self.alert_agent = alert_agent  # For follow-up alerts
+    def __init__(self, alert_agent=None, config: dict = None):
+        self.alert_agent = alert_agent
         self.config = config or {}
         self.logger = logging.getLogger(__name__)
+        
+        # FIXED: Initialize database FIRST before loading blocked IPs
+        init_response_db()
+        
+        # Now safe to load blocked IPs (tables exist)
         self.blocked_ips = self._load_blocked_ips()
         self.has_admin = self._check_admin()
-        init_response_db()
-        self.logger.info(f"Response Agent initialized (admin: {self.has_admin})")
+        
+        self.logger.info(f"Response Agent initialized (admin: {self.has_admin}, auto_block: {self.config.get('auto_block_ips', False)})")
 
     def _check_admin(self) -> bool:
         try:
@@ -100,10 +102,13 @@ class ResponseAgent:
 
     def _load_blocked_ips(self) -> Dict:
         blocked = {}
-        with get_db_connection() as conn:
-            rows = conn.execute('SELECT ip_address, blocked_until FROM blocked_ips WHERE is_active = 1').fetchall()
-            for r in rows:
-                blocked[r['ip_address']] = r['blocked_until']
+        try:
+            with get_response_db_connection() as conn:
+                rows = conn.execute('SELECT ip_address, blocked_until FROM blocked_ips WHERE is_active = 1').fetchall()
+                for r in rows:
+                    blocked[r['ip_address']] = r['blocked_until']
+        except Exception as e:
+            self.logger.warning(f"Could not load blocked IPs: {e}")
         return blocked
 
     def should_respond(self, alert: Dict) -> bool:
@@ -126,16 +131,22 @@ class ResponseAgent:
         source_ip = alert.get('source_ip', '')
         tool = alert.get('tool', '').lower()
 
+        self.logger.info(f"Executing response for alert {alert.get('alert_id', 'unknown')} - {attack_type}")
+
         # 1. Block IP (if not localhost)
         if source_ip and source_ip not in ['localhost', '127.0.0.1', 'unknown'] and self.config.get('auto_block_ips'):
             res = self.block_ip(source_ip, alert)
             actions.append(res)
+            if res.get('success'):
+                self.logger.info(f"Blocked IP {source_ip}")
 
         # 2. Kill suspicious processes (if configured)
         if self.config.get('auto_kill_processes') and ('resource_consumption' in attack_type or tool in ['resource_tool', 'miner']):
             res = self.kill_suspicious_processes(alert)
             if res:
                 actions.append(res)
+                if res.get('success'):
+                    self.logger.info(f"Killed {len(res.get('killed', []))} suspicious processes")
 
         # 3. Attack-specific responses
         if 'brute' in attack_type or tool == 'hydra':
@@ -150,13 +161,16 @@ class ResponseAgent:
 
         response_record = {
             'response_id': response_id,
-            'alert_id': alert['alert_id'],
+            'alert_id': alert.get('alert_id', 'unknown'),
             'timestamp': datetime.now().isoformat(),
             'actions': actions,
             'success': all(a.get('success', False) for a in actions if a)
         }
         self._store_response(response_record)
-        self._send_followup_alert(alert, response_record)
+        
+        if self.alert_agent:
+            self._send_followup_alert(alert, response_record)
+        
         return response_record
 
     def block_ip(self, ip: str, alert: Dict = None) -> Dict:
@@ -184,12 +198,12 @@ class ResponseAgent:
                 result['message'] = "Blocked via pf"
 
             if result['success']:
-                with get_db_connection() as conn:
+                with get_response_db_connection() as conn:
                     conn.execute('''
                         INSERT INTO blocked_ips (ip_address, reason, severity, blocked_at, blocked_until, blocked_by)
                         VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (ip, alert.get('description','Automated response') if alert else 'Automated',
-                          alert.get('severity','high') if alert else 'high',
+                    ''', (ip, alert.get('description', 'Automated response') if alert else 'Automated',
+                          alert.get('severity', 'high') if alert else 'high',
                           datetime.now().isoformat(),
                           (datetime.now().timestamp() + 86400),  # 24h block
                           'response_agent'))
@@ -198,6 +212,7 @@ class ResponseAgent:
         except Exception as e:
             result['error'] = str(e)
             result['message'] = f"Failed: {e}"
+            self.logger.error(f"Failed to block IP {ip}: {e}")
         return result
 
     def unblock_ip(self, ip: str) -> bool:
@@ -212,12 +227,12 @@ class ResponseAgent:
                 subprocess.run(['iptables', '-D', 'INPUT', '-s', ip, '-j', 'DROP'], check=True, capture_output=True)
             elif system == 'Darwin':
                 subprocess.run(['sudo', 'pfctl', '-t', 'blocklist', '-T', 'delete', ip], check=True, capture_output=True)
-            # Update DB
-            with get_db_connection() as conn:
+            with get_response_db_connection() as conn:
                 conn.execute('UPDATE blocked_ips SET is_active = 0, unblocked_at = ? WHERE ip_address = ?',
                              (datetime.now().isoformat(), ip))
                 conn.commit()
             self.blocked_ips.pop(ip, None)
+            self.logger.info(f"Unblocked IP {ip}")
             return True
         except Exception as e:
             self.logger.error(f"Unblock failed for {ip}: {e}")
@@ -237,23 +252,24 @@ class ResponseAgent:
                             p.terminate()
                             p.wait(timeout=3)
                             result['killed'].append({'pid': proc.info['pid'], 'name': proc.info['name']})
+                            self.logger.info(f"Terminated process {proc.info['name']} (PID: {proc.info['pid']})")
                     except (psutil.NoSuchProcess, psutil.AccessDenied):
                         continue
             result['success'] = len(result['killed']) > 0
             result['message'] = f"Killed {len(result['killed'])} processes"
-            # Record in DB
             if result['killed']:
-                with get_db_connection() as conn:
+                with get_response_db_connection() as conn:
                     for k in result['killed']:
                         conn.execute('''
                             INSERT INTO blocked_processes (process_name, process_pid, reason, severity, action_taken, blocked_at)
                             VALUES (?, ?, ?, ?, ?, ?)
-                        ''', (k['name'], k['pid'], alert.get('description','Resource consumption'),
-                              alert.get('severity','high'), 'terminated', datetime.now().isoformat()))
+                        ''', (k['name'], k['pid'], alert.get('description', 'Resource consumption'),
+                              alert.get('severity', 'high'), 'terminated', datetime.now().isoformat()))
                     conn.commit()
         except Exception as e:
             result['error'] = str(e)
             result['message'] = f"Failed: {e}"
+            self.logger.error(f"Failed to kill processes: {e}")
         return result
 
     def _handle_bruteforce(self, alert: Dict) -> Dict:
@@ -286,12 +302,11 @@ class ResponseAgent:
         ip = alert.get('source_ip')
         if ip:
             self.block_ip(ip, alert)
-            # Also block for 1 hour in DB
-            with get_db_connection() as conn:
+            with get_response_db_connection() as conn:
                 conn.execute('''
                     INSERT INTO blocked_ips (ip_address, reason, severity, blocked_at, blocked_until)
                     VALUES (?, ?, ?, ?, ?)
-                ''', (ip, 'Port scanning detected', alert.get('severity','medium'),
+                ''', (ip, 'Port scanning detected', alert.get('severity', 'medium'),
                       datetime.now().isoformat(), datetime.now().timestamp() + 3600))
                 conn.commit()
             result['success'] = True
@@ -317,11 +332,11 @@ class ResponseAgent:
                            check=False)
 
     def _generate_response_id(self, alert: Dict) -> str:
-        base = f"RESP_{alert['alert_id']}_{datetime.now().timestamp()}"
+        base = f"RESP_{alert.get('alert_id', 'unknown')}_{datetime.now().timestamp()}"
         return f"RSP-{hashlib.md5(base.encode()).hexdigest()[:8].upper()}"
 
     def _store_response(self, response: Dict):
-        with get_db_connection() as conn:
+        with get_response_db_connection() as conn:
             conn.execute('''
                 INSERT INTO responses (response_id, alert_id, timestamp, action, status, details, success)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -338,34 +353,33 @@ class ResponseAgent:
 
     def _send_followup_alert(self, original_alert: Dict, response: Dict):
         """Generate an alert about the automated response."""
-        followup = {
-            'alert_id': f"RESP-{original_alert['alert_id']}",
-            'timestamp': datetime.now().isoformat(),
-            'severity': 'medium',
-            'alert_type': 'automated_response',
-            'source_ip': original_alert.get('source_ip', 'unknown'),
-            'attack_type': 'response_executed',
-            'description': f"Automated response executed for alert {original_alert['alert_id']}",
-            'confidence': 1.0,
-            'risk_score': 30,
-            'recommendations': ['Review response actions', 'Check if further action needed'],
-            'response_details': response
-        }
-        # Use alert agent to generate and queue this alert
         if self.alert_agent:
+            followup = {
+                'alert_id': f"RESP-{original_alert.get('alert_id', 'unknown')}",
+                'timestamp': datetime.now().isoformat(),
+                'severity': 'medium',
+                'alert_type': 'automated_response',
+                'source_ip': original_alert.get('source_ip', 'unknown'),
+                'attack_type': 'response_executed',
+                'description': f"Automated response executed for alert {original_alert.get('alert_id', 'unknown')}",
+                'confidence': 1.0,
+                'risk_score': 30,
+                'recommendations': ['Review response actions', 'Check if further action needed'],
+                'response_details': response
+            }
             alert_obj = self.alert_agent.generate_alert(followup)
             if alert_obj:
                 self.alert_agent.queue_alert(alert_obj)
 
     def get_blocked_ips(self) -> List[Dict]:
-        with get_db_connection() as conn:
+        with get_response_db_connection() as conn:
             rows = conn.execute('SELECT * FROM blocked_ips WHERE is_active = 1 ORDER BY blocked_at DESC').fetchall()
             return [dict(r) for r in rows]
 
     def get_response_history(self, alert_id: str = None) -> List[Dict]:
-        with get_db_connection() as conn:
+        with get_response_db_connection() as conn:
             if alert_id:
                 rows = conn.execute('SELECT * FROM responses WHERE alert_id = ? ORDER BY created_at DESC', (alert_id,)).fetchall()
             else:
                 rows = conn.execute('SELECT * FROM responses ORDER BY created_at DESC LIMIT 100').fetchall()
-            return [dict(r) for r in rows]  
+            return [dict(r) for r in rows]

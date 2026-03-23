@@ -808,23 +808,41 @@
         <div class="menu-header">
             <div class="menu-logo">
                 <i class="fas fa-shield-alt"></i>
-                <span>Cybershield AI</span>
+                <span>CyberShield AI</span>
             </div>
-            <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+            <button class="close-menu-btn" id="closeMenuBtn" aria-label="Close menu"><i class="fas fa-times"></i></button>
         </div>
         
         <div class="menu-user-section">
-            <div class="menu-user-avatar">{% if current_user.is_authenticated %}{{ current_user.username[0]|upper }}{% else %}G{% endif %}</div>
+            <div class="menu-user-avatar">
+                {% if current_user.is_authenticated %}
+                    {{ current_user.username[0]|upper }}
+                {% else %}
+                    G
+                {% endif %}
+            </div>
             <div class="menu-user-info">
-                <div class="menu-user-name">{% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Guest User{% endif %}</div>
-                <div class="menu-user-email">{% if current_user.is_authenticated %}{{ current_user.email }}{% else %}guest@cybershield.ai{% endif %}</div>
+                <div class="menu-user-name">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.username }}
+                    {% else %}
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="menu-user-email">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.email }}
+                    {% else %}
+                        guest@cybershield.ai
+                    {% endif %}
+                </div>
             </div>
         </div>
         
-        <div class="menu-nav">
+        <div class="menu-nav">      
             <div class="menu-nav-section">
-                <div class="menu-nav-title">General</div>
-                <a href="{{ url_for('landing') }}" class="menu-nav-item active">
+                <div class="menu-nav-title">Resources</div>
+                <a href="{{ url_for('landing') }}" class="menu-nav-item">
                     <i class="fas fa-home"></i><span>Home</span>
                 </a>
                 <a href="{{ url_for('features') }}" class="menu-nav-item">
@@ -833,12 +851,22 @@
                 <a href="{{ url_for('about') }}" class="menu-nav-item">
                     <i class="fas fa-info-circle"></i><span>About</span>
                 </a>
+                <a href="{{ url_for('architecture') }}" class="menu-nav-item">
+                    <i class="fas fa-sitemap"></i><span>Architecture</span>
+                </a>
+                <a href="{{ url_for('research') }}" class="menu-nav-item">
+                    <i class="fas fa-flask"></i><span>Research</span>
+                </a>
                 <a href="{{ url_for('documentation') }}" class="menu-nav-item">
                     <i class="fas fa-book"></i><span>Documentation</span>
                 </a>
+                <a href="{{ url_for('contact') }}" class="menu-nav-item active">
+                    <i class="fas fa-envelope"></i><span>Contact</span>
+                </a>
             </div>
-            <div class="menu-nav-section">
-                <div class="menu-nav-title">Account</div>
+        </div>
+        
+        <div class="menu-nav-title">Account</div>
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('dashboard_home') }}" class="menu-nav-item">
                         <i class="fas fa-chart-pie"></i><span>Dashboard</span>
@@ -854,13 +882,6 @@
                         <i class="fas fa-user-plus"></i><span>Sign Up</span>
                     </a>
                 {% endif %}
-            </div>
-        </div>
-        
-        <div class="menu-footer">
-            <a href="{{ url_for('help_support') }}" class="menu-nav-item">
-                <i class="fas fa-question-circle"></i><span>Help & Support</span>
-            </a>
         </div>
     </div>
 

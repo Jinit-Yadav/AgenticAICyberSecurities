@@ -1210,6 +1210,94 @@
                 {% endif %}
             </div>
 
+            <!-- Add after the Threat Details Table section -->
+            <div class="two-column" style="margin-top: 20px;">
+                <!-- Recent Alerts Section -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">
+                            <i class="fas fa-bell"></i> Recent Alerts
+                            <span class="risk-badge" style="margin-left: 10px; font-size: 0.7rem;">{{ alert_history|length }} total</span>
+                        </span>
+                    </div>
+                    <div class="alert-list" style="max-height: 300px; overflow-y: auto;">
+                        {% if alert_history and alert_history|length > 0 %}
+                            {% for alert in alert_history[:5] %}
+                            <div class="alert-item" style="padding: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <span class="severity-badge severity-{{ alert.severity }}">{{ alert.severity|upper }}</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ alert.timestamp[:16] }}</span>
+                                </div>
+                                <div><strong>{{ alert.attack_type|default('Unknown') }}</strong> from {{ alert.source_ip|default('unknown') }}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">{{ alert.description|truncate(60) }}</div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state" style="padding: 20px;">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>No alerts generated yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Recent Responses Section -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">
+                            <i class="fas fa-shield-haltered"></i> Automated Responses
+                            <span class="risk-badge" style="margin-left: 10px; font-size: 0.7rem;">{{ response_history|length }} actions</span>
+                        </span>
+                    </div>
+                    <div class="response-list" style="max-height: 300px; overflow-y: auto;">
+                        {% if response_history and response_history|length > 0 %}
+                            {% for response in response_history[:5] %}
+                            <div class="response-item" style="padding: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--success);">
+                                        <i class="fas fa-check-circle"></i> {{ response.action|truncate(50) }}
+                                    </span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ response.timestamp[:16] }}</span>
+                                </div>
+                                <div style="font-size: 0.85rem; margin-top: 5px;">{{ response.details|truncate(80) }}</div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state" style="padding: 20px;">
+                                <i class="fas fa-shield-haltered"></i>
+                                <p>No automated responses yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blocked IPs Section -->
+            <div class="threat-table" style="margin-top: 20px;">
+                <div class="threat-table-header">
+                    <div>IP Address</div>
+                    <div>Blocked At</div>
+                    <div>Reason</div>
+                    <div>Severity</div>
+                    <div>Action</div>
+                </div>
+                {% if blocked_ips and blocked_ips|length > 0 %}
+                    {% for ip in blocked_ips %}
+                    <div class="threat-table-row">
+                        <div>{{ ip.ip_address }}</div>
+                        <div>{{ ip.blocked_at[:16] if ip.blocked_at else 'N/A' }}</div>
+                        <div>{{ ip.reason|truncate(40) }}</div>
+                        <div><span class="severity-badge severity-{{ ip.severity }}">{{ ip.severity|upper }}</span></div>
+                        <div><span class="file-type">Blocked</span></div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-shield-haltered"></i>
+                        <p>No IPs currently blocked</p>
+                    </div>
+                {% endif %}
+            </div>
             <!-- Your Detection History Summary -->
             <div class="device-list">
                 <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
