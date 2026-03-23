@@ -1,0 +1,10 @@
+# Suricata rules for localhost 
+ 
+# Port Scan Detection 
+alert tcp any any - any (msg:"PORT SCAN DETECTED"; flow:stateless; threshold:type both, track by_src, count 5, seconds 10; sid:1000001; rev:1;) 
+ 
+# SSH Brute Force 
+alert tcp any any - 22 (msg:"SSH BRUTE FORCE ATTEMPT"; flow:to_server; threshold:type threshold, track by_src, count 3, seconds 30; sid:1000002; rev:1;) 
+ 
+# SYN Flood 
+alert tcp any any - any (msg:"SYN FLOOD DETECTED"; flags:S; threshold:type threshold, track by_dst, count 20, seconds 5; sid:1000003; rev:1;) 

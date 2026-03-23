@@ -1,0 +1,28 @@
+%YAML 1.1
+---
+default-log-dir: suricata_logs
+
+af-packet:
+  - interface: loopback
+    cluster-id: 99
+    cluster-type: cluster_flow
+
+rule-files:
+  - rules/suricata_local.rules
+
+outputs:
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+  - eve-log:
+      enabled: yes
+      filename: eve.json
+      types:
+        - alert
+
+logging:
+  default-log-level: info
+  outputs:
+    - console:
+        enabled: yes

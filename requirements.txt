@@ -26,3 +26,9 @@ scikit-learn
 scipy  
 requests
 python-dotenv
+python-nmap 
+scapy
+paramiko
+beautifulsoup4
+dill
+openai
