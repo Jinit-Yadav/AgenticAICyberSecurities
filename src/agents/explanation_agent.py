@@ -40,7 +40,7 @@ def test_openrouter_connection():
     
     # Test with a lightweight models endpoint or simple chat completion
     test_payload = {
-        "model": "openrouter/pony-alpha:free",
+        "model": "arcee-ai/trinity-large-preview:free",
         "messages": [{"role": "user", "content": "Test"}],
         "max_tokens": 5
     }
@@ -179,7 +179,7 @@ class DebateConfig:
     # API Configuration
     API_KEY = os.getenv('OPENROUTER_API_KEY', '')
     BASE_URL = "https://openrouter.ai/api/v1"
-    PRIMARY_MODEL = "openrouter/pony-alpha:free" 
+    PRIMARY_MODEL = "arcee-ai/trinity-large-preview:free" 
     EMBEDDING_MODEL = "all-MiniLM-L6-v2"
     
     # File Paths
@@ -198,21 +198,21 @@ class DebateConfig:
     DEBATE_MODELS = [
     {
         "name": "Network Security Expert",
-        "model": "openrouter/pony-alpha:free",  # Use this exact string
+        "model": "arcee-ai/trinity-large-preview:free",  # Use this exact string
         "role": "Network Security Specialist", 
         "specialty": "Port scanning analysis, firewall configurations",
         "working": True
     },
     {
         "name": "Threat Intelligence Analyst",
-        "model": "openrouter/pony-alpha:free",  # Same here
+        "model": "arcee-ai/trinity-large-preview:free",  # Same here
         "role": "Threat Intelligence Analyst",
         "specialty": "Threat assessment, attack patterns, risk analysis",
         "working": True
     },
     {
         "name": "Incident Response Expert",
-        "model": "openrouter/pony-alpha:free",  # And here
+        "model": "arcee-ai/trinity-large-preview:free",  # And here
         "role": "Incident Response Specialist",
         "specialty": "Containment strategies, forensic analysis, recovery",
         "working": True
