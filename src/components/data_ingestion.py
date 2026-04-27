@@ -26,10 +26,10 @@ class AttackLogsConfig:
     Configuration for all datasets
     """
     # Your friend's attack logs directories
-    nmap_logs_dir: str = 'C:/Users/yadav/Downloads/wetransfer_nmap-sv-json_2025-09-25_1525'
-    attacks_log_dir: str = 'C:/Users/yadav/Downloads/Attacks log'
+    nmap_logs_dir: str = 'data/friends_attack_logs'
+    attacks_log_dir: str = 'data/friends_attack_logs'  # ADD THIS LINE - points to same directory
     
-    # CIC Dataset paths - FIXED with your actual file structure
+    # CIC Dataset paths
     cic_generated_flows_dir: str = 'data/cic_dataset/GeneratedLabelledFlows'
     cic_ml_dir: str = 'data/cic_dataset/MachineLearningCSV'
     cic_extracted_dir: str = 'data/cic_dataset/extracted_files'
@@ -77,22 +77,33 @@ class CICDatasetParser:
         print(f"📁 Parsing CIC dataset: {csv_file_path}")
         
         try:
-            # Load CIC dataset in chunks to handle large files
-            chunks = []
-            chunk_size = 50000  # Process 50K rows at a time
+            # Try different encodings if utf-8 fails
+            encodings = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
             
-            for chunk in pd.read_csv(csv_file_path, chunksize=chunk_size, low_memory=False):
-                print(f"   📊 Processing chunk with {len(chunk):,} records...")
-                mapped_chunk = self._map_cic_to_our_schema(chunk)
-                chunks.append(mapped_chunk)
+            for encoding in encodings:
+                try:
+                    chunks = []
+                    chunk_size = 50000
+                    
+                    for chunk in pd.read_csv(csv_file_path, chunksize=chunk_size, 
+                                            low_memory=False, encoding=encoding):
+                        print(f"   📊 Processing chunk with {len(chunk):,} records...")
+                        mapped_chunk = self._map_cic_to_our_schema(chunk)
+                        chunks.append(mapped_chunk)
+                    
+                    if chunks:
+                        cic_data = pd.concat(chunks, ignore_index=True)
+                        print(f"✅ Successfully parsed {len(cic_data):,} records from CIC dataset (using {encoding})")
+                        return cic_data
+                        
+                except UnicodeDecodeError:
+                    continue
+                except Exception as e:
+                    print(f"   ⚠️  Failed with {encoding}: {e}")
+                    continue
             
-            if chunks:
-                cic_data = pd.concat(chunks, ignore_index=True)
-                print(f"✅ Successfully parsed {len(cic_data):,} records from CIC dataset")
-                return cic_data
-            else:
-                print("❌ No data parsed from CIC dataset")
-                return pd.DataFrame()
+            print("❌ No valid encoding found for CIC dataset")
+            return pd.DataFrame()
             
         except Exception as e:
             print(f"❌ Failed to parse CIC dataset: {e}")
